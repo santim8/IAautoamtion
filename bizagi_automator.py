@@ -11,7 +11,8 @@ class BizagiAutomator:
     def abrir_pagina(self):
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=False)  # False = abre ventana visible
-            page = browser.new_page()
+            context = browser.new_context(viewport=None)  # viewport=None = pantalla completa
+            page = context.new_page()
 
             try:
                 page.goto(self.base_url, wait_until="load")
