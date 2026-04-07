@@ -214,6 +214,62 @@ class BizagiAutomator:
         print("Formulario de consulta completado y búsqueda iniciada")
         return True
 
+    def obtener_ultima_solicitud(self, page):
+        """Obtiene el número de la última solicitud de la tabla, navegando si hay paginación"""
+        try:
+            # Esperar a que cargue la tabla de resultados
+            page.wait_for_selector('tbody.biz-wp-table-body', timeout=15000)
+            print("Tabla de resultados encontrada")
+            
+            # Verificar si existe paginación - página 2
+            pagina2_existente = False
+            try:
+                page.wait_for_selector('li.bz-page[data-page="2"]', timeout=5000)
+                pagina2_existente = True
+                print("Se encontró paginación - existe página 2")
+            except:
+                print("No se encontró paginación - solo existe página actual")
+            
+            # Si existe página 2, navegar a ella
+            if pagina2_existente:
+                try:
+                    print("Navegando a la página 2...")
+                    page.click('li.bz-page[data-page="2"] span.number:has-text("2")')
+                    page.wait_for_timeout(3000)  # Esperar a que cargue la nueva página
+                    
+                    # Esperar a que se cargue la nueva tabla
+                    page.wait_for_selector('tbody.biz-wp-table-body', timeout=10000)
+                    print("Tabla de página 2 cargada")
+                except Exception as e:
+                    print(f"Error al navegar a la página 2: {e}")
+                    # Continuar con la página actual si falla la navegación
+            
+            # Obtener todas las filas de la tabla actual
+            rows = page.locator('tbody.biz-wp-table-body tr')
+            row_count = rows.count()
+            print(f"Se encontraron {row_count} filas en la tabla actual")
+            
+            if row_count == 0:
+                print("No se encontraron resultados en la tabla")
+                return None
+            
+            # Obtener la última fila y extraer el número de solicitud (segunda columna)
+            last_row = rows.last
+            # El número de solicitud está en la segunda columna (índice 1)
+            solicitud_cells = last_row.locator('td')
+            if solicitud_cells.count() >= 2:
+                # Obtener el texto de la segunda celda (índice 1)
+                numero_solicitud = solicitud_cells.nth(1).text_content()
+                print(f"Último número de solicitud encontrado: {numero_solicitud.strip()}")
+                return numero_solicitud.strip()
+            else:
+                print("La última fila no tiene suficientes columnas")
+                return None
+                
+        except Exception as e:
+            print(f"Error al obtener el último número de solicitud: {e}")
+            return None
+
     def abrir_pagina(self):
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=False)  # False = abre ventana visible
@@ -242,6 +298,16 @@ class BizagiAutomator:
                 if not self.llenar_formulario_consulta(page):
                     print("Falló el llenado del formulario")
                     return
+
+                # Obtener el último número de solicitud
+                ultima_solicitud = self.obtener_ultima_solicitud(page)
+                
+                if ultima_solicitud:
+                    print(f"\n=== RESULTADO ===")
+                    print(f"El último número de solicitud es: {ultima_solicitud}")
+                    print(f"==================\n")
+                else:
+                    print("No se pudo obtener el número de la última solicitud")
 
                 # Mantener navegador abierto
                 input("Presiona Enter para cerrar el navegador...")
