@@ -1,377 +1,293 @@
+import os
 import sys
-import time
-from playwright.sync_api import sync_playwright, Page
+import logging
+from playwright.sync_api import sync_playwright, Page, Locator
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+log = logging.getLogger(__name__)
+
 
 class BizagiAutomator:
-    def __init__(self, document_number=None):
+    def __init__(self, document_number: str | None = None):
         self.base_url = "https://test-procesosdigitales-colsubsidio.bizagi.com/#"
-        self.username = "angie.uribeav"
-        self.password = "2025*CRD"
-        # Usar el número de documento proporcionado o el predeterminado
+        self.username = os.environ.get("BIZAGI_USER", "angie.uribeav")
+        self.password = os.environ.get("BIZAGI_PASSWORD", "2025*CRD")
         self.document_number = document_number or "2001002110"
 
-    def esta_logueado(self, page):
-        """Verifica si ya estamos logueados"""
+    def esta_logueado(self, page: Page) -> bool:
         try:
-            # Si el menú de consultas es visible, significa que ya estamos logueados
             page.wait_for_selector("#menuListQueries", timeout=5000)
             return True
-        except:
+        except Exception:
             return False
 
-    def login(self, page):
-        """Realiza el proceso de login"""
-        # Esperar a que cargue el formulario de dominio
-        print("Esperando a que carguen los dominios...")
-        page.wait_for_selector("#domain", timeout=10000)
-        
-        # Seleccionar el dominio "colsubsidio" (que corresponde a "Gestiona tu solicitud(colsubsidio)")
+    def login(self, page: Page) -> bool:
+        log.info("Esperando a que carguen los dominios...")
         try:
+            page.wait_for_selector("#domain", timeout=10000)
             page.select_option("#domain", "colsubsidio")
-            print("Dominio 'Gestiona tu solicitud(colsubsidio)' seleccionado correctamente")
+            log.info("Dominio 'colsubsidio' seleccionado")
         except Exception as e:
-            print(f"Error al seleccionar dominio: {e}")
+            log.error("Error al seleccionar dominio: %s", e)
             return False
 
-        # Esperar a que aparezcan los campos de login
         page.wait_for_timeout(2000)
 
-        # Verificar que los campos de login estén visibles
         try:
-            page.wait_for_selector('#user', timeout=5000)
-            page.wait_for_selector('#password', timeout=5000)
-            print("Campos de login encontrados")
+            page.wait_for_selector("#user", timeout=5000)
+            page.wait_for_selector("#password", timeout=5000)
         except Exception as e:
-            print(f"No se encontraron los campos de login: {e}")
+            log.error("No se encontraron los campos de login: %s", e)
             return False
 
-        # Ingresar credenciales
-        print("Ingresando credenciales...")
-        
-        # Campo de usuario
         try:
-            page.fill('#user', self.username)
-            print("Usuario ingresado correctamente")
+            page.fill("#user", self.username)
+            page.fill("#password", self.password)
+            page.click("#btn-login")
+            log.info("Credenciales ingresadas y botón login presionado")
         except Exception as e:
-            print(f"Error al ingresar usuario: {e}")
+            log.error("Error en el proceso de login: %s", e)
             return False
 
-        # Campo de contraseña
-        try:
-            page.fill('#password', self.password)
-            print("Contraseña ingresada correctamente")
-        except Exception as e:
-            print(f"Error al ingresar contraseña: {e}")
-            return False
-
-        # Hacer clic en el botón de login
-        try:
-            page.click('#btn-login')
-            print("Botón de login presionado")
-        except Exception as e:
-            print(f"Error al presionar botón de login: {e}")
-            return False
-
-        # Esperar a que cargue la página principal
         page.wait_for_timeout(5000)
-        print("Proceso de login completado")
+        log.info("Login completado")
         return True
 
-    def navegar_a_consultas(self, page):
-        """Navega a la sección de consultas"""
-        print("Navegando a Consultas...")
-        try:
-            page.wait_for_selector("#menuListQueries", timeout=10000)
-            page.click("#menuListQueries")
-            print("Menú Consultas seleccionado")
-            page.wait_for_timeout(2000)
-        except Exception as e:
-            print(f"Error al hacer clic en Consultas: {e}")
-            return False
+    def navegar_a_consultas(self, page: Page) -> bool:
+        log.info("Navegando a Consultas...")
+        steps = [
+            ("#menuListQueries", None),
+            ("text=Otras entidades", None),
+            ("text=GCR_Solicitudes - Promotor", None),
+        ]
+        for selector, label in steps:
+            try:
+                page.wait_for_selector(selector, timeout=10000)
+                page.click(selector)
+                page.wait_for_timeout(2000)
+            except Exception as e:
+                log.error("Error al hacer clic en '%s': %s", selector, e)
+                return False
 
-        # Buscar y hacer clic en "Otras entidades"
-        try:
-            page.wait_for_selector("text=Otras entidades", timeout=10000)
-            page.click("text=Otras entidades")
-            print("Otras entidades seleccionado")
-            page.wait_for_timeout(2000)
-        except Exception as e:
-            print(f"Error al hacer clic en Otras entidades: {e}")
-            return False
-
-        # Buscar y hacer clic en "GCR_Solicitudes - Promotor"
-        try:
-            page.wait_for_selector("text=GCR_Solicitudes - Promotor", timeout=10000)
-            page.click("text=GCR_Solicitudes - Promotor")
-            print("GCR_Solicitudes - Promotor seleccionado")
-            page.wait_for_timeout(3000)
-        except Exception as e:
-            print(f"Error al hacer clic en GCR_Solicitudes - Promotor: {e}")
-            return False
-
-        print("Navegación completada")
+        log.info("Navegación a consultas completada")
         return True
 
-    def llenar_formulario_consulta(self, page):
-        """Llena el formulario de consulta"""
-        print(f"Llenando formulario de consulta con documento: {self.document_number}")
-        
-        # Marcar checkbox "ui-bizagi-render-control-included-all"
+    def llenar_formulario_consulta(self, page: Page) -> bool:
+        log.info("Llenando formulario con documento: %s", self.document_number)
+
         try:
-            page.wait_for_selector('input[type="checkbox"].ui-bizagi-render-control-included-all', timeout=10000)
+            page.wait_for_selector(
+                'input[type="checkbox"].ui-bizagi-render-control-included-all',
+                timeout=10000,
+            )
             page.check('input[type="checkbox"].ui-bizagi-render-control-included-all')
-            print("Checkbox de inclusión marcado")
             page.wait_for_timeout(1000)
         except Exception as e:
-            print(f"Error al marcar checkbox: {e}")
+            log.warning("No se pudo marcar el checkbox de inclusión: %s", e)
 
-        # Hacer clic en el combobox de tipo de documento
         try:
-            page.wait_for_selector('#combo-ce37ef65-46c7-4519-92b7-4c4615493aa3', timeout=10000)
-            page.click('#combo-ce37ef65-46c7-4519-92b7-4c4615493aa3')
-            print("Combobox de tipo de documento abierto")
+            page.wait_for_selector(
+                "#combo-ce37ef65-46c7-4519-92b7-4c4615493aa3", timeout=10000
+            )
+            page.click("#combo-ce37ef65-46c7-4519-92b7-4c4615493aa3")
             page.wait_for_timeout(2000)
-        except Exception as e:
-            print(f"Error al abrir combobox de tipo de documento: {e}")
-            return False
-
-        # Seleccionar "Cédula de Ciudadanía"
-        try:
             page.wait_for_selector("text=Cédula de Ciudadanía", timeout=10000)
             page.click("text=Cédula de Ciudadanía")
-            print("Cédula de Ciudadanía seleccionada")
             page.wait_for_timeout(1000)
         except Exception as e:
-            print(f"Error al seleccionar Cédula de Ciudadanía: {e}")
+            log.error("Error al seleccionar tipo de documento: %s", e)
             return False
 
-        # Rellenar campo de número de documento - intentar múltiples selectores
-        doc_field = None
-        selectors_to_try = [
+        if not self._ingresar_numero_documento(page):
+            return False
+
+        return self._presionar_buscar(page)
+
+    def _ingresar_numero_documento(self, page: Page) -> bool:
+        selectors = [
             'input[aria-labelledby*="aeb8b6ab-751a-4aac-a9c5-b504a1a56c0d"]',
             'input.ui-bizagi-render-text[autocomplete="off"]',
             'input.ui-bizagi-render-text[type="text"]',
             'input[maxlength="50"][value=""]',
-            'input[autocomplete="off"][maxlength="50"]'
+            'input[autocomplete="off"][maxlength="50"]',
         ]
-        
-        for i, selector in enumerate(selectors_to_try):
+
+        for i, selector in enumerate(selectors):
             try:
-                print(f"Intentando con selector {i+1}: {selector}")
                 page.wait_for_selector(selector, timeout=5000)
-                
-                # Si hay múltiples campos, intentar con el último o el primero sin valor
-                fields = page.locator(selector)
-                if fields.count() > 1:
-                    # Intentar encontrar el campo vacío
-                    for j in range(fields.count()):
-                        field_value = fields.nth(j).input_value()
-                        if not field_value or field_value == "":
-                            doc_field = fields.nth(j)
-                            break
-                    if not doc_field:
-                        doc_field = fields.first
-                else:
-                    doc_field = fields.first
-                
-                # Limpiar campo y rellenar
-                doc_field.fill("")  # Limpiar primero
-                doc_field.fill(self.document_number)
-                print(f"Número de documento {self.document_number} ingresado con selector {i+1}")
+                fields: Locator = page.locator(selector)
+                field = self._primer_campo_vacio(fields)
+                field.fill("")
+                field.fill(self.document_number)
                 page.wait_for_timeout(1000)
-                
-                # Verificar que se ingresó correctamente
-                if doc_field.input_value() == self.document_number:
-                    print("Verificación exitosa del número de documento")
-                    break
-                else:
-                    print(f"Valor ingresado: '{doc_field.input_value()}' (esperado: '{self.document_number}')")
-                    
+                if field.input_value() == self.document_number:
+                    log.info("Documento ingresado con selector %d", i + 1)
+                    return True
+                log.warning(
+                    "Selector %d: valor guardado '%s' != esperado '%s'",
+                    i + 1,
+                    field.input_value(),
+                    self.document_number,
+                )
             except Exception as e:
-                print(f"Error con selector {i+1}: {e}")
-                continue
-        else:
-            print("No se pudo rellenar el número de documento con ningún selector")
-            return False
+                log.debug("Selector %d falló: %s", i + 1, e)
 
-        # Hacer clic en el botón Buscar
-        try:
-            page.wait_for_selector('span.ui-button-text:has-text("Buscar")', timeout=10000)
-            page.click('span.ui-button-text:has-text("Buscar")')
-            print("Botón Buscar presionado")
-            page.wait_for_timeout(3000)  # Esperar a que se carguen los resultados
-        except Exception as e:
-            print(f"Error al presionar botón Buscar: {e}")
-            # Intentar con selector alternativo
+        log.error("No se pudo ingresar el número de documento")
+        return False
+
+    def _primer_campo_vacio(self, fields: Locator) -> Locator:
+        if fields.count() <= 1:
+            return fields.first
+        for j in range(fields.count()):
+            if not fields.nth(j).input_value():
+                return fields.nth(j)
+        return fields.first
+
+    def _presionar_buscar(self, page: Page) -> bool:
+        for selector in ('span.ui-button-text:has-text("Buscar")', "text=Buscar"):
             try:
-                page.click('text=Buscar')
-                print("Botón Buscar presionado con selector alternativo")
+                page.wait_for_selector(selector, timeout=10000)
+                page.click(selector)
                 page.wait_for_timeout(3000)
-            except Exception as e2:
-                print(f"Error al presionar botón Buscar con selector alternativo: {e2}")
-                return False
+                log.info("Botón Buscar presionado")
+                return True
+            except Exception as e:
+                log.debug("Selector de Buscar '%s' falló: %s", selector, e)
+        log.error("No se pudo presionar el botón Buscar")
+        return False
 
-        print("Formulario de consulta completado y búsqueda iniciada")
-        return True
-
-    def obtener_ultima_solicitud(self, page):
-        """Obtiene el número de la última solicitud de la tabla, navegando si hay paginación"""
+    def obtener_ultima_solicitud(self, page: Page) -> str | None:
         try:
-            # Esperar a que cargue la tabla de resultados
-            page.wait_for_selector('tbody.biz-wp-table-body', timeout=15000)
-            print("Tabla de resultados encontrada")
-            
-            # Verificar si existe paginación - página 2
-            pagina2_existente = False
+            page.wait_for_selector("tbody.biz-wp-table-body", timeout=15000)
+
             try:
                 page.wait_for_selector('li.bz-page[data-page="2"]', timeout=5000)
-                pagina2_existente = True
-                print("Se encontró paginación - existe página 2")
-            except:
-                print("No se encontró paginación - solo existe página actual")
-            
-            # Si existe página 2, navegar a ella
-            if pagina2_existente:
-                try:
-                    print("Navegando a la página 2...")
-                    page.click('li.bz-page[data-page="2"] span.number:has-text("2")')
-                    page.wait_for_timeout(3000)  # Esperar a que cargue la nueva página
-                    
-                    # Esperar a que se cargue la nueva tabla
-                    page.wait_for_selector('tbody.biz-wp-table-body', timeout=10000)
-                    print("Tabla de página 2 cargada")
-                except Exception as e:
-                    print(f"Error al navegar a la página 2: {e}")
-                    # Continuar con la página actual si falla la navegación
-            
-            # Obtener todas las filas de la tabla actual
-            rows = page.locator('tbody.biz-wp-table-body tr')
+                log.info("Paginación detectada, navegando a página 2...")
+                page.click('li.bz-page[data-page="2"] span.number:has-text("2")')
+                page.wait_for_timeout(3000)
+                page.wait_for_selector("tbody.biz-wp-table-body", timeout=10000)
+            except Exception:
+                log.info("Sin paginación adicional, usando página actual")
+
+            rows = page.locator("tbody.biz-wp-table-body tr")
             row_count = rows.count()
-            print(f"Se encontraron {row_count} filas en la tabla actual")
-            
+            log.info("Filas encontradas: %d", row_count)
+
             if row_count == 0:
-                print("No se encontraron resultados en la tabla")
+                log.warning("No se encontraron resultados")
                 return None
-            
-            # Obtener la última fila y extraer el número de solicitud (segunda columna)
-            last_row = rows.last
-            # El número de solicitud está en la segunda columna (índice 1)
-            solicitud_cells = last_row.locator('td')
-            if solicitud_cells.count() >= 2:
-                # Obtener el texto de la segunda celda (índice 1)
-                numero_solicitud = solicitud_cells.nth(1).text_content()
-                print(f"Último número de solicitud encontrado: {numero_solicitud.strip()}")
-                return numero_solicitud.strip()
-            else:
-                print("La última fila no tiene suficientes columnas")
-                return None
-                
-        except Exception as e:
-            print(f"Error al obtener el último número de solicitud: {e}")
+
+            cells = rows.last.locator("td")
+            if cells.count() >= 2:
+                numero = cells.nth(1).text_content().strip()
+                log.info("Última solicitud: %s", numero)
+                return numero
+
+            log.warning("La última fila no tiene suficientes columnas")
             return None
 
-    def abrir_pagina(self):
+        except Exception as e:
+            log.error("Error al obtener la última solicitud: %s", e)
+            return None
+
+    def _navegar_a_admin_casos(self, page: Page, ultima_solicitud: str | None) -> None:
+        try:
+            page.wait_for_selector('span.text:has-text("Admin")', timeout=10000)
+            page.click('span.text:has-text("Admin")')
+            page.wait_for_timeout(2000)
+
+            page.wait_for_selector(
+                'span.title:has-text("Administración de procesos")', timeout=10000
+            )
+            page.click('span.title:has-text("Administración de procesos")')
+            page.wait_for_timeout(3000)
+
+            page.wait_for_selector(
+                'li.category.CaseAdmin[data-id="CaseAdmin"]', timeout=10000
+            )
+            page.click('li.category.CaseAdmin[data-id="CaseAdmin"]')
+            page.wait_for_timeout(3000)
+
+            if ultima_solicitud:
+                page.wait_for_selector(
+                    'input#caseInput.biz-wp-input-text[autocomplete="off"]',
+                    timeout=10000,
+                )
+                page.fill(
+                    'input#caseInput.biz-wp-input-text[autocomplete="off"]',
+                    ultima_solicitud,
+                )
+                page.wait_for_timeout(2000)
+                page.wait_for_selector(
+                    'span.ui-button-text:has-text("Buscar")', timeout=10000
+                )
+                page.click('span.ui-button-text:has-text("Buscar")')
+                page.wait_for_timeout(3000)
+                log.info("Búsqueda de caso %s iniciada", ultima_solicitud)
+            else:
+                log.warning("No hay número de solicitud para buscar en Admin")
+
+        except Exception as e:
+            log.error("Error al navegar a Administración de procesos: %s", e)
+
+    def abrir_pagina(self) -> None:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False)  # False = abre ventana visible
-            context = browser.new_context(viewport=None)  # viewport=None = pantalla completa
+            browser = p.chromium.launch(
+                headless=False,
+                args=["--start-maximized"],
+            )
+            context = browser.new_context(no_viewport=True)
             page = context.new_page()
 
             try:
                 page.goto(self.base_url, wait_until="load")
-                print(f"Página abierta correctamente: {self.base_url}")
+                log.info("Página abierta: %s", self.base_url)
 
-                # Verificar si ya estamos logueados
                 if self.esta_logueado(page):
-                    print("Ya estás logueado. Procediendo con la navegación...")
+                    log.info("Sesión activa detectada")
                 else:
-                    print("No estás logueado. Iniciando sesión...")
+                    log.info("Iniciando sesión...")
                     if not self.login(page):
-                        print("Falló el proceso de login")
+                        log.error("Falló el login")
                         return
 
-                # Navegar a la sección deseada
                 if not self.navegar_a_consultas(page):
-                    print("Falló la navegación a consultas")
+                    log.error("Falló la navegación a consultas")
                     return
 
-                # Llenar el formulario de consulta
                 if not self.llenar_formulario_consulta(page):
-                    print("Falló el llenado del formulario")
+                    log.error("Falló el llenado del formulario")
                     return
 
-# Obtener el último número de solicitud
                 ultima_solicitud = self.obtener_ultima_solicitud(page)
-                
+
                 if ultima_solicitud:
                     print(f"\n=== RESULTADO ===")
-                    print(f"El último número de solicitud es: {ultima_solicitud}")
-                    print(f"==================\n")
+                    print(f"Última solicitud: {ultima_solicitud}")
+                    print(f"=================\n")
                 else:
-                    print("No se pudo obtener el número de la última solicitud")
+                    log.warning("No se pudo obtener el número de la última solicitud")
 
-                # Cerrar el diálogo de resultados
                 try:
-                    print("Cerrando diálogo de resultados...")
-                    page.click('a.ui-dialog-titlebar-close.ui-corner-all')
+                    page.click("a.ui-dialog-titlebar-close.ui-corner-all")
                     page.wait_for_timeout(2000)
-                    print("Diálogo cerrado correctamente")
                 except Exception as e:
-                    print(f"Error al cerrar diálogo: {e}")
+                    log.debug("No se pudo cerrar el diálogo de resultados: %s", e)
 
-                # Navegar al Admin
-                try:
-                    print("Navegando a Admin...")
-                    page.wait_for_selector('span.text:has-text("Admin")', timeout=10000)
-                    page.click('span.text:has-text("Admin")')
-                    page.wait_for_timeout(2000)
-                    print("Menú Admin seleccionado")
-                    
-# Hacer clic en Administración de procesos
-                    page.wait_for_selector('span.title:has-text("Administración de procesos")', timeout=10000)
-                    page.click('span.title:has-text("Administración de procesos")')
-                    page.wait_for_timeout(3000)
-                    print("Administración de procesos seleccionada")
-                    
-                    # Hacer clic en Casos
-                    page.wait_for_selector('li.category.CaseAdmin[data-id="CaseAdmin"]', timeout=10000)
-                    page.click('li.category.CaseAdmin[data-id="CaseAdmin"]')
-                    page.wait_for_timeout(3000)
-                    print("Casos seleccionado")
-                    
-# Ingresar el último caso encontrado
-                    if ultima_solicitud:
-                        page.wait_for_selector('input#caseInput.biz-wp-input-text[autocomplete="off"]', timeout=10000)
-                        page.fill('input#caseInput.biz-wp-input-text[autocomplete="off"]', ultima_solicitud)
-                        print(f"Número de caso {ultima_solicitud} ingresado en el campo de búsqueda")
-                        page.wait_for_timeout(2000)
-                        
-                        # Hacer clic en el botón Buscar
-                        page.wait_for_selector('span.ui-button-text:has-text("Buscar")', timeout=10000)
-                        page.click('span.ui-button-text:has-text("Buscar")')
-                        print("Botón Buscar de casos presionado")
-                        page.wait_for_timeout(3000)
-                    else:
-                        print("No se ingresó ningún caso porque no se encontró el último número de solicitud")
-                        
-                except Exception as e:
-                    print(f"Error al navegar a Administración de procesos: {e}")
+                self._navegar_a_admin_casos(page, ultima_solicitud)
 
-                # Mantener navegador abierto
                 input("Presiona Enter para cerrar el navegador...")
 
             except Exception as e:
-                print(f"Error en el proceso: {e}")
-
+                log.error("Error en el proceso principal: %s", e)
             finally:
                 browser.close()
 
 
-def main():
-    # Obtener el número de documento de los argumentos de línea de comandos
+def main() -> None:
     document_number = sys.argv[1] if len(sys.argv) > 1 else None
-    
     automator = BizagiAutomator(document_number)
-    print(f"Iniciando esta automatización con documento: {automator.document_number}")
+    log.info("Iniciando automatización con documento: %s", automator.document_number)
     automator.abrir_pagina()
 
 
