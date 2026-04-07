@@ -299,7 +299,7 @@ class BizagiAutomator:
                     print("Falló el llenado del formulario")
                     return
 
-                # Obtener el último número de solicitud
+# Obtener el último número de solicitud
                 ultima_solicitud = self.obtener_ultima_solicitud(page)
                 
                 if ultima_solicitud:
@@ -308,6 +308,53 @@ class BizagiAutomator:
                     print(f"==================\n")
                 else:
                     print("No se pudo obtener el número de la última solicitud")
+
+                # Cerrar el diálogo de resultados
+                try:
+                    print("Cerrando diálogo de resultados...")
+                    page.click('a.ui-dialog-titlebar-close.ui-corner-all')
+                    page.wait_for_timeout(2000)
+                    print("Diálogo cerrado correctamente")
+                except Exception as e:
+                    print(f"Error al cerrar diálogo: {e}")
+
+                # Navegar al Admin
+                try:
+                    print("Navegando a Admin...")
+                    page.wait_for_selector('span.text:has-text("Admin")', timeout=10000)
+                    page.click('span.text:has-text("Admin")')
+                    page.wait_for_timeout(2000)
+                    print("Menú Admin seleccionado")
+                    
+# Hacer clic en Administración de procesos
+                    page.wait_for_selector('span.title:has-text("Administración de procesos")', timeout=10000)
+                    page.click('span.title:has-text("Administración de procesos")')
+                    page.wait_for_timeout(3000)
+                    print("Administración de procesos seleccionada")
+                    
+                    # Hacer clic en Casos
+                    page.wait_for_selector('li.category.CaseAdmin[data-id="CaseAdmin"]', timeout=10000)
+                    page.click('li.category.CaseAdmin[data-id="CaseAdmin"]')
+                    page.wait_for_timeout(3000)
+                    print("Casos seleccionado")
+                    
+# Ingresar el último caso encontrado
+                    if ultima_solicitud:
+                        page.wait_for_selector('input#caseInput.biz-wp-input-text[autocomplete="off"]', timeout=10000)
+                        page.fill('input#caseInput.biz-wp-input-text[autocomplete="off"]', ultima_solicitud)
+                        print(f"Número de caso {ultima_solicitud} ingresado en el campo de búsqueda")
+                        page.wait_for_timeout(2000)
+                        
+                        # Hacer clic en el botón Buscar
+                        page.wait_for_selector('span.ui-button-text:has-text("Buscar")', timeout=10000)
+                        page.click('span.ui-button-text:has-text("Buscar")')
+                        print("Botón Buscar de casos presionado")
+                        page.wait_for_timeout(3000)
+                    else:
+                        print("No se ingresó ningún caso porque no se encontró el último número de solicitud")
+                        
+                except Exception as e:
+                    print(f"Error al navegar a Administración de procesos: {e}")
 
                 # Mantener navegador abierto
                 input("Presiona Enter para cerrar el navegador...")
