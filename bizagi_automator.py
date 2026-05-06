@@ -185,8 +185,8 @@ class BizagiAutomator:
                 return None
 
             cells = rows.last.locator("td")
-            if cells.count() >= 2:
-                numero = cells.nth(1).text_content().strip()
+            if cells.count() >= 3:
+                numero = cells.nth(2).text_content().strip()
                 log.info("Última solicitud: %s", numero)
                 return numero
 
