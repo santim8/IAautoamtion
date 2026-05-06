@@ -8,11 +8,12 @@ log = logging.getLogger(__name__)
 
 
 class BizagiAutomator:
-    def __init__(self, document_number: str | None = None):
+    def __init__(self, document_number: str | None = None, document_type: str | None = None):
         self.base_url = "https://test-procesosdigitales-colsubsidio.bizagi.com/#"
         self.username = os.environ.get("BIZAGI_USER", "angie.uribeav")
         self.password = os.environ.get("BIZAGI_PASSWORD", "2025*CRD")
         self.document_number = document_number or "2001002110"
+        self.document_type = document_type or "CC"
 
     def esta_logueado(self, page: Page) -> bool:
         try:
@@ -91,13 +92,19 @@ class BizagiAutomator:
             )
             page.click("#combo-ce37ef65-46c7-4519-92b7-4c4615493aa3")
             page.wait_for_timeout(2000)
-            page.wait_for_selector("text=Cédula de Ciudadanía", timeout=10000)
-            page.click("text=Cédula de Ciudadanía")
+            
+            # Seleccionar tipo de documento según el tipo especificado
+            if self.document_type == "CE":
+                doc_type_text = "Cédula de Extranjería"
+            else:
+                doc_type_text = "Cédula de Ciudadanía"
+            
+            page.wait_for_selector(f"text={doc_type_text}", timeout=10000)
+            page.click(f"text={doc_type_text}")
             page.wait_for_timeout(1000)
         except Exception as e:
             log.error("Error al seleccionar tipo de documento: %s", e)
             return False
-
         if not self._ingresar_numero_documento(page):
             return False
 
@@ -178,8 +185,8 @@ class BizagiAutomator:
                 return None
 
             cells = rows.last.locator("td")
-            if cells.count() >= 2:
-                numero = cells.nth(1).text_content().strip()
+            if cells.count() >= 3:
+                numero = cells.nth(2).text_content().strip()
                 log.info("Última solicitud: %s", numero)
                 return numero
 
@@ -285,9 +292,23 @@ class BizagiAutomator:
 
 
 def main() -> None:
-    document_number = sys.argv[1] if len(sys.argv) > 1 else None
-    automator = BizagiAutomator(document_number)
-    log.info("Iniciando automatización con documento: %s", automator.document_number)
+    if len(sys.argv) < 2:
+        print("Uso: python bizagi_automator.py [CE] <número_documento>")
+        print("Ejemplo: python bizagi_automator.py 648202")
+        print("Ejemplo: python bizagi_automator.py CE 648202")
+        return
+    
+    if len(sys.argv) == 2:
+        # python bizagi_automator.py 648202
+        document_number = sys.argv[1]
+        document_type = "CC"
+    else:
+        # python bizagi_automator.py CE 648202
+        document_type = "CE" if sys.argv[1].upper() == "CE" else "CC"
+        document_number = sys.argv[2]
+    
+    automator = BizagiAutomator(document_number, document_type)
+    log.info("Iniciando automatización con documento: %s (tipo: %s)", automator.document_number, automator.document_type)
     automator.abrir_pagina()
 
 
