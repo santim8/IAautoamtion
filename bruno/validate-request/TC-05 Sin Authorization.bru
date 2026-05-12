@@ -1,0 +1,36 @@
+meta {
+  name: TC-05 Sin Authorization
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/loans/req-mgr/external/v1/product/2/request/validate-request
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "documento": {
+      "tipo": "CO1N",
+      "numero": "1095915781"
+    },
+    "canalOrigen": "WEB",
+    "tipoSolicitud": "1"
+  }
+}
+
+assert {
+  res.status: eq 403
+}
+
+docs {
+  Negativo — Seguridad. Sin header authorization.
+  El WAF/gateway debe rechazar la petición con 403.
+  EVIDENCIA CONFIRMADA: 403 Forbidden ✅
+}

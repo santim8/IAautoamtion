@@ -4,16 +4,24 @@ create_testcases_automation.py
 Genera un Excel de casos de prueba a partir de una Historia de Usuario.
 El Excel replica exactamente el template de Colsubsidio.
 
+ARCHIVOS FIJOS (recomendado)
+----------------------------
+  Entrada:  test_cases.json  (en la raíz del repo — se reemplaza por cada HU)
+  Salida:   test_cases.xlsx  (en la raíz del repo — se sobreescribe)
+
+  Modo por defecto (sin argumentos): lee test_cases.json y genera test_cases.xlsx
+    python create_testcases_automation.py
+
 MODOS DE USO
 ------------
   Modo 1 – HU en texto/Excel → OpenAI genera los TCs:
-    python "C:\\Users\\santiago.correa03\\ColsubsidioIA\\IAautoamtion\\create_testcases_automation.py" historia.txt
+    python create_testcases_automation.py historia.txt
 
-  Modo 2 – JSON ya generado por cualquier IA → solo escribe el Excel:
-    python "C:\\Users\\santiago.correa03\\ColsubsidioIA\\IAautoamtion\\create_testcases_automation.py" casos.json
+  Modo 2 – JSON personalizado:
+    python create_testcases_automation.py mi_archivo.json
 
   Carpeta de salida personalizada (opcional):
-    python create_testcases_automation.py historia.txt --output "C:\\MiCarpeta"
+    python create_testcases_automation.py --output "C:\\MiCarpeta"
 
 VARIABLES DE ENTORNO
 --------------------
@@ -21,7 +29,7 @@ VARIABLES DE ENTORNO
   OPENAI_MODEL      → modelo a usar           (por defecto: gpt-4.1-mini)
   BIZAGI_AREA_PATH  → área en Azure DevOps    (por defecto: Ecosistema Digital Crédito y Seguros)
   BIZAGI_ASSIGNED_TO→ responsable del TC      (por defecto: vacío)
-  TC_OUTPUT_DIR     → carpeta de salida       (por defecto: carpeta excels/ junto al script)
+  TC_OUTPUT_DIR     → carpeta de salida       (por defecto: raíz del repo)
 
 COLUMNAS DEL EXCEL
 ------------------
@@ -51,10 +59,14 @@ log = logging.getLogger(__name__)
 # Script directory — works no matter from where it is called
 SCRIPT_DIR = Path(__file__).resolve().parent
 
-# Output folder: env var > default sibling folder "excels/"
+# Output folder: env var > default root of repo (same folder as the script)
 _env_output = os.getenv("TC_OUTPUT_DIR")
-OUTPUT_DIR  = Path(_env_output) if _env_output else SCRIPT_DIR / "excels"
+OUTPUT_DIR  = Path(_env_output) if _env_output else SCRIPT_DIR
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# Fixed file names (replace on every story)
+DEFAULT_INPUT_JSON = SCRIPT_DIR / "test_cases.json"
+DEFAULT_OUTPUT_XLSX = "test_cases.xlsx"
 
 OPENAI_MODEL  = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
 AREA_PATH     = os.getenv("BIZAGI_AREA_PATH", "Ecosistema Digital Crédito y Seguros")
@@ -272,22 +284,26 @@ def main() -> None:
         formatter_class=argparse.RawTextHelpFormatter,
         epilog=(
             "Ejemplos:\n"
+            "  # Por defecto: lee test_cases.json y genera test_cases.xlsx:\n"
+            '  python create_testcases_automation.py\n\n'
             "  # Modo 1 — HU en .txt, OpenAI genera los TCs:\n"
             '  python create_testcases_automation.py historia.txt\n\n'
-            "  # Modo 2 — JSON ya generado por cualquier IA:\n"
-            '  python create_testcases_automation.py casos.json\n\n'
+            "  # Modo 2 — JSON personalizado:\n"
+            '  python create_testcases_automation.py mi_archivo.json\n\n'
             "  # Con carpeta de salida personalizada:\n"
-            '  python create_testcases_automation.py historia.txt --output "C:\\MiCarpeta"\n'
+            '  python create_testcases_automation.py --output "C:\\MiCarpeta"\n'
         ),
     )
     parser.add_argument(
         "input",
-        help="Ruta al archivo de entrada (.txt, .xlsx con la HU  o  .json con TCs ya generados).",
+        nargs="?",
+        default=str(DEFAULT_INPUT_JSON),
+        help="Ruta al archivo de entrada (.txt, .xlsx, .json). Por defecto: test_cases.json",
     )
     parser.add_argument(
         "--output", "-o",
         default=None,
-        help="Carpeta donde guardar el Excel (por defecto: excels/ junto al script).",
+        help="Carpeta donde guardar el Excel (por defecto: raíz del repo).",
     )
     args = parser.parse_args()
 
@@ -312,9 +328,7 @@ def main() -> None:
 
     log.info("Casos de prueba a escribir: %d", len(test_cases))
 
-    hu_name    = Path(input_path).stem[:40].replace(" ", "_")
-    stamp      = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_file   = out_dir / f"TC_{hu_name}_{stamp}.xlsx"
+    out_file = out_dir / DEFAULT_OUTPUT_XLSX
     write_excel(test_cases, out_file)
 
     total_steps = sum(len(tc.get("steps", [])) for tc in test_cases)

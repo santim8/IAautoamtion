@@ -1,0 +1,36 @@
+meta {
+  name: TC-06 Sin tipoSolicitud
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/loans/req-mgr/external/v1/product/2/request/validate-request
+  body: json
+  auth: none
+}
+
+headers {
+  authorization: {{token}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "documento": {
+      "tipo": "CO1N",
+      "numero": "1095915781"
+    },
+    "canalOrigen": "WEB"
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+docs {
+  Negativo — Validación campo obligatorio.
+  tipoSolicitud es requerido. El endpoint debe rechazar con 400.
+  Criterio historia CA1: rechazar requests sin campos obligatorios.
+}

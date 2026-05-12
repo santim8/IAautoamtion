@@ -1,0 +1,189 @@
+[
+  {
+    "title": "TC001 - Thank You Page muestra mensaje correcto para Reactivación de cupo",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Usuario autenticado en el flujo autogestionado\n- Solicitud de Reactivación de cupo procesada exitosamente en Bizagi\n- noveltyType = 3 enviado por WebSocket al Frontend\n- Variante de Reactivación configurada en Drupal",
+        "expected": ""
+      },
+      {
+        "action": "Given que el usuario completó el flujo de Reactivación de cupo",
+        "expected": ""
+      },
+      {
+        "action": "When el sistema redirige al usuario a la Thank You Page",
+        "expected": ""
+      },
+      {
+        "action": "Then la página debe mostrar el mensaje de solicitud en proceso",
+        "expected": "Se muestra el mensaje: 'Tu solicitud ha sido recibida. Te notificaremos cuando tu cupo esté activo'"
+      },
+      {
+        "action": "And el mensaje NO debe indicar que el cupo está disponible de inmediato",
+        "expected": "No aparece ningún texto como 'Tu cupo está listo' o 'Ya puedes usar tu cupo'"
+      }
+    ]
+  },
+  {
+    "title": "TC002 - Thank You Page de Originación NO se ve afectada por el cambio",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Usuario autenticado en el flujo autogestionado\n- Solicitud de Originación (cupo nuevo) procesada exitosamente\n- noveltyType = 1 enviado por WebSocket al Frontend",
+        "expected": ""
+      },
+      {
+        "action": "Given que el usuario completó el flujo de Originación de crédito",
+        "expected": ""
+      },
+      {
+        "action": "When el sistema redirige al usuario a la Thank You Page",
+        "expected": ""
+      },
+      {
+        "action": "Then debe mostrarse el mensaje original de Originación sin modificaciones",
+        "expected": "El mensaje mostrado es el existente para Originación, sin cambios respecto al comportamiento anterior"
+      },
+      {
+        "action": "And NO se muestra el mensaje de novedades asíncronas",
+        "expected": "No aparece el texto 'Te notificaremos cuando tu cupo esté activo'"
+      }
+    ]
+  },
+  {
+    "title": "TC003 - Mensaje de Reactivación es diferente al mensaje de Originación",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Acceso a dos sesiones: una con flujo de Originación y otra con flujo de Reactivación\n- Ambas solicitudes procesadas exitosamente",
+        "expected": ""
+      },
+      {
+        "action": "Given que se tienen dos Thank You Pages cargadas: una de Originación y una de Reactivación",
+        "expected": ""
+      },
+      {
+        "action": "When se compara el contenido de ambas páginas",
+        "expected": ""
+      },
+      {
+        "action": "Then los mensajes deben ser distintos entre sí",
+        "expected": "La Thank You Page de Reactivación muestra un mensaje diferente al de Originación"
+      }
+    ]
+  },
+  {
+    "title": "TC004 - Thank You Page carga correctamente el mensaje desde Drupal para Reactivación",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Variante de Reactivación configurada y publicada en Drupal\n- noveltyType = 3 disponible en el evento WebSocket",
+        "expected": ""
+      },
+      {
+        "action": "Given que el Frontend recibe noveltyType = 3 desde el WebSocket",
+        "expected": ""
+      },
+      {
+        "action": "When el Frontend consulta el contenido correspondiente en Drupal",
+        "expected": ""
+      },
+      {
+        "action": "Then se renderiza el contenido de la variante de Reactivación configurada en Drupal",
+        "expected": "El texto y los elementos visuales corresponden exactamente a la variante de Reactivación publicada en el CMS"
+      }
+    ]
+  },
+  {
+    "title": "TC005 - Pixel Perfect: Thank You Page de Reactivación coincide visualmente con el diseño de Figma",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Diseño aprobado de la Thank You Page de Reactivación disponible en Figma (pantalla exportada como imagen de referencia)\n- Entorno de pruebas estable con la Thank You Page de Reactivación desplegada\n- Herramienta de comparación visual configurada (ej. Percy, Applitools o captura manual pixel-by-pixel)\n- noveltyType = 3 recibido correctamente por el Frontend",
+        "expected": ""
+      },
+      {
+        "action": "Given que la Thank You Page de Reactivación está renderizada en el navegador en resolución de escritorio (1440x900)",
+        "expected": ""
+      },
+      {
+        "action": "When se toma una captura de pantalla completa de la página y se compara pixel a pixel contra el diseño de referencia exportado de Figma",
+        "expected": ""
+      },
+      {
+        "action": "Then la diferencia visual entre la captura y el diseño de Figma debe ser igual a cero o inferior al umbral permitido (≤ 0.1%)",
+        "expected": "No existen diferencias visuales detectables: colores, tipografía, márgenes, espaciado e iconos coinciden exactamente con el diseño de Figma"
+      },
+      {
+        "action": "And los elementos gráficos (logo, íconos, imágenes decorativas) se renderizan sin distorsión ni recorte",
+        "expected": "Cada elemento visual ocupa la posición y dimensiones definidas en Figma sin desbordamientos ni desplazamientos"
+      },
+      {
+        "action": "And la página es responsiva y mantiene la fidelidad visual en resolución móvil (375x812)",
+        "expected": "La comparación pixel a pixel en vista móvil no supera el umbral permitido respecto al frame móvil de Figma"
+      }
+    ]
+  },
+  {
+    "title": "TC006 - Fidelidad de contenido: textos y etiquetas de la Thank You Page de Reactivación coinciden con Figma",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Especificación de contenido de la Thank You Page de Reactivación documentada en Figma (títulos, cuerpo, botones, disclaimers)\n- noveltyType = 3 procesado exitosamente\n- Acceso a la Thank You Page de Reactivación en entorno de pruebas",
+        "expected": ""
+      },
+      {
+        "action": "Given que la Thank You Page de Reactivación está visible para el usuario",
+        "expected": ""
+      },
+      {
+        "action": "When se revisa el título principal de la página",
+        "expected": ""
+      },
+      {
+        "action": "Then el título debe coincidir exactamente con el texto definido en el diseño de Figma (mayúsculas, puntuación e idioma incluidos)",
+        "expected": "El título mostrado es idéntico al especificado en Figma para la variante de Reactivación"
+      },
+      {
+        "action": "And el cuerpo del mensaje (párrafo descriptivo) coincide con el texto de Figma sin palabras faltantes ni adicionales",
+        "expected": "El texto del cuerpo es exactamente el definido en Figma, sin truncamientos ni diferencias ortográficas"
+      },
+      {
+        "action": "And las etiquetas de botones de acción (CTA) coinciden con el copy de Figma",
+        "expected": "Cada botón muestra el texto de llamada a la acción especificado en Figma (ej. 'Ir al inicio', 'Ver mis productos')"
+      },
+      {
+        "action": "And los textos de pie de página o disclaimers legales coinciden con el contenido de Figma",
+        "expected": "Los disclaimers se muestran completos y sin variaciones respecto a lo definido en Figma"
+      }
+    ]
+  },
+  {
+    "title": "TC007 - El contenido de la Thank You Page de Reactivación proviene de Drupal y no está hardcodeado en el Frontend",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Acceso a la consola de red del navegador (DevTools → Network)\n- Variante de Reactivación publicada en Drupal con contenido conocido y verificable\n- noveltyType = 3 enviado por WebSocket\n- Segunda variante de prueba con contenido diferente disponible en Drupal (para validar dinamismo)",
+        "expected": ""
+      },
+      {
+        "action": "Given que el Frontend recibe noveltyType = 3 y renderiza la Thank You Page de Reactivación",
+        "expected": ""
+      },
+      {
+        "action": "When se inspecciona la pestaña Network en DevTools durante la carga de la página",
+        "expected": ""
+      },
+      {
+        "action": "Then debe existir al menos una llamada HTTP al endpoint de Drupal que retorne el contenido de la variante de Reactivación",
+        "expected": "Se registra una petición GET al CMS Drupal (ej. /jsonapi/ o /api/... ) con respuesta 200 que incluye los textos mostrados en pantalla"
+      },
+      {
+        "action": "And el contenido visible en pantalla corresponde al payload devuelto por Drupal y no a cadenas de texto definidas en el código fuente del Frontend",
+        "expected": "Los textos de título, cuerpo y botones de la Thank You Page coinciden exactamente con los campos del JSON retornado por Drupal"
+      },
+      {
+        "action": "When se modifica el contenido de la variante de Reactivación directamente en Drupal (sin despliegue de Frontend) y se recarga la Thank You Page",
+        "expected": ""
+      },
+      {
+        "action": "Then la página muestra el contenido actualizado de Drupal sin necesidad de un nuevo despliegue del Frontend",
+        "expected": "El cambio de contenido en Drupal se refleja de forma inmediata en la Thank You Page, confirmando que la fuente de verdad es el CMS"
+      }
+    ]
+  }
+]

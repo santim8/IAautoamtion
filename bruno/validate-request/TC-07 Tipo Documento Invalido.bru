@@ -1,0 +1,36 @@
+meta {
+  name: TC-07 Tipo Documento Invalido
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/loans/req-mgr/external/v1/product/2/request/validate-request
+  body: json
+  auth: none
+}
+
+headers {
+  authorization: {{token}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "documento": {
+      "tipo": "INVALIDO",
+      "numero": "1095915781"
+    },
+    "canalOrigen": "WEB",
+    "tipoSolicitud": "1"
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+docs {
+  Negativo — Tipo de documento no reconocido por el sistema.
+  Expected: 400 Bad Request con mensaje de validación.
+}
