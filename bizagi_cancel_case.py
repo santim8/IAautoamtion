@@ -14,6 +14,10 @@ class BizagiAutomator:
         self.password = os.environ.get("BIZAGI_PASSWORD", "2025*CRD")
         self.document_number = document_number or "2001002110"
         self.document_type = document_type or "CC"
+        self.headless = False
+
+    def _wait(self, page: Page, ms: int) -> None:
+        page.wait_for_timeout(ms // 2 if self.headless else ms)
 
     def esta_logueado(self, page: Page) -> bool:
         try:
@@ -32,7 +36,7 @@ class BizagiAutomator:
             log.error("Error al seleccionar dominio: %s", e)
             return False
 
-        page.wait_for_timeout(2000)
+        self._wait(page,2000)
 
         try:
             page.wait_for_selector("#user", timeout=5000)
@@ -50,7 +54,7 @@ class BizagiAutomator:
             log.error("Error en el proceso de login: %s", e)
             return False
 
-        page.wait_for_timeout(5000)
+        self._wait(page,5000)
         log.info("Login completado")
         return True
 
@@ -65,7 +69,7 @@ class BizagiAutomator:
             try:
                 page.wait_for_selector(selector, timeout=10000)
                 page.click(selector)
-                page.wait_for_timeout(2000)
+                self._wait(page,2000)
             except Exception as e:
                 log.error("Error al hacer clic en '%s': %s", selector, e)
                 return False
@@ -82,7 +86,7 @@ class BizagiAutomator:
                 timeout=10000,
             )
             page.check('input[type="checkbox"].ui-bizagi-render-control-included-all')
-            page.wait_for_timeout(1000)
+            self._wait(page,1000)
         except Exception as e:
             log.warning("No se pudo marcar el checkbox de inclusión: %s", e)
 
@@ -91,7 +95,7 @@ class BizagiAutomator:
                 "#combo-ce37ef65-46c7-4519-92b7-4c4615493aa3", timeout=10000
             )
             page.click("#combo-ce37ef65-46c7-4519-92b7-4c4615493aa3")
-            page.wait_for_timeout(2000)
+            self._wait(page,2000)
             
             # Seleccionar tipo de documento según el tipo especificado
             if self.document_type == "CE":
@@ -101,7 +105,7 @@ class BizagiAutomator:
             
             page.wait_for_selector(f"text={doc_type_text}", timeout=10000)
             page.click(f"text={doc_type_text}")
-            page.wait_for_timeout(1000)
+            self._wait(page,1000)
         except Exception as e:
             log.error("Error al seleccionar tipo de documento: %s", e)
             return False
@@ -126,7 +130,7 @@ class BizagiAutomator:
                 field = self._primer_campo_vacio(fields)
                 field.fill("")
                 field.fill(self.document_number)
-                page.wait_for_timeout(1000)
+                self._wait(page,1000)
                 if field.input_value() == self.document_number:
                     log.info("Documento ingresado con selector %d", i + 1)
                     return True
@@ -155,7 +159,7 @@ class BizagiAutomator:
             try:
                 page.wait_for_selector(selector, timeout=10000)
                 page.click(selector)
-                page.wait_for_timeout(3000)
+                self._wait(page,3000)
                 log.info("Botón Buscar presionado")
                 return True
             except Exception as e:
@@ -171,7 +175,7 @@ class BizagiAutomator:
                 page.wait_for_selector('li.bz-page[data-page="2"]', timeout=5000)
                 log.info("Paginación detectada, navegando a página 2...")
                 page.click('li.bz-page[data-page="2"] span.number:has-text("2")')
-                page.wait_for_timeout(3000)
+                self._wait(page,3000)
                 page.wait_for_selector("tbody.biz-wp-table-body", timeout=10000)
             except Exception:
                 log.info("Sin paginación adicional, usando página actual")
@@ -201,19 +205,19 @@ class BizagiAutomator:
         try:
             page.wait_for_selector('span.text:has-text("Admin")', timeout=10000)
             page.click('span.text:has-text("Admin")')
-            page.wait_for_timeout(2000)
+            self._wait(page,2000)
 
             page.wait_for_selector(
                 'span.title:has-text("Administración de procesos")', timeout=10000
             )
             page.click('span.title:has-text("Administración de procesos")')
-            page.wait_for_timeout(3000)
+            self._wait(page,3000)
 
             page.wait_for_selector(
                 'li.category.CaseAdmin[data-id="CaseAdmin"]', timeout=10000
             )
             page.click('li.category.CaseAdmin[data-id="CaseAdmin"]')
-            page.wait_for_timeout(3000)
+            self._wait(page,3000)
 
             if ultima_solicitud:
                 page.wait_for_selector(
@@ -224,26 +228,63 @@ class BizagiAutomator:
                     'input#caseInput.biz-wp-input-text[autocomplete="off"]',
                     ultima_solicitud,
                 )
-                page.wait_for_timeout(2000)
+                self._wait(page,2000)
                 page.wait_for_selector(
                     'span.ui-button-text:has-text("Buscar")', timeout=10000
                 )
                 page.click('span.ui-button-text:has-text("Buscar")')
-                page.wait_for_timeout(3000)
+                self._wait(page,3000)
                 log.info("Búsqueda de caso %s iniciada", ultima_solicitud)
+
+                self._cancelar_caso(page, ultima_solicitud)
             else:
                 log.warning("No hay número de solicitud para buscar en Admin")
 
         except Exception as e:
             log.error("Error al navegar a Administración de procesos: %s", e)
 
+    def _cancelar_caso(self, page: Page, id_caso: str) -> None:
+        try:
+            checkbox_selector = f'input[type="checkbox"][name="CaseAdmin"][value="{id_caso}"]'
+            page.wait_for_selector(checkbox_selector, timeout=10000)
+            page.check(checkbox_selector)
+            self._wait(page,1000)
+            log.info("Checkbox del caso %s marcado", id_caso)
+
+            page.wait_for_selector("#btn-admin-case-invalidate", timeout=10000)
+            page.click("#btn-admin-case-invalidate")
+            self._wait(page,2000)
+            log.info("Botón Cancelar presionado para caso %s", id_caso)
+
+            aceptar_selector = 'div.ui-dialog:visible button.ui-button:has(span.ui-button-text:text-is("Aceptar"))'
+            page.wait_for_selector(aceptar_selector, timeout=10000)
+            page.click(aceptar_selector)
+            self._wait(page,3000)
+            log.info("Confirmación de cancelación aceptada para caso %s", id_caso)
+        except Exception as e:
+            log.error("Error al cancelar el caso %s: %s", id_caso, e)
+
     def abrir_pagina(self, headless: bool = False) -> str | None:
         """Ejecuta el flujo completo. Retorna idCaso o None. En modo headless no abre Admin ni espera Enter."""
+        self.headless = headless
         with sync_playwright() as p:
             launch_args = [] if headless else ["--start-maximized"]
             browser = p.chromium.launch(headless=headless, args=launch_args)
-            context = browser.new_context(no_viewport=True)
+            if headless:
+                context = browser.new_context(viewport={"width": 1920, "height": 1080})
+            else:
+                context = browser.new_context(no_viewport=True)
             page = context.new_page()
+
+            if headless:
+                blocked_types = {"image", "media", "font"}
+                page.route(
+                    "**/*",
+                    lambda route: route.abort()
+                    if route.request.resource_type in blocked_types
+                    else route.continue_(),
+                )
+                page.set_default_timeout(8000)
 
             ultima_solicitud = None
             try:
@@ -275,14 +316,15 @@ class BizagiAutomator:
                 else:
                     log.warning("No se pudo obtener el número de la última solicitud")
 
-                if not headless:
-                    try:
-                        page.click("a.ui-dialog-titlebar-close.ui-corner-all")
-                        page.wait_for_timeout(2000)
-                    except Exception as e:
-                        log.debug("No se pudo cerrar el diálogo de resultados: %s", e)
+                try:
+                    page.click("a.ui-dialog-titlebar-close.ui-corner-all")
+                    self._wait(page,2000)
+                except Exception as e:
+                    log.debug("No se pudo cerrar el diálogo de resultados: %s", e)
 
-                    self._navegar_a_admin_casos(page, ultima_solicitud)
+                self._navegar_a_admin_casos(page, ultima_solicitud)
+
+                if not headless:
                     input("Presiona Enter para cerrar el navegador...")
 
             except Exception as e:
@@ -294,24 +336,31 @@ class BizagiAutomator:
 
 
 def main() -> None:
-    if len(sys.argv) < 2:
-        print("Uso: python bizagi_automator.py [CE] <número_documento>")
-        print("Ejemplo: python bizagi_automator.py 648202")
-        print("Ejemplo: python bizagi_automator.py CE 648202")
+    args = [a for a in sys.argv[1:] if a != "--headless"]
+    headless = "--headless" in sys.argv[1:]
+
+    if len(args) < 1:
+        print("Uso: python bizagi_cancel_case.py [--headless] [CE] <número_documento>")
+        print("Ejemplo: python bizagi_cancel_case.py 648202")
+        print("Ejemplo: python bizagi_cancel_case.py CE 648202")
+        print("Ejemplo: python bizagi_cancel_case.py --headless CE 648202")
         return
-    
-    if len(sys.argv) == 2:
-        # python bizagi_automator.py 648202
-        document_number = sys.argv[1]
+
+    if len(args) == 1:
+        document_number = args[0]
         document_type = "CC"
     else:
-        # python bizagi_automator.py CE 648202
-        document_type = "CE" if sys.argv[1].upper() == "CE" else "CC"
-        document_number = sys.argv[2]
-    
+        document_type = "CE" if args[0].upper() == "CE" else "CC"
+        document_number = args[1]
+
     automator = BizagiAutomator(document_number, document_type)
-    log.info("Iniciando automatización con documento: %s (tipo: %s)", automator.document_number, automator.document_type)
-    automator.abrir_pagina()
+    log.info(
+        "Iniciando automatización con documento: %s (tipo: %s, headless=%s)",
+        automator.document_number,
+        automator.document_type,
+        headless,
+    )
+    automator.abrir_pagina(headless=headless)
 
 
 if __name__ == "__main__":
