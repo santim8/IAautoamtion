@@ -1,189 +1,107 @@
 [
   {
-    "title": "TC001 - Thank You Page muestra mensaje correcto para Reactivación de cupo",
+    "title": "TC001 - Flags ON: códigos de Reactivación (O, V, I, W) permiten el paso con tipoSolicitud 3",
     "steps": [
-      {
-        "action": "Precondiciones:\n- Usuario autenticado en el flujo autogestionado\n- Solicitud de Reactivación de cupo procesada exitosamente en Bizagi\n- noveltyType = 3 enviado por WebSocket al Frontend\n- Variante de Reactivación configurada en Drupal",
-        "expected": ""
-      },
-      {
-        "action": "Given que el usuario completó el flujo de Reactivación de cupo",
-        "expected": ""
-      },
-      {
-        "action": "When el sistema redirige al usuario a la Thank You Page",
-        "expected": ""
-      },
-      {
-        "action": "Then la página debe mostrar el mensaje de solicitud en proceso",
-        "expected": "Se muestra el mensaje: 'Tu solicitud ha sido recibida. Te notificaremos cuando tu cupo esté activo'"
-      },
-      {
-        "action": "And el mensaje NO debe indicar que el cupo está disponible de inmediato",
-        "expected": "No aparece ningún texto como 'Tu cupo está listo' o 'Ya puedes usar tu cupo'"
-      }
+      {"action": "Precondiciones:\n- Flag Reactivación: true\n- Flag Incremento: true (cualquier valor)\n- Usuarios con códigos de Reactivación en bolsillo 31 y tarjetaAmparada: false\n  · CC 52526685 → código O (CUPO CONGELADO)\n  · CC 51760693 → código V (CUENTA DEVOLUCION VOLUNTARIA)\n  · CC 41336668 → código V (CUENTA DEVOLUCION VOLUNTARIA)\n  · CC 79528108 → código I (INACTIVO)\n  · Pendiente dato → código W", "expected": ""},
+      {"action": "Given que los usuarios anteriores inician solicitud de crédito con flag Reactivación activo", "expected": ""},
+      {"action": "When se consume POST /loans/eligibility/internal/v1/card-validations para cada usuario con tipo CO1C", "expected": ""},
+      {"action": "Then la respuesta HTTP es 200 para todos", "expected": "HTTP 200"},
+      {"action": "And el campo estado es OK para todos", "expected": "\"estado\": \"OK\""},
+      {"action": "And el campo tipoSolicitud es 3 para todos (códigos O, V, I, W)", "expected": "\"tipoSolicitud\": 3"},
+      {"action": "And el campo tarjetaAmparada es false para todos", "expected": "\"tarjetaAmparada\": false"}
     ]
   },
   {
-    "title": "TC002 - Thank You Page de Originación NO se ve afectada por el cambio",
+    "title": "TC002 - Flags ON: códigos de Incremento (1, N, S) permiten el paso con tipoSolicitud 2",
     "steps": [
-      {
-        "action": "Precondiciones:\n- Usuario autenticado en el flujo autogestionado\n- Solicitud de Originación (cupo nuevo) procesada exitosamente\n- noveltyType = 1 enviado por WebSocket al Frontend",
-        "expected": ""
-      },
-      {
-        "action": "Given que el usuario completó el flujo de Originación de crédito",
-        "expected": ""
-      },
-      {
-        "action": "When el sistema redirige al usuario a la Thank You Page",
-        "expected": ""
-      },
-      {
-        "action": "Then debe mostrarse el mensaje original de Originación sin modificaciones",
-        "expected": "El mensaje mostrado es el existente para Originación, sin cambios respecto al comportamiento anterior"
-      },
-      {
-        "action": "And NO se muestra el mensaje de novedades asíncronas",
-        "expected": "No aparece el texto 'Te notificaremos cuando tu cupo esté activo'"
-      }
+      {"action": "Precondiciones:\n- Flag Reactivación: true (cualquier valor)\n- Flag Incremento: true\n- Usuarios con códigos de Incremento en bolsillo 31 y tarjetaAmparada: false\n  · CC 80810798   → código 1 (NORMAL)\n  · CC 1140814422 → código 1, tarjeta estado 7 (CAMBIO DE CLAVE OBLIGATORIO)\n  · CC 1097397286 → código 1, tarjeta estado S (SUSPENDIDO/SOBRECUPO)\n  · CC 52966724   → código 1, tarjeta estado 0 (PENDIENTE POR ACTIVAR)\n  · CC 1023876310 → código 1 (NORMAL)\n  · Pendiente dato → código N\n  · Pendiente dato → código S", "expected": ""},
+      {"action": "Given que los usuarios anteriores inician solicitud de crédito con flag Incremento activo", "expected": ""},
+      {"action": "When se consume POST /loans/eligibility/internal/v1/card-validations para cada usuario con tipo CO1C", "expected": ""},
+      {"action": "Then la respuesta HTTP es 200 para todos", "expected": "HTTP 200"},
+      {"action": "And el campo estado es OK para todos", "expected": "\"estado\": \"OK\""},
+      {"action": "And el campo tipoSolicitud es 2 para todos (códigos 1, N, S)", "expected": "\"tipoSolicitud\": 2"},
+      {"action": "And el campo tarjetaAmparada es false para todos", "expected": "\"tarjetaAmparada\": false"}
     ]
   },
   {
-    "title": "TC003 - Mensaje de Reactivación es diferente al mensaje de Originación",
+    "title": "TC003 - Flags OFF: códigos de Reactivación e Incremento son bloqueados",
     "steps": [
-      {
-        "action": "Precondiciones:\n- Acceso a dos sesiones: una con flujo de Originación y otra con flujo de Reactivación\n- Ambas solicitudes procesadas exitosamente",
-        "expected": ""
-      },
-      {
-        "action": "Given que se tienen dos Thank You Pages cargadas: una de Originación y una de Reactivación",
-        "expected": ""
-      },
-      {
-        "action": "When se compara el contenido de ambas páginas",
-        "expected": ""
-      },
-      {
-        "action": "Then los mensajes deben ser distintos entre sí",
-        "expected": "La Thank You Page de Reactivación muestra un mensaje diferente al de Originación"
-      }
+      {"action": "Precondiciones:\n- Flag Reactivación: false\n- Flag Incremento: false\n- Usuarios con códigos de novedad\n  · CC 41336668 → código V (Reactivación)\n  · CC 79528108 → código I (Reactivación)\n  · CC 1140814422 → código 1 (Incremento)\n  · CC 80810798 → código 1 (Incremento)", "expected": ""},
+      {"action": "Given que los usuarios anteriores inician solicitud de crédito con ambas flags desactivadas", "expected": ""},
+      {"action": "When se consume POST /loans/eligibility/internal/v1/card-validations para cada usuario", "expected": ""},
+      {"action": "Then la respuesta HTTP es 200 para todos", "expected": "HTTP 200"},
+      {"action": "And el campo estado es VALIDATION_ERROR para todos", "expected": "\"estado\": \"VALIDATION_ERROR\""},
+      {"action": "And el campo tipoSolicitud NO está presente en ninguna respuesta", "expected": "tipoSolicitud ausente"},
+      {"action": "And el campo codigoErrorValidacion es INVALID_REQUIREMENTS para todos", "expected": "\"codigoErrorValidacion\": \"INVALID_REQUIREMENTS\""}
     ]
   },
   {
-    "title": "TC004 - Thank You Page carga correctamente el mensaje desde Drupal para Reactivación",
+    "title": "TC004 - Flags independientes: cada flag bloquea solo su tipo de novedad",
     "steps": [
-      {
-        "action": "Precondiciones:\n- Variante de Reactivación configurada y publicada en Drupal\n- noveltyType = 3 disponible en el evento WebSocket",
-        "expected": ""
-      },
-      {
-        "action": "Given que el Frontend recibe noveltyType = 3 desde el WebSocket",
-        "expected": ""
-      },
-      {
-        "action": "When el Frontend consulta el contenido correspondiente en Drupal",
-        "expected": ""
-      },
-      {
-        "action": "Then se renderiza el contenido de la variante de Reactivación configurada en Drupal",
-        "expected": "El texto y los elementos visuales corresponden exactamente a la variante de Reactivación publicada en el CMS"
-      }
+      {"action": "Precondiciones:\n- Escenario A: Flag Reactivación ON, Flag Incremento OFF\n  · CC 79528108 → código I (Reactivación) debe pasar\n  · CC 1140814422 → código 1 (Incremento) debe bloquearse\n- Escenario B: Flag Reactivación OFF, Flag Incremento ON\n  · CC 1140814422 → código 1 (Incremento) debe pasar\n  · CC 79528108 → código I (Reactivación) debe bloquearse", "expected": ""},
+      {"action": "Given escenario A: Flag Reactivación ON, Flag Incremento OFF", "expected": ""},
+      {"action": "When se consume el servicio con CC 79528108 (código I)", "expected": ""},
+      {"action": "Then el estado es OK y tipoSolicitud es 3", "expected": "\"estado\": \"OK\", \"tipoSolicitud\": 3"},
+      {"action": "When se consume el servicio con CC 1140814422 (código 1)", "expected": ""},
+      {"action": "Then el estado es VALIDATION_ERROR y tipoSolicitud ausente", "expected": "\"estado\": \"VALIDATION_ERROR\", tipoSolicitud ausente"},
+      {"action": "Given escenario B: Flag Reactivación OFF, Flag Incremento ON", "expected": ""},
+      {"action": "When se consume el servicio con CC 1140814422 (código 1)", "expected": ""},
+      {"action": "Then el estado es OK y tipoSolicitud es 2", "expected": "\"estado\": \"OK\", \"tipoSolicitud\": 2"},
+      {"action": "When se consume el servicio con CC 79528108 (código I)", "expected": ""},
+      {"action": "Then el estado es VALIDATION_ERROR y tipoSolicitud ausente", "expected": "\"estado\": \"VALIDATION_ERROR\", tipoSolicitud ausente"}
     ]
   },
   {
-    "title": "TC005 - Pixel Perfect: Thank You Page de Reactivación coincide visualmente con el diseño de Figma",
+    "title": "TC005 - tarjetaAmparada bloquea siempre independiente del flag y código Ascard",
     "steps": [
-      {
-        "action": "Precondiciones:\n- Diseño aprobado de la Thank You Page de Reactivación disponible en Figma (pantalla exportada como imagen de referencia)\n- Entorno de pruebas estable con la Thank You Page de Reactivación desplegada\n- Herramienta de comparación visual configurada (ej. Percy, Applitools o captura manual pixel-by-pixel)\n- noveltyType = 3 recibido correctamente por el Frontend",
-        "expected": ""
-      },
-      {
-        "action": "Given que la Thank You Page de Reactivación está renderizada en el navegador en resolución de escritorio (1440x900)",
-        "expected": ""
-      },
-      {
-        "action": "When se toma una captura de pantalla completa de la página y se compara pixel a pixel contra el diseño de referencia exportado de Figma",
-        "expected": ""
-      },
-      {
-        "action": "Then la diferencia visual entre la captura y el diseño de Figma debe ser igual a cero o inferior al umbral permitido (≤ 0.1%)",
-        "expected": "No existen diferencias visuales detectables: colores, tipografía, márgenes, espaciado e iconos coinciden exactamente con el diseño de Figma"
-      },
-      {
-        "action": "And los elementos gráficos (logo, íconos, imágenes decorativas) se renderizan sin distorsión ni recorte",
-        "expected": "Cada elemento visual ocupa la posición y dimensiones definidas en Figma sin desbordamientos ni desplazamientos"
-      },
-      {
-        "action": "And la página es responsiva y mantiene la fidelidad visual en resolución móvil (375x812)",
-        "expected": "La comparación pixel a pixel en vista móvil no supera el umbral permitido respecto al frame móvil de Figma"
-      }
+      {"action": "Precondiciones:\n- Flag Reactivación: true\n- Flag Incremento: true\n- Usuarios con tarjetaAmparada: true (tienen tarjeta tipo 6)\n  · CC 52634111 → código I (Reactivación), tarjetaAmparada: true\n  · CC 1095915781 → código I (Reactivación), tarjetaAmparada: true\n  · CC 1013595547 → código I (Reactivación), tarjetaAmparada: true\n  · CC 20156603 → código I (Reactivación), tarjetaAmparada: true", "expected": ""},
+      {"action": "Given que los usuarios anteriores tienen tarjeta amparada tipo 6 e inician solicitud de crédito", "expected": ""},
+      {"action": "When se consume POST /loans/eligibility/internal/v1/card-validations para cada usuario con tipo CO1C", "expected": ""},
+      {"action": "Then la respuesta HTTP es 200 para todos", "expected": "HTTP 200"},
+      {"action": "And el campo estado es VALIDATION_ERROR para todos aunque las flags estén activas", "expected": "\"estado\": \"VALIDATION_ERROR\""},
+      {"action": "And el campo tarjetaAmparada es true para todos", "expected": "\"tarjetaAmparada\": true"},
+      {"action": "And el campo tipoSolicitud NO está presente en ninguna respuesta", "expected": "tipoSolicitud ausente"}
     ]
   },
   {
-    "title": "TC006 - Fidelidad de contenido: textos y etiquetas de la Thank You Page de Reactivación coinciden con Figma",
+    "title": "TC006 - Códigos Ascard desconocidos/mora bloquean siempre con ambas flags ON",
     "steps": [
-      {
-        "action": "Precondiciones:\n- Especificación de contenido de la Thank You Page de Reactivación documentada en Figma (títulos, cuerpo, botones, disclaimers)\n- noveltyType = 3 procesado exitosamente\n- Acceso a la Thank You Page de Reactivación en entorno de pruebas",
-        "expected": ""
-      },
-      {
-        "action": "Given que la Thank You Page de Reactivación está visible para el usuario",
-        "expected": ""
-      },
-      {
-        "action": "When se revisa el título principal de la página",
-        "expected": ""
-      },
-      {
-        "action": "Then el título debe coincidir exactamente con el texto definido en el diseño de Figma (mayúsculas, puntuación e idioma incluidos)",
-        "expected": "El título mostrado es idéntico al especificado en Figma para la variante de Reactivación"
-      },
-      {
-        "action": "And el cuerpo del mensaje (párrafo descriptivo) coincide con el texto de Figma sin palabras faltantes ni adicionales",
-        "expected": "El texto del cuerpo es exactamente el definido en Figma, sin truncamientos ni diferencias ortográficas"
-      },
-      {
-        "action": "And las etiquetas de botones de acción (CTA) coinciden con el copy de Figma",
-        "expected": "Cada botón muestra el texto de llamada a la acción especificado en Figma (ej. 'Ir al inicio', 'Ver mis productos')"
-      },
-      {
-        "action": "And los textos de pie de página o disclaimers legales coinciden con el contenido de Figma",
-        "expected": "Los disclaimers se muestran completos y sin variaciones respecto a lo definido en Figma"
-      }
+      {"action": "Precondiciones:\n- Flag Reactivación: true\n- Flag Incremento: true\n- Usuarios con códigos fuera de los sets de novedad\n  · CC 79584194 → código R (CUENTA REFINANCIADA)\n  · CC 19184974 → código K (CUENTA CASTIGADA)\n  · CC 19246507 → código J (CUENTA EN COBRO PRE JURIDICO)\n  · CC 11259747 → código J (CUENTA EN COBRO PRE JURIDICO)\n  · CC 547911   → código B (CUENTA CANCELADA POR EL BANCO)\n  · CC 1023944601 → código Y (COBRO JURIDICO)\n  · CC 13617086 → código A (POR MORA EN SUS PRODUCTOS)", "expected": ""},
+      {"action": "Given que los usuarios anteriores inician solicitud de crédito", "expected": ""},
+      {"action": "When se consume POST /loans/eligibility/internal/v1/card-validations para cada usuario con tipo CO1C", "expected": ""},
+      {"action": "Then la respuesta HTTP es 200 para todos", "expected": "HTTP 200"},
+      {"action": "And el campo estado es VALIDATION_ERROR para todos", "expected": "\"estado\": \"VALIDATION_ERROR\""},
+      {"action": "And el campo tipoSolicitud NO está presente en ninguna respuesta", "expected": "tipoSolicitud ausente"},
+      {"action": "And el campo codigoErrorValidacion es INVALID_REQUIREMENTS para todos", "expected": "\"codigoErrorValidacion\": \"INVALID_REQUIREMENTS\""}
     ]
   },
   {
-    "title": "TC007 - El contenido de la Thank You Page de Reactivación proviene de Drupal y no está hardcodeado en el Frontend",
+    "title": "TC007 - Sin tarjeta activa y tipo documento CE mapeado a CO1E",
     "steps": [
-      {
-        "action": "Precondiciones:\n- Acceso a la consola de red del navegador (DevTools → Network)\n- Variante de Reactivación publicada en Drupal con contenido conocido y verificable\n- noveltyType = 3 enviado por WebSocket\n- Segunda variante de prueba con contenido diferente disponible en Drupal (para validar dinamismo)",
-        "expected": ""
-      },
-      {
-        "action": "Given que el Frontend recibe noveltyType = 3 y renderiza la Thank You Page de Reactivación",
-        "expected": ""
-      },
-      {
-        "action": "When se inspecciona la pestaña Network en DevTools durante la carga de la página",
-        "expected": ""
-      },
-      {
-        "action": "Then debe existir al menos una llamada HTTP al endpoint de Drupal que retorne el contenido de la variante de Reactivación",
-        "expected": "Se registra una petición GET al CMS Drupal (ej. /jsonapi/ o /api/... ) con respuesta 200 que incluye los textos mostrados en pantalla"
-      },
-      {
-        "action": "And el contenido visible en pantalla corresponde al payload devuelto por Drupal y no a cadenas de texto definidas en el código fuente del Frontend",
-        "expected": "Los textos de título, cuerpo y botones de la Thank You Page coinciden exactamente con los campos del JSON retornado por Drupal"
-      },
-      {
-        "action": "When se modifica el contenido de la variante de Reactivación directamente en Drupal (sin despliegue de Frontend) y se recarga la Thank You Page",
-        "expected": ""
-      },
-      {
-        "action": "Then la página muestra el contenido actualizado de Drupal sin necesidad de un nuevo despliegue del Frontend",
-        "expected": "El cambio de contenido en Drupal se refleja de forma inmediata en la Thank You Page, confirmando que la fuente de verdad es el CMS"
-      }
+      {"action": "Precondiciones:\n- Flag Reactivación: true\n- Flag Incremento: true\n- Escenario A: usuarios sin tarjeta multiservicios activa\n  · CC 80833648, CC 382429, CC 1024539415 → dataTarjeta vacío\n- Escenario B: usuario CE 382429\n  · El tipo CE debe enviarse como CO1E en el body (no como CE, genera HTTP 400)", "expected": ""},
+      {"action": "Given escenario A: usuarios sin tarjeta activa", "expected": ""},
+      {"action": "When se consume POST /loans/eligibility/internal/v1/card-validations con tipo CO1C para CC 80833648, CC 382429, CC 1024539415", "expected": ""},
+      {"action": "Then la respuesta HTTP es 200 para todos", "expected": "HTTP 200"},
+      {"action": "And el campo codigoErrorValidacion es CARD_STATUS", "expected": "\"codigoErrorValidacion\": \"CARD_STATUS\""},
+      {"action": "And el campo reglaErrorValidacion es Tarjeta multiservicios no activa", "expected": "\"reglaErrorValidacion\": \"Tarjeta multiservicios no activa\""},
+      {"action": "Given escenario B: usuario CE 382429", "expected": ""},
+      {"action": "When se consume el servicio con body {\"documento\": {\"tipo\": \"CO1E\", \"numero\": \"382429\"}}", "expected": ""},
+      {"action": "Then la respuesta HTTP es 200 (no 400 — el 400 ocurre si se envía tipo CE en lugar de CO1E)", "expected": "HTTP 200"},
+      {"action": "And el campo codigoErrorValidacion es CARD_STATUS", "expected": "\"codigoErrorValidacion\": \"CARD_STATUS\""}
+    ]
+  },
+  {
+    "title": "TC008 - Regresión: tipoSolicitud presente en OK, ausente en VALIDATION_ERROR",
+    "steps": [
+      {"action": "Precondiciones:\n- Flag Reactivación: true\n- Flag Incremento: true\n- Usuarios OK: CC 52526685 (Reactivación), CC 80810798 (Incremento)\n- Usuarios VALIDATION_ERROR: CC 19184974 (K), CC 79584194 (R), CC 52634111 (tarjetaAmparada)", "expected": ""},
+      {"action": "Given que se consumen usuarios que generan estado OK y usuarios que generan VALIDATION_ERROR", "expected": ""},
+      {"action": "When se revisan todas las respuestas OK", "expected": ""},
+      {"action": "Then el campo tipoSolicitud SIEMPRE está presente en respuestas con estado OK", "expected": "tipoSolicitud presente"},
+      {"action": "And tipoSolicitud es 3 para códigos de Reactivación (O, V, I, W)", "expected": "\"tipoSolicitud\": 3"},
+      {"action": "And tipoSolicitud es 2 para códigos de Incremento (1, N, S)", "expected": "\"tipoSolicitud\": 2"},
+      {"action": "When se revisan todas las respuestas VALIDATION_ERROR", "expected": ""},
+      {"action": "Then el campo tipoSolicitud NUNCA está presente en respuestas con estado VALIDATION_ERROR", "expected": "tipoSolicitud ausente en toda respuesta VALIDATION_ERROR"},
+      {"action": "And el campo datosError siempre está presente con codigoErrorValidacion y reglaErrorValidacion", "expected": "datosError presente"}
     ]
   }
 ]
