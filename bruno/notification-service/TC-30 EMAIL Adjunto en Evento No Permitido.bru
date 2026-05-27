@@ -1,0 +1,60 @@
+meta {
+  name: TC-30 EMAIL Adjunto en Evento No Permitido
+  type: http
+  seq: 31
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "adjuntos": [
+      {
+        "contenido": "data:application/pdf;base64,JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9GaWx0ZXIvRmxhdGVEZWNvZGUvTGVuZ3RoIDQ0Pj5zdHJlYW0KeJwzUvDiMlAwUjBQsLHhcgkN9wxxNQTzgkM9I50UFAyAOACSiAfXCmVuZHN0cmVhbQplbmRvYmoK",
+        "nombreArchivo": "adjunto_no_permitido.pdf",
+        "tipo": "base64"
+      }
+    ],
+    "datos": {},
+    "destinatario": {
+      "email": "{{emailDestinatario}}",
+      "primerNombre": "David"
+    },
+    "documento": {
+      "numero": "80229110",
+      "tipo": "CO1C"
+    },
+    "evento": "CREDITO_RECHAZO_MOTOR"
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+docs {
+  Negativo E2 — Adjunto enviado en evento con hasAttachments=false.
+  Eventos sin adjuntos según BE config:
+    - CUPO_CREDITO_AUMEN_RECUPERACION_POSTMOTOR
+    - CREDITO_CALIFICACION_EXPERIENCIA
+    - CREDITO_RECHAZO_MOTOR
+    - CUPO_CREDITO_RECUPERACION_1 / RECUPERACION_2
+    - CUPO_CREDITO_RECHAZADO
+  
+  Comportamiento esperado (a confirmar con BE):
+    Opción A: 400 con mensaje "Este evento no admite adjuntos" (estricto).
+    Opción B: 200 ignorando el adjunto silenciosamente (permisivo).
+  
+  ⚠️ CONFIRMAR con BE qué política aplica. Es importante para evitar:
+    - Envíos accidentales de documentos sensibles en plantillas que no deberían tenerlos.
+    - Diferencias entre lo que envía el cliente y lo que llega al usuario final.
+}

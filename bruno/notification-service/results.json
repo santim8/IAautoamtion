@@ -1,0 +1,2217 @@
+[
+  {
+    "iterationIndex": 0,
+    "results": [
+      {
+        "test": {
+          "filename": "TC-01 EMAIL CUPO_CREDITO_APROBADO.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [\n    {\n      \"contenido\": \"data:application/pdf;base64,JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9GaWx0ZXIvRmxhdGVEZWNvZGUvTGVuZ3RoIDQ0Pj5zdHJlYW0KeJwzUvDiMlAwUjBQsLHhcgkN9wxxNQTzgkM9I50UFAyAOACSiAfXCmVuZHN0cmVhbQplbmRvYmoKMSAwIG9iago8PC9UeXBlL1BhZ2UvUGFyZW50IDIgMCBSL0NvbnRlbnRzIDMgMCBSL01lZGlhQm94WzAgMCA2MTIgNzkyXS9SZXNvdXJjZXM8PC9Gb250PDwvRjE8PC9UeXBlL0ZvbnQvU3VidHlwZS9UeXBlMS9CYXNlRm9udC9IZWx2ZXRpY2E+Pj4+Pj4+PgplbmRvYmoKMiAwIG9iago8PC9UeXBlL1BhZ2VzL0NvdW50IDEvS2lkc1sxIDAgUl0+PgplbmRvYmoKNCAwIG9iago8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFI+PgplbmRvYmoKeHJlZgowIDUKMDAwMDAwMDAwMCA2NTUzNSBmCjAwMDAwMDAxMzQgMDAwMDAgbgowMDAwMDAwMjY1IDAwMDAwIG4KMDAwMDAwMDAxNSAwMDAwMCBuCjAwMDAwMDAzMTYgMDAwMDAgbgp0cmFpbGVyPDwvU2l6ZSA1L1Jvb3QgNCAwIFI+PgpzdGFydHhyZWYKMzYyCiUlRU9G\",\n      \"nombreArchivo\": \"PAG_4782297_1777998808625.pdf\",\n      \"tipo\": \"base64\"\n    }\n  ],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-22T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 130000.0000,\n    \"valorCupo\": 2600000.0000\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"CASTAÑO\",\n    \"primerNombre\": \"DAVID\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_APROBADO\"\n}"
+        },
+        "response": {
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:46 GMT",
+            "content-type": "application/json",
+            "content-length": "152",
+            "connection": "close",
+            "x-amzn-requestid": "c80e9014-aeef-4f28-8a18-af058c296545",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "152",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8Z8FqiCYcEDNQ=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:46 GMT"
+          },
+          "data": {
+            "resultado": [
+              {
+                "codigo": "200",
+                "descripcion": "CORREO ENVIADO"
+              }
+            ],
+            "enviarCorreoElectronico": {
+              "evento": "CUPO_CREDITO_APROBADO",
+              "email": "jrojas@gattaca.co"
+            }
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 1645,
+          "duration": 1645,
+          "size": 152
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "vkA2w--Y8LxHe3_QKEGgc",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 1.8369261,
+        "name": "TC-01 EMAIL CUPO_CREDITO_APROBADO",
+        "path": "TC-01 EMAIL CUPO_CREDITO_APROBADO",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-02 EMAIL CUPO_CREDITO_RECHAZADO.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-22T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 75000.0000,\n    \"valorCupo\": 1500000.0000\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"CASTAÑO\",\n    \"primerNombre\": \"DAVID\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_RECHAZADO\"\n}"
+        },
+        "response": {
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:48 GMT",
+            "content-type": "application/json",
+            "content-length": "153",
+            "connection": "close",
+            "x-amzn-requestid": "06022b79-31b2-4f89-9101-5e0881af6082",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "153",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8aLG7jiYcEVaA=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:48 GMT"
+          },
+          "data": {
+            "resultado": [
+              {
+                "codigo": "200",
+                "descripcion": "CORREO ENVIADO"
+              }
+            ],
+            "enviarCorreoElectronico": {
+              "evento": "CUPO_CREDITO_RECHAZADO",
+              "email": "jrojas@gattaca.co"
+            }
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 1236,
+          "duration": 1236,
+          "size": 153
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "8iE6GfKdEJ5AgnGyHRys3",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 1.2553229,
+        "name": "TC-02 EMAIL CUPO_CREDITO_RECHAZADO",
+        "path": "TC-02 EMAIL CUPO_CREDITO_RECHAZADO",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-03 EMAIL CUPO_CREDITO_RECUPERACION_1.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"fechaHoraSolicitud\": \"2026-05-22T15:02:48.4339238\",\n    \"linkRedireccion\": \"https://www.colsubsidio.com/\"\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerNombre\": \"Marcela\"\n  },\n  \"documento\": {\n    \"numero\": \"1003567126\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_RECUPERACION_1\"\n}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:48 GMT",
+            "content-type": "application/json",
+            "content-length": "317",
+            "connection": "close",
+            "x-amzn-requestid": "42c0744c-2e5c-416a-ab8a-8cafaa2687c3",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "317",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8aXFrJiYcEtEg=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:48 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "Request Invalido",
+                "estado": 400,
+                "detalle": "primerApellido no puede ser nulo o vacio",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTB0001",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 456,
+          "duration": 456,
+          "size": 317
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "GvyGyU1xGqgfJJ6XFelFH",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "fail",
+            "error": "expected 400 to equal 200"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.477353,
+        "name": "TC-03 EMAIL CUPO_CREDITO_RECUPERACION_1",
+        "path": "TC-03 EMAIL CUPO_CREDITO_RECUPERACION_1",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-04 EMAIL CUPO_CREDITO_RECUPERACION_2.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"fechaHoraSolicitud\": \"2026-05-22T15:02:48.4339238\",\n    \"linkRedireccion\": \"https://www.colsubsidio.com/\",\n    \"valorCupo\": 1800000\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"Coca\",\n    \"primerNombre\": \"Marcela\"\n  },\n  \"documento\": {\n    \"numero\": \"1003567136\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_RECUPERACION_2\"\n}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:48 GMT",
+            "content-type": "application/json",
+            "content-length": "303",
+            "connection": "close",
+            "x-amzn-requestid": "2609ce5b-f267-4bdc-89bc-98daf237d5d8",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "303",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8acEm7CYcERYw=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:48 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "INVALID PARAMETERS",
+                "estado": 400,
+                "detalle": "Faltan atributos en Data",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTB0004",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 444,
+          "duration": 444,
+          "size": 303
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "2Cifvq0jZdCaceAQaTNIy",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "fail",
+            "error": "expected 400 to equal 200"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.4645216,
+        "name": "TC-04 EMAIL CUPO_CREDITO_RECUPERACION_2",
+        "path": "TC-04 EMAIL CUPO_CREDITO_RECUPERACION_2",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-05 SMS OTP_TERMINOS_CONDICIONES.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/sms/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"destinatario\": {\n    \"numCelular\": \"3002153162\",\n    \"atributos\": {\n      \"documento\": \"1007223413\",\n      \"tipoDocumento\": \"CO1C\",\n      \"otp\": \"612762\"\n    }\n  },\n  \"evento\": \"OTP_TERMINOS_CONDICIONES\"\n}"
+        },
+        "response": {
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:50 GMT",
+            "content-type": "application/json",
+            "content-length": "129",
+            "connection": "close",
+            "x-amzn-requestid": "84d73811-0084-4b73-b082-840ac978eaf1",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "129",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8agFabiYcEIKw=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:50 GMT"
+          },
+          "data": {
+            "resultado": [
+              {
+                "codigo": "200",
+                "descripcion": "SMS ENVIADO"
+              }
+            ],
+            "envioSMS": {
+              "evento": "OTP_TERMINOS_CONDICIONES",
+              "para": "3002153162"
+            }
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/sms/send",
+          "responseTime": 1292,
+          "duration": 1292,
+          "size": 129
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "XSH0X2eh3ObTjBzQxQUgU",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 1.3052714,
+        "name": "TC-05 SMS OTP_TERMINOS_CONDICIONES",
+        "path": "TC-05 SMS OTP_TERMINOS_CONDICIONES",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-29 EMAIL CREDITO_RECHAZO_MOTOR.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {},\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerNombre\": \"David\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CREDITO_RECHAZO_MOTOR\"\n}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:50 GMT",
+            "content-type": "application/json",
+            "content-length": "317",
+            "connection": "close",
+            "x-amzn-requestid": "c40a294d-20e3-4bce-8fd5-c015d2a721e6",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "317",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8auG7DiYcEgHg=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:50 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "Request Invalido",
+                "estado": 400,
+                "detalle": "primerApellido no puede ser nulo o vacio",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTB0001",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 530,
+          "duration": 530,
+          "size": 317
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "zyIOHreCCVBu6uujtDp9f",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "fail",
+            "error": "expected 400 to equal 200"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.5479072,
+        "name": "TC-29 EMAIL CREDITO_RECHAZO_MOTOR",
+        "path": "TC-29 EMAIL CREDITO_RECHAZO_MOTOR",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-28 EMAIL CREDITO_CALIFICACION_EXPERIENCIA.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"tipo_producto\": \"Cupo de Crédito Colsubsidio\",\n    \"linkRedireccion\": \"https://www.colsubsidio.com/encuesta-satisfaccion\"\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerNombre\": \"David\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CREDITO_CALIFICACION_EXPERIENCIA\"\n}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:51 GMT",
+            "content-type": "application/json",
+            "content-length": "317",
+            "connection": "close",
+            "x-amzn-requestid": "5336ae40-cbe4-4829-add8-baed3021d974",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "317",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8a0GZniYcEH3Q=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:51 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "Request Invalido",
+                "estado": 400,
+                "detalle": "primerApellido no puede ser nulo o vacio",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTB0001",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 565,
+          "duration": 565,
+          "size": 317
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "0t-RN-AdHXxB9yhdMioSm",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "fail",
+            "error": "expected 400 to equal 200"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.5815769,
+        "name": "TC-28 EMAIL CREDITO_CALIFICACION_EXPERIENCIA",
+        "path": "TC-28 EMAIL CREDITO_CALIFICACION_EXPERIENCIA",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-27 EMAIL CUPO_CREDITO_AUMEN_RECUPERACION_POSTMOTOR.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"valorCupo\": 2500000,\n    \"fechaHoraSolicitud\": \"2026-05-25T10:30:00.000\",\n    \"linkRedireccion\": \"https://www.colsubsidio.com/\",\n    \"horas\": \"24\"\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerNombre\": \"David\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_AUMEN_RECUPERACION_POSTMOTOR\"\n}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:51 GMT",
+            "content-type": "application/json",
+            "content-length": "317",
+            "connection": "close",
+            "x-amzn-requestid": "c1de4ac5-a6cb-499c-beb7-a62d4719ca2a",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "317",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8a6FBSiYcEZyg=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:51 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "Request Invalido",
+                "estado": 400,
+                "detalle": "primerApellido no puede ser nulo o vacio",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTB0001",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 529,
+          "duration": 529,
+          "size": 317
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "BaBshGN5MVDFNVbO75p8E",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "fail",
+            "error": "expected 400 to equal 200"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.5475519,
+        "name": "TC-27 EMAIL CUPO_CREDITO_AUMEN_RECUPERACION_POSTMOTOR",
+        "path": "TC-27 EMAIL CUPO_CREDITO_AUMEN_RECUPERACION_POSTMOTOR",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-06 EMAIL Sin x-api-key.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-22T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 75000.0000,\n    \"valorCupo\": 1500000.0000\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"CASTAÑO\",\n    \"primerNombre\": \"DAVID\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_RECHAZADO\"\n}"
+        },
+        "response": {
+          "status": 401,
+          "statusText": "Unauthorized",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:52 GMT",
+            "content-type": "application/json",
+            "content-length": "26",
+            "connection": "close",
+            "x-amzn-requestid": "72affe2a-df84-4a42-9136-772e49185b96",
+            "access-control-allow-origin": "http://localhost:3000",
+            "access-control-allow-headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+            "x-amzn-errortype": "UnauthorizedException",
+            "x-amz-apigw-id": "d-8a_FhaCYcEULA=",
+            "access-control-allow-methods": "OPTIONS,POST",
+            "access-control-allow-credentials": "true"
+          },
+          "data": {
+            "message": "Unauthorized"
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 357,
+          "duration": 357,
+          "size": 26
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "GtzPTZwiY-jJTZmwHTQTV",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 403",
+            "rhsOperand": "403",
+            "operator": "eq",
+            "status": "fail",
+            "error": "expected 401 to equal 403"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.3847611,
+        "name": "TC-06 EMAIL Sin x-api-key",
+        "path": "TC-06 EMAIL Sin x-api-key",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-07 EMAIL x-api-key Invalida.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-22T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 75000.0000,\n    \"valorCupo\": 1500000.0000\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"CASTAÑO\",\n    \"primerNombre\": \"DAVID\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_RECHAZADO\"\n}"
+        },
+        "response": {
+          "status": 403,
+          "statusText": "Forbidden",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:52 GMT",
+            "content-type": "application/json",
+            "content-length": "110",
+            "connection": "close",
+            "x-amzn-requestid": "1d8aebbb-6e5d-43f8-801f-327afe0edd31",
+            "access-control-allow-origin": "http://localhost:3000",
+            "access-control-allow-headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+            "x-amzn-errortype": "AccessDeniedException",
+            "x-amz-apigw-id": "d-8bDG4ZCYcEEgA=",
+            "access-control-allow-methods": "OPTIONS,POST",
+            "access-control-allow-credentials": "true"
+          },
+          "data": {
+            "message": "User is not authorized to access this resource with an explicit deny in an identity-based policy"
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 510,
+          "duration": 510,
+          "size": 110
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "p7MceJarZw3oAelXeruLA",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 403",
+            "rhsOperand": "403",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.5351752,
+        "name": "TC-07 EMAIL x-api-key Invalida",
+        "path": "TC-07 EMAIL x-api-key Invalida",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-10 EMAIL Sin destinatario.email.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-22T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 75000.0000,\n    \"valorCupo\": 1500000.0000\n  },\n  \"destinatario\": {\n    \"primerApellido\": \"CASTAÑO\",\n    \"primerNombre\": \"DAVID\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_RECHAZADO\"\n}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:53 GMT",
+            "content-type": "application/json",
+            "content-length": "308",
+            "connection": "close",
+            "x-amzn-requestid": "a2c4d45b-3822-4569-a8a3-8ad2fda65bc1",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "308",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8bHFg2CYcEFYw=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:53 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "Request Invalido",
+                "estado": 400,
+                "detalle": "email no puede ser nulo o vacio",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTB0001",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 421,
+          "duration": 421,
+          "size": 308
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "JgutMIy7HJHOw5g-wW2B-",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 400",
+            "rhsOperand": "400",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.4460783,
+        "name": "TC-10 EMAIL Sin destinatario.email",
+        "path": "TC-10 EMAIL Sin destinatario.email",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-08 SMS Sin x-api-key.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/sms/send",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"destinatario\": {\n    \"numCelular\": \"3002153162\",\n    \"atributos\": {\n      \"documento\": \"80229110\",\n      \"tipoDocumento\": \"CO1C\",\n      \"otp\": \"612762\"\n    }\n  },\n  \"evento\": \"OTP_TERMINOS_CONDICIONES\"\n}"
+        },
+        "response": {
+          "status": 401,
+          "statusText": "Unauthorized",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:53 GMT",
+            "content-type": "application/json",
+            "content-length": "26",
+            "connection": "close",
+            "x-amzn-requestid": "d2397ef6-fb46-4e01-943c-e62e8d0d7827",
+            "access-control-allow-origin": "http://localhost:3000",
+            "access-control-allow-headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+            "x-amzn-errortype": "UnauthorizedException",
+            "x-amz-apigw-id": "d-8bMGrdCYcEjiA=",
+            "access-control-allow-methods": "OPTIONS,POST",
+            "access-control-allow-credentials": "true"
+          },
+          "data": {
+            "message": "Unauthorized"
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/sms/send",
+          "responseTime": 323,
+          "duration": 323,
+          "size": 26
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "zW2ddxFQgSc-OyHAU7UOP",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 403",
+            "rhsOperand": "403",
+            "operator": "eq",
+            "status": "fail",
+            "error": "expected 401 to equal 403"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.3445744,
+        "name": "TC-08 SMS Sin x-api-key",
+        "path": "TC-08 SMS Sin x-api-key",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-11 SMS Sin destinatario.numCelular.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/sms/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"destinatario\": {\n    \"atributos\": {\n      \"documento\": \"80229110\",\n      \"tipoDocumento\": \"CO1C\",\n      \"otp\": \"612762\"\n    }\n  },\n  \"evento\": \"OTP_TERMINOS_CONDICIONES\"\n}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:54 GMT",
+            "content-type": "application/json",
+            "content-length": "311",
+            "connection": "close",
+            "x-amzn-requestid": "0769ccce-52c5-48ff-8ac5-ed1540dac6a9",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "311",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8bQEHPCYcErPg=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:54 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "Request Invalido",
+                "estado": 400,
+                "detalle": "numCelular no puede ser nulo o vacio",
+                "instancia": "/loans/notification/internal/v1/sms/send",
+                "codigoError": "NOTB0001",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/sms/send",
+          "responseTime": 584,
+          "duration": 584,
+          "size": 311
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "DwtCsKibdA6L81_WowWEd",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 400",
+            "rhsOperand": "400",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.5966433,
+        "name": "TC-11 SMS Sin destinatario.numCelular",
+        "path": "TC-11 SMS Sin destinatario.numCelular",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-12 EMAIL Sin documento.numero.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-22T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 75000.0000,\n    \"valorCupo\": 1500000.0000\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"CASTAÑO\",\n    \"primerNombre\": \"DAVID\"\n  },\n  \"documento\": {\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_RECHAZADO\"\n}"
+        },
+        "response": {
+          "status": 500,
+          "statusText": "Internal Server Error",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:54 GMT",
+            "content-type": "application/json",
+            "content-length": "340",
+            "connection": "close",
+            "x-amzn-requestid": "7beb0e98-7f61-4de6-9bb5-b9f07c8b111c",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "340",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8bVFPxCYcEkiA=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:54 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTT0001",
+                "titulo": "Internal Server Error",
+                "estado": 500,
+                "detalle": "Cannot invoke \"String.isEmpty()\" because \"str\" is null",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTT0001",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 438,
+          "duration": 438,
+          "size": 340
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "1pWP7JbUZlu6w7GErBaGv",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 400",
+            "rhsOperand": "400",
+            "operator": "eq",
+            "status": "fail",
+            "error": "expected 500 to equal 400"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.4496288,
+        "name": "TC-12 EMAIL Sin documento.numero",
+        "path": "TC-12 EMAIL Sin documento.numero",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-09 EMAIL Sin Evento.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-22T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 75000.0000,\n    \"valorCupo\": 1500000.0000\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"CASTAÑO\",\n    \"primerNombre\": \"DAVID\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  }\n}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:55 GMT",
+            "content-type": "application/json",
+            "content-length": "301",
+            "connection": "close",
+            "x-amzn-requestid": "3858b0ac-d0eb-47c3-9cae-ec66eda971fe",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "301",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8bbFGPCYcEkDQ=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:55 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "Request Invalido",
+                "estado": 400,
+                "detalle": "El evento es obligatorio",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTB0001",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 550,
+          "duration": 550,
+          "size": 301
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "zJuC8qvC5c5r9vM9xGbsI",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 400",
+            "rhsOperand": "400",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.5593895,
+        "name": "TC-09 EMAIL Sin Evento",
+        "path": "TC-09 EMAIL Sin Evento",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-13 EMAIL APROBADO Sin valorCupo.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-22T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 130000.0000\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"CASTAÑO\",\n    \"primerNombre\": \"DAVID\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_APROBADO\"\n}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:55 GMT",
+            "content-type": "application/json",
+            "content-length": "303",
+            "connection": "close",
+            "x-amzn-requestid": "45362230-1d7a-4ae7-aba3-15b386c6b921",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "303",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8bfH9SiYcEBIQ=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:55 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "INVALID PARAMETERS",
+                "estado": 400,
+                "detalle": "Faltan atributos en Data",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTB0004",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 431,
+          "duration": 431,
+          "size": 303
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "BVP-xeGAyvnitCcJ9t5wn",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 400",
+            "rhsOperand": "400",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.4409591,
+        "name": "TC-13 EMAIL APROBADO Sin valorCupo",
+        "path": "TC-13 EMAIL APROBADO Sin valorCupo",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-14 SMS Sin OTP.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/sms/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"destinatario\": {\n    \"numCelular\": \"3002153162\",\n    \"atributos\": {\n      \"documento\": \"80229110\",\n      \"tipoDocumento\": \"CO1C\"\n    }\n  },\n  \"evento\": \"OTP_TERMINOS_CONDICIONES\"\n}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:56 GMT",
+            "content-type": "application/json",
+            "content-length": "313",
+            "connection": "close",
+            "x-amzn-requestid": "48a8c55e-4deb-43ca-9c19-fb38582dd6e5",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "313",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8bkHNICYcEXMQ=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:56 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "INVALID PARAMETERS",
+                "estado": 400,
+                "detalle": "Faltan los siguientes atributos: otp",
+                "instancia": "/loans/notification/internal/v1/sms/send",
+                "codigoError": "NOTB0004",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/sms/send",
+          "responseTime": 399,
+          "duration": 399,
+          "size": 313
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "ZMyJM5SsNCrwANFnizCPz",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 400",
+            "rhsOperand": "400",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.4082076,
+        "name": "TC-14 SMS Sin OTP",
+        "path": "TC-14 SMS Sin OTP",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-15 EMAIL Evento No Configurado.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-22T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 75000.0000,\n    \"valorCupo\": 1500000.0000\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"CASTAÑO\",\n    \"primerNombre\": \"DAVID\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"EVENTO_INEXISTENTE\"\n}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:56 GMT",
+            "content-type": "application/json",
+            "content-length": "314",
+            "connection": "close",
+            "x-amzn-requestid": "fe62d638-349e-4301-9247-b56f2493e6b4",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "314",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8boF8fiYcEPFA=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:56 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "INVALID PARAMETERS",
+                "estado": 400,
+                "detalle": "El evento indicado no esta definido",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTB0005",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 432,
+          "duration": 432,
+          "size": 314
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "7IPVr89-5M-PSzvRvT5cZ",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 400",
+            "rhsOperand": "400",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.4465736,
+        "name": "TC-15 EMAIL Evento No Configurado",
+        "path": "TC-15 EMAIL Evento No Configurado",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-16 EMAIL Formato Email Invalido.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-22T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 75000.0000,\n    \"valorCupo\": 1500000.0000\n  },\n  \"destinatario\": {\n    \"email\": \"correo-sin-arroba-ni-dominio\",\n    \"primerApellido\": \"CASTAÑO\",\n    \"primerNombre\": \"DAVID\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_RECHAZADO\"\n}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:57 GMT",
+            "content-type": "application/json",
+            "content-length": "298",
+            "connection": "close",
+            "x-amzn-requestid": "25582eb7-5050-4f1d-9dde-945843cb23de",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "298",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8bsELJCYcEMsQ=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:57 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "Request Invalido",
+                "estado": 400,
+                "detalle": "No es un email valido",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTB0001",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 749,
+          "duration": 749,
+          "size": 298
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "aYp9UJKDEpuS5BROOEmwu",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 400",
+            "rhsOperand": "400",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.7601542,
+        "name": "TC-16 EMAIL Formato Email Invalido",
+        "path": "TC-16 EMAIL Formato Email Invalido",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-17 EMAIL JSON Malformado.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{ \"evento\": \"CUPO_CREDITO_RECHAZADO\", \"datos\": {"
+        },
+        "response": {
+          "status": 500,
+          "statusText": "Internal Server Error",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:57 GMT",
+            "content-type": "application/json",
+            "content-length": "435",
+            "connection": "close",
+            "x-amzn-requestid": "108b73dd-f4c3-43ab-8308-81acfe46949a",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "435",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8b0HDUCYcEBJg=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:57 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTT0001",
+                "titulo": "Internal Server Error",
+                "estado": 500,
+                "detalle": "Cannot invoke \"java.lang.Throwable.getMessage()\" because the return value of \"com.fasterxml.jackson.databind.JsonMappingException.getCause()\" is null",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTT0001",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 458,
+          "duration": 458,
+          "size": 435
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "WkP7pVgIfLj3mvAudLMJT",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 400",
+            "rhsOperand": "400",
+            "operator": "eq",
+            "status": "fail",
+            "error": "expected 500 to equal 400"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.4706723,
+        "name": "TC-17 EMAIL JSON Malformado",
+        "path": "TC-17 EMAIL JSON Malformado",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-18 EMAIL Tipo Documento Invalido.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-22T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 75000.0000,\n    \"valorCupo\": 1500000.0000\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"CASTAÑO\",\n    \"primerNombre\": \"DAVID\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"XXXX\"\n  },\n  \"evento\": \"CUPO_CREDITO_RECHAZADO\"\n}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:58 GMT",
+            "content-type": "application/json",
+            "content-length": "317",
+            "connection": "close",
+            "x-amzn-requestid": "3c75718f-ad14-4d51-ad6c-4452166a8f94",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "317",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8b5HH-iYcEjiA=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:58 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "Request Invalido",
+                "estado": 400,
+                "detalle": "El tipo de documento 'XXXX' no es valido",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTB0001",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 489,
+          "duration": 489,
+          "size": 317
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "FQMWtpTqRVDaPWgfzI-0r",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 400",
+            "rhsOperand": "400",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.5020508,
+        "name": "TC-18 EMAIL Tipo Documento Invalido",
+        "path": "TC-18 EMAIL Tipo Documento Invalido",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-19 EMAIL Payload Vacio.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:38:58 GMT",
+            "content-type": "application/json",
+            "content-length": "875",
+            "connection": "close",
+            "x-amzn-requestid": "b1b8380d-d85f-48b4-8323-19f931cf9917",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "875",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8b9G1_iYcEFMA=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:38:58 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "Request Invalido",
+                "estado": 400,
+                "detalle": "El evento es obligatorio",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTB0001",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              },
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "Request Invalido",
+                "estado": 400,
+                "detalle": "must not be null",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTB0001",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              },
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "Request Invalido",
+                "estado": 400,
+                "detalle": "El destinatario es obligatorio",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTB0001",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 413,
+          "duration": 413,
+          "size": 875
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "qIRyh3bBW4IXb0cAGfh4-",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 400",
+            "rhsOperand": "400",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.4221465,
+        "name": "TC-19 EMAIL Payload Vacio",
+        "path": "TC-19 EMAIL Payload Vacio",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-20 EMAIL Adjunto Base64 Invalido.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [\n    {\n      \"contenido\": \"esto-no-es-base64-valido!!!\",\n      \"nombreArchivo\": \"archivo_invalido.pdf\",\n      \"tipo\": \"base64\"\n    }\n  ],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-22T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 130000.0000,\n    \"valorCupo\": 2600000.0000\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"CASTAÑO\",\n    \"primerNombre\": \"DAVID\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_APROBADO\"\n}"
+        },
+        "response": {
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:39:00 GMT",
+            "content-type": "application/json",
+            "content-length": "152",
+            "connection": "close",
+            "x-amzn-requestid": "25fe0e46-0ed2-454c-b224-4a88b4aa4616",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "152",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8cCHB-iYcEISg=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:39:00 GMT"
+          },
+          "data": {
+            "resultado": [
+              {
+                "codigo": "200",
+                "descripcion": "CORREO ENVIADO"
+              }
+            ],
+            "enviarCorreoElectronico": {
+              "evento": "CUPO_CREDITO_APROBADO",
+              "email": "jrojas@gattaca.co"
+            }
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 1430,
+          "duration": 1430,
+          "size": 152
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "AN6yp35RWehhKUgY3DN8A",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 400",
+            "rhsOperand": "400",
+            "operator": "eq",
+            "status": "fail",
+            "error": "expected 200 to equal 400"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 1.4416506,
+        "name": "TC-20 EMAIL Adjunto Base64 Invalido",
+        "path": "TC-20 EMAIL Adjunto Base64 Invalido",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-21 EMAIL Adjunto Sin nombreArchivo.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [\n    {\n      \"contenido\": \"data:application/pdf;base64,JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9GaWx0ZXIvRmxhdGVEZWNvZGUvTGVuZ3RoIDQ0Pj5zdHJlYW0KeJwzUvDiMlAwUjBQsLHhcgkN9wxxNQTzgkM9I50UFAyAOACSiAfXCmVuZHN0cmVhbQplbmRvYmoK\",\n      \"tipo\": \"base64\"\n    }\n  ],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-22T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 130000.0000,\n    \"valorCupo\": 2600000.0000\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"CASTAÑO\",\n    \"primerNombre\": \"DAVID\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_APROBADO\"\n}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:39:00 GMT",
+            "content-type": "application/json",
+            "content-length": "316",
+            "connection": "close",
+            "x-amzn-requestid": "52414484-ccbd-4793-b972-412fb34425b9",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "316",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8cSGHEiYcEspg=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:39:00 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "Request Invalido",
+                "estado": 400,
+                "detalle": "nombreArchivo no puede ser nulo o vacio",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTB0001",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 595,
+          "duration": 595,
+          "size": 316
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "3hp2F_EGJsBCWtEad8f98",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 400",
+            "rhsOperand": "400",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.6089621,
+        "name": "TC-21 EMAIL Adjunto Sin nombreArchivo",
+        "path": "TC-21 EMAIL Adjunto Sin nombreArchivo",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-22 EMAIL Multiples Adjuntos.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [\n    {\n      \"contenido\": \"data:application/pdf;base64,JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9GaWx0ZXIvRmxhdGVEZWNvZGUvTGVuZ3RoIDQ0Pj5zdHJlYW0KeJwzUvDiMlAwUjBQsLHhcgkN9wxxNQTzgkM9I50UFAyAOACSiAfXCmVuZHN0cmVhbQplbmRvYmoK\",\n      \"nombreArchivo\": \"documento_uno.pdf\",\n      \"tipo\": \"base64\"\n    },\n    {\n      \"contenido\": \"data:application/pdf;base64,JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9GaWx0ZXIvRmxhdGVEZWNvZGUvTGVuZ3RoIDQ0Pj5zdHJlYW0KeJwzUvDiMlAwUjBQsLHhcgkN9wxxNQTzgkM9I50UFAyAOACSiAfXCmVuZHN0cmVhbQplbmRvYmoK\",\n      \"nombreArchivo\": \"documento_dos.pdf\",\n      \"tipo\": \"base64\"\n    }\n  ],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-22T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 130000.0000,\n    \"valorCupo\": 2600000.0000\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"CASTAÑO\",\n    \"primerNombre\": \"DAVID\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_APROBADO\"\n}"
+        },
+        "response": {
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:39:02 GMT",
+            "content-type": "application/json",
+            "content-length": "152",
+            "connection": "close",
+            "x-amzn-requestid": "2600c65b-1ae5-4236-82fa-eee500c34572",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "152",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8cXH2YCYcEOxg=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:39:02 GMT"
+          },
+          "data": {
+            "resultado": [
+              {
+                "codigo": "200",
+                "descripcion": "CORREO ENVIADO"
+              }
+            ],
+            "enviarCorreoElectronico": {
+              "evento": "CUPO_CREDITO_APROBADO",
+              "email": "jrojas@gattaca.co"
+            }
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 1216,
+          "duration": 1216,
+          "size": 152
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "6guAR248_KWB959O7nbmC",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 1.2352589,
+        "name": "TC-22 EMAIL Multiples Adjuntos",
+        "path": "TC-22 EMAIL Multiples Adjuntos",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-23 EMAIL Capitalizacion Nombre.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-22T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 75000.0000,\n    \"valorCupo\": 1500000.0000\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"RODRIGUEZ\",\n    \"primerNombre\": \"MARIA FERNANDA\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_RECHAZADO\"\n}"
+        },
+        "response": {
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:39:02 GMT",
+            "content-type": "application/json",
+            "content-length": "153",
+            "connection": "close",
+            "x-amzn-requestid": "ee398686-64ec-48ad-9c74-4125058127c1",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "153",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8cjFNHiYcEmMw=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:39:02 GMT"
+          },
+          "data": {
+            "resultado": [
+              {
+                "codigo": "200",
+                "descripcion": "CORREO ENVIADO"
+              }
+            ],
+            "enviarCorreoElectronico": {
+              "evento": "CUPO_CREDITO_RECHAZADO",
+              "email": "jrojas@gattaca.co"
+            }
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 940,
+          "duration": 940,
+          "size": 153
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "_3bopwhG7W5DFd_uJb-Y4",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.9566695,
+        "name": "TC-23 EMAIL Capitalizacion Nombre",
+        "path": "TC-23 EMAIL Capitalizacion Nombre",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-24 EMAIL Caracteres Especiales Nombre.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-22T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 75000.0000,\n    \"valorCupo\": 1500000.0000\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"MUÑOZ DE LA ROSA\",\n    \"primerNombre\": \"JOSÉ MARÍA\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_RECHAZADO\"\n}"
+        },
+        "response": {
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:39:04 GMT",
+            "content-type": "application/json",
+            "content-length": "153",
+            "connection": "close",
+            "x-amzn-requestid": "dd12c0ef-db20-4d7f-97ce-9d7243b2c9d4",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "153",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8csEtHiYcEqJw=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:39:04 GMT"
+          },
+          "data": {
+            "resultado": [
+              {
+                "codigo": "200",
+                "descripcion": "CORREO ENVIADO"
+              }
+            ],
+            "enviarCorreoElectronico": {
+              "evento": "CUPO_CREDITO_RECHAZADO",
+              "email": "jrojas@gattaca.co"
+            }
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 1124,
+          "duration": 1124,
+          "size": 153
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "P_cgcIB7OeigA0MXGVwRq",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 1.1350064,
+        "name": "TC-24 EMAIL Caracteres Especiales Nombre",
+        "path": "TC-24 EMAIL Caracteres Especiales Nombre",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-25 SMS OTP Longitud Invalida.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/sms/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"destinatario\": {\n    \"numCelular\": \"3002153162\",\n    \"atributos\": {\n      \"documento\": \"80229110\",\n      \"tipoDocumento\": \"CO1C\",\n      \"otp\": \"12\"\n    }\n  },\n  \"evento\": \"OTP_TERMINOS_CONDICIONES\"\n}"
+        },
+        "response": {
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:39:05 GMT",
+            "content-type": "application/json",
+            "content-length": "129",
+            "connection": "close",
+            "x-amzn-requestid": "f025d1d7-ded9-4c2b-a77f-c9d278b0acc5",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "129",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8c4FT0iYcEJQw=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:39:05 GMT"
+          },
+          "data": {
+            "resultado": [
+              {
+                "codigo": "200",
+                "descripcion": "SMS ENVIADO"
+              }
+            ],
+            "envioSMS": {
+              "evento": "OTP_TERMINOS_CONDICIONES",
+              "para": "3002153162"
+            }
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/sms/send",
+          "responseTime": 1620,
+          "duration": 1620,
+          "size": 129
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "1hUDxDOxym3OfAIxkbapD",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 400",
+            "rhsOperand": "400",
+            "operator": "eq",
+            "status": "fail",
+            "error": "expected 200 to equal 400"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 1.6317371999999999,
+        "name": "TC-25 SMS OTP Longitud Invalida",
+        "path": "TC-25 SMS OTP Longitud Invalida",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-26 SMS NumCelular Formato Invalido.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/sms/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"destinatario\": {\n    \"numCelular\": \"abc123\",\n    \"atributos\": {\n      \"documento\": \"80229110\",\n      \"tipoDocumento\": \"CO1C\",\n      \"otp\": \"612762\"\n    }\n  },\n  \"evento\": \"OTP_TERMINOS_CONDICIONES\"\n}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:39:06 GMT",
+            "content-type": "application/json",
+            "content-length": "311",
+            "connection": "close",
+            "x-amzn-requestid": "760111f7-9590-43bc-9212-74e33a971ac2",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "311",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8dJHQLiYcEHkA=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:39:06 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "Request Invalido",
+                "estado": 400,
+                "detalle": "numCelular debe ser de 10 caracteres",
+                "instancia": "/loans/notification/internal/v1/sms/send",
+                "codigoError": "NOTB0001",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/sms/send",
+          "responseTime": 483,
+          "duration": 483,
+          "size": 311
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "vyHu6aasm-GR1qqEJcsrQ",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 400",
+            "rhsOperand": "400",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.4932975,
+        "name": "TC-26 SMS NumCelular Formato Invalido",
+        "path": "TC-26 SMS NumCelular Formato Invalido",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-30 EMAIL Adjunto en Evento No Permitido.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [\n    {\n      \"contenido\": \"data:application/pdf;base64,JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9GaWx0ZXIvRmxhdGVEZWNvZGUvTGVuZ3RoIDQ0Pj5zdHJlYW0KeJwzUvDiMlAwUjBQsLHhcgkN9wxxNQTzgkM9I50UFAyAOACSiAfXCmVuZHN0cmVhbQplbmRvYmoK\",\n      \"nombreArchivo\": \"adjunto_no_permitido.pdf\",\n      \"tipo\": \"base64\"\n    }\n  ],\n  \"datos\": {},\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerNombre\": \"David\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CREDITO_RECHAZO_MOTOR\"\n}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 17:39:06 GMT",
+            "content-type": "application/json",
+            "content-length": "317",
+            "connection": "close",
+            "x-amzn-requestid": "34e94e53-5d7e-45a0-a741-c3c22fec7716",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "317",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d-8dNFecCYcEetQ=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 17:39:06 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "Request Invalido",
+                "estado": 400,
+                "detalle": "primerApellido no puede ser nulo o vacio",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTB0001",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 515,
+          "duration": 515,
+          "size": 317
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "o6nX2-KrDsszUHrlbzgEt",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 400",
+            "rhsOperand": "400",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.5267187,
+        "name": "TC-30 EMAIL Adjunto en Evento No Permitido",
+        "path": "TC-30 EMAIL Adjunto en Evento No Permitido",
+        "iterationIndex": 0
+      }
+    ],
+    "summary": {
+      "totalRequests": 30,
+      "passedRequests": 19,
+      "failedRequests": 11,
+      "errorRequests": 0,
+      "skippedRequests": 0,
+      "totalAssertions": 30,
+      "passedAssertions": 19,
+      "failedAssertions": 11,
+      "totalTests": 0,
+      "passedTests": 0,
+      "failedTests": 0,
+      "totalPreRequestTests": 0,
+      "passedPreRequestTests": 0,
+      "failedPreRequestTests": 0,
+      "totalPostResponseTests": 0,
+      "passedPostResponseTests": 0,
+      "failedPostResponseTests": 0
+    }
+  }
+]

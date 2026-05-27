@@ -1,0 +1,51 @@
+meta {
+  name: TC-04 EMAIL CUPO_CREDITO_RECUPERACION_2
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "adjuntos": [],
+    "datos": {
+      "fechaHoraSolicitud": "2026-05-22T15:02:48.4339238",
+      "linkRedireccion": "https://www.colsubsidio.com/",
+      "valorCupo": 1800000
+    },
+    "destinatario": {
+      "email": "{{emailDestinatario}}",
+      "primerApellido": "Coca",
+      "primerNombre": "Marcela"
+    },
+    "documento": {
+      "numero": "1003567136",
+      "tipo": "CO1C"
+    },
+    "evento": "CUPO_CREDITO_RECUPERACION_2"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Happy Path — Recordatorio con oferta del motor.
+  Evento mapeado a templateId Infobip 405000000003534.
+  Incluye valorCupo (oferta real del motor) — diferencia clave con RECUPERACION_1.
+  Validar en buzón:
+    - Valor ofertado visible.
+    - Advertencia de expiración 24h.
+    - Link de redirección.
+}

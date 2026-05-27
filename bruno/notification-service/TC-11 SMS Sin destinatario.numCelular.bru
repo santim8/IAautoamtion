@@ -1,0 +1,39 @@
+meta {
+  name: TC-11 SMS Sin destinatario.numCelular
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}{{smsPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "destinatario": {
+      "atributos": {
+        "documento": "80229110",
+        "tipoDocumento": "CO1C",
+        "otp": "612762"
+      }
+    },
+    "evento": "OTP_TERMINOS_CONDICIONES"
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+docs {
+  Negativo E2 — Falta destinatario.numCelular en SMS.
+  Esperado: 400 con mensaje claro de validación.
+  NO se consume Infobip.
+}

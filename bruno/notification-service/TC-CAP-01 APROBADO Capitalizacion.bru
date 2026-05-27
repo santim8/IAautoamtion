@@ -1,0 +1,56 @@
+meta {
+  name: TC-CAP-01 APROBADO Capitalizacion
+  type: http
+  seq: 31
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "adjuntos": [
+      {
+        "contenido": "data:application/pdf;base64,JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9GaWx0ZXIvRmxhdGVEZWNvZGUvTGVuZ3RoIDQ0Pj5zdHJlYW0KeJwzUvDiMlAwUjBQsLHhcgkN9wxxNQTzgkM9I50UFAyAOACSiAfXCmVuZHN0cmVhbQplbmRvYmoK",
+        "nombreArchivo": "PAG_TEST.pdf",
+        "tipo": "base64"
+      }
+    ],
+    "datos": {
+      "diaDePago": "1",
+      "fechaHoraSolicitud": "2026-05-25T16:38:48.00000",
+      "numeroTarjetaMultiservicios": "8800010305054110",
+      "tipoCuota": "FIJA",
+      "valorCuota": 130000.0000,
+      "valorCupo": 2600000.0000
+    },
+    "destinatario": {
+      "email": "{{emailDestinatario}}",
+      "primerApellido": "RODRIGUEZ",
+      "primerNombre": "MARIA FERNANDA"
+    },
+    "documento": {
+      "numero": "80229110",
+      "tipo": "CO1C"
+    },
+    "evento": "CUPO_CREDITO_APROBADO"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Test de capitalización para CUPO_CREDITO_APROBADO (templateId 405000000003535).
+  Input: primerNombre=MARIA FERNANDA, primerApellido=RODRIGUEZ.
+  Validar en buzón: el correo debe mostrar "Maria Fernanda" y "Rodriguez" (no en mayúsculas).
+}

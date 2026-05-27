@@ -1,0 +1,41 @@
+meta {
+  name: TC-25 SMS OTP Longitud Invalida
+  type: http
+  seq: 29
+}
+
+post {
+  url: {{baseUrl}}{{smsPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "destinatario": {
+      "numCelular": "{{celularDestinatario}}",
+      "atributos": {
+        "documento": "80229110",
+        "tipoDocumento": "CO1C",
+        "otp": "12"
+      }
+    },
+    "evento": "OTP_TERMINOS_CONDICIONES"
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+docs {
+  Negativo E2 — OTP con longitud distinta a la esperada (típicamente 6 dígitos).
+  Esperado: 400 con mensaje claro.
+  ⚠️ CONFIRMAR con BE: longitud exacta del OTP y si valida formato.
+  Si el servicio NO valida: ajustar a 200 (deja pasar) y validar en SMS recibido.
+}

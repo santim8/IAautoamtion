@@ -1,9 +1,22 @@
 """
-Test del servicio card-validations (app-cre-product-eligibility-api).
-Poblar TEST_CASES con los datos de prueba antes de ejecutar.
+Test del servicio card-validations EXTERNAL v2.
+JWT leido desde token.txt -> campo jwt_card_validations_external_v2 (expira ~2h).
+
+Flags actuales (verificadas 2026-05-25 via endpoints publicos):
+    featureFlagIncrement: true
+    featureFlagReactivation: true
+    GET /loans-cert-admin-solicitud/api_creditos/parametros/feature_flag_increment
+    GET /loans-cert-admin-solicitud/api_creditos/parametros/feature_flag_reactivation
+
+Esperados con estas flags:
+    - Reactivacion (O, V, I) -> estado: OK, tipoSolicitud: 3
+    - Incremento (codigo 1)  -> estado: OK, tipoSolicitud: 2
+    - tarjetaAmparada=true   -> estado: VALIDATION_ERROR (siempre)
+    - Mora (R, K, J, B, Y, A)-> estado: VALIDATION_ERROR (siempre)
+    - Sin tarjeta            -> estado: VALIDATION_ERROR (CARD_STATUS)
 
 Uso:
-    python card_validations_test.py
+    python card_validations_external_v2_test.py
 """
 
 import json
@@ -14,55 +27,46 @@ import os
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 log = logging.getLogger(__name__)
 
-URL = "https://platform-test-internal.colsubsidio.com/loans/eligibility/internal/v1/card-validations"
-
-
-def _load_api_key() -> str:
-    token_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "token.txt")
-    try:
-        with open(token_path, "r", encoding="utf-8") as f:
-            for line in f:
-                if line.startswith("api_key_card_validations="):
-                    return line.split("=", 1)[1].strip()
-    except FileNotFoundError:
-        pass
-    raise RuntimeError(
-        "Falta 'api_key_card_validations' en token.txt. "
-        "Agregar la linea: api_key_card_validations=<API_KEY>"
-    )
-
-
-API_KEY = _load_api_key()
+URL = "https://platform-test-external.colsubsidio.com/loans/eligibility/external/v2/card-validations"
 
 DOC_TYPE_MAP = {
     "CC": "CO1C",
     "CE": "CO1E",
 }
 
-# ---------------------------------------------------------------------------
-# Poblar con los datos de prueba:
-# {
-#   "tipo": "CC" o "CE",
-#   "numero": "12345678",
-#   "descripcion": "descripción del escenario",
-#   "esperado": {                        <- opcional, para validación automática
-#       "tipoSolicitud": 3,              <- valor esperado en la respuesta
-#       "estado": "OK"                   <- "OK" o "VALIDATION_ERROR"
-#   }
-# }
-# ---------------------------------------------------------------------------
+
+def _load_token() -> str:
+    token_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "token.txt")
+    try:
+        with open(token_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("jwt_card_validations_external_v2="):
+                    return line.split("=", 1)[1].strip()
+    except FileNotFoundError:
+        pass
+    raise RuntimeError(
+        "Falta 'jwt_card_validations_external_v2' en token.txt. "
+        "El JWT expira cada ~2h; actualizarlo cuando devuelva 401/403."
+    )
+
+
+JWT = _load_token()
+
+
+_OK_REACT = {"estado": "OK", "tipoSolicitud": 3}
+_OK_INCR = {"estado": "OK", "tipoSolicitud": 2}
 _BLOQUEADO = {"estado": "VALIDATION_ERROR"}
 
 TEST_CASES = [
-    {"tipo": "CC", "numero": "52526685",   "descripcion": "Reactivacion O - CUPO CONGELADO",                "esperado": _BLOQUEADO},
-    {"tipo": "CC", "numero": "51760693",   "descripcion": "Reactivacion V - DEVOLUCION VOLUNTARIA",         "esperado": _BLOQUEADO},
-    {"tipo": "CC", "numero": "41336668",   "descripcion": "Reactivacion V - DEVOLUCION VOLUNTARIA",         "esperado": _BLOQUEADO},
-    {"tipo": "CC", "numero": "79528108",   "descripcion": "Reactivacion I - INACTIVO",                      "esperado": _BLOQUEADO},
-    {"tipo": "CC", "numero": "80810798",   "descripcion": "Incremento 1 - NORMAL",                          "esperado": _BLOQUEADO},
-    {"tipo": "CC", "numero": "1140814422", "descripcion": "Incremento 1 - tarjeta estado 7",                "esperado": _BLOQUEADO},
-    {"tipo": "CC", "numero": "1097397286", "descripcion": "Incremento 1 - tarjeta estado S",                "esperado": _BLOQUEADO},
-    {"tipo": "CC", "numero": "52966724",   "descripcion": "Incremento 1 - tarjeta estado 0",                "esperado": _BLOQUEADO},
-    {"tipo": "CC", "numero": "1023876310", "descripcion": "Incremento 1 - NORMAL",                          "esperado": _BLOQUEADO},
+    {"tipo": "CC", "numero": "52526685",   "descripcion": "Reactivacion O - CUPO CONGELADO",                "esperado": _OK_REACT},
+    {"tipo": "CC", "numero": "51760693",   "descripcion": "Reactivacion V - DEVOLUCION VOLUNTARIA",         "esperado": _OK_REACT},
+    {"tipo": "CC", "numero": "41336668",   "descripcion": "Reactivacion V - DEVOLUCION VOLUNTARIA",         "esperado": _OK_REACT},
+    {"tipo": "CC", "numero": "79528108",   "descripcion": "Reactivacion I - INACTIVO",                      "esperado": _OK_REACT},
+    {"tipo": "CC", "numero": "80810798",   "descripcion": "Incremento 1 - NORMAL",                          "esperado": _OK_INCR},
+    {"tipo": "CC", "numero": "1140814422", "descripcion": "Incremento 1 - tarjeta estado 7",                "esperado": _OK_INCR},
+    {"tipo": "CC", "numero": "1097397286", "descripcion": "Incremento 1 - tarjeta estado S",                "esperado": _OK_INCR},
+    {"tipo": "CC", "numero": "52966724",   "descripcion": "Incremento 1 - tarjeta estado 0",                "esperado": _OK_INCR},
+    {"tipo": "CC", "numero": "1023876310", "descripcion": "Incremento 1 - NORMAL",                          "esperado": _OK_INCR},
     {"tipo": "CC", "numero": "52634111",   "descripcion": "tarjetaAmparada=true",                           "esperado": _BLOQUEADO},
     {"tipo": "CC", "numero": "1095915781", "descripcion": "tarjetaAmparada=true",                           "esperado": _BLOQUEADO},
     {"tipo": "CC", "numero": "1013595547", "descripcion": "tarjetaAmparada=true",                           "esperado": _BLOQUEADO},
@@ -88,7 +92,7 @@ def call_service(tipo: str, numero: str) -> dict:
         "--request", "POST",
         "--url", URL,
         "--header", "content-type: application/json",
-        "--header", f"x-api-key: {API_KEY}",
+        "--header", f"authorization: {JWT}",
         "--header", "user-agent: insomnia/11.2.0",
         "--data", payload,
     ]
@@ -122,7 +126,11 @@ def validate(response: dict, esperado: dict) -> tuple[bool, str]:
         or body.get("estado")
         or body.get("status")
     )
-    tipo_real = resultado_val.get("tipoSolicitud", body.get("tipoSolicitud"))
+    tipo_real = (
+        resultado_val.get("tipoSolicitud")
+        if resultado_val.get("tipoSolicitud") is not None
+        else body.get("tipoSolicitud")
+    )
     codigo_real = datos_error.get("codigoErrorValidacion") or body.get("codigoErrorValidacion")
 
     errores = []
@@ -135,7 +143,7 @@ def validate(response: dict, esperado: dict) -> tuple[bool, str]:
 
     if errores:
         return False, " | ".join(errores)
-    return True, f"ok (estado={estado_real})"
+    return True, f"ok (estado={estado_real}, tipoSolicitud={tipo_real})"
 
 
 def run():
@@ -147,7 +155,7 @@ def run():
     failed = 0
 
     print(f"\n{'='*70}")
-    print(f"  card-validations — {len(TEST_CASES)} casos")
+    print(f"  card-validations EXTERNAL v2 - {len(TEST_CASES)} casos")
     print(f"{'='*70}\n")
 
     for i, case in enumerate(TEST_CASES, 1):

@@ -1,0 +1,539 @@
+[
+  {
+    "iterationIndex": 0,
+    "results": [
+      {
+        "test": {
+          "filename": "TC-CAP-01 APROBADO Capitalizacion.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [\n    {\n      \"contenido\": \"data:application/pdf;base64,JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9GaWx0ZXIvRmxhdGVEZWNvZGUvTGVuZ3RoIDQ0Pj5zdHJlYW0KeJwzUvDiMlAwUjBQsLHhcgkN9wxxNQTzgkM9I50UFAyAOACSiAfXCmVuZHN0cmVhbQplbmRvYmoK\",\n      \"nombreArchivo\": \"PAG_TEST.pdf\",\n      \"tipo\": \"base64\"\n    }\n  ],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-25T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 130000.0000,\n    \"valorCupo\": 2600000.0000\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"RODRIGUEZ\",\n    \"primerNombre\": \"MARIA FERNANDA\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_APROBADO\"\n}"
+        },
+        "response": {
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "date": "Tue, 26 May 2026 19:36:51 GMT",
+            "content-type": "application/json",
+            "content-length": "152",
+            "connection": "close",
+            "x-amzn-requestid": "67482f23-2a06-45d4-8b85-f400c3b5bbf3",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "152",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d_Ns5Gm3CYcEhPg=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 19:36:51 GMT"
+          },
+          "data": {
+            "resultado": [
+              {
+                "codigo": "200",
+                "descripcion": "CORREO ENVIADO"
+              }
+            ],
+            "enviarCorreoElectronico": {
+              "evento": "CUPO_CREDITO_APROBADO",
+              "email": "jrojas@gattaca.co"
+            }
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 1781,
+          "duration": 1781,
+          "size": 152
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "el2rpynmpwWnLz6q6DT0n",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 2.092235,
+        "name": "TC-CAP-01 APROBADO Capitalizacion",
+        "path": "TC-CAP-01 APROBADO Capitalizacion",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-CAP-02 RECHAZADO Capitalizacion.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"diaDePago\": \"1\",\n    \"fechaHoraSolicitud\": \"2026-05-25T16:38:48.00000\",\n    \"numeroTarjetaMultiservicios\": \"8800010305054110\",\n    \"tipoCuota\": \"FIJA\",\n    \"valorCuota\": 75000.0000,\n    \"valorCupo\": 1500000.0000\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"RODRIGUEZ\",\n    \"primerNombre\": \"MARIA FERNANDA\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_RECHAZADO\"\n}"
+        },
+        "response": {
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "date": "Tue, 26 May 2026 19:36:52 GMT",
+            "content-type": "application/json",
+            "content-length": "153",
+            "connection": "close",
+            "x-amzn-requestid": "46cf347d-168e-40f0-86a4-e8c9e3af2e04",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "153",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d_NtLG51CYcEjwA=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 19:36:52 GMT"
+          },
+          "data": {
+            "resultado": [
+              {
+                "codigo": "200",
+                "descripcion": "CORREO ENVIADO"
+              }
+            ],
+            "enviarCorreoElectronico": {
+              "evento": "CUPO_CREDITO_RECHAZADO",
+              "email": "jrojas@gattaca.co"
+            }
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 1375,
+          "duration": 1375,
+          "size": 153
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "dw2uIbA2WySa5uXmwj58z",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 1.4002125,
+        "name": "TC-CAP-02 RECHAZADO Capitalizacion",
+        "path": "TC-CAP-02 RECHAZADO Capitalizacion",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-CAP-03 RECUPERACION_1 Capitalizacion.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"fechaHoraSolicitud\": \"2026-05-25T15:02:48.4339238\",\n    \"linkRedireccion\": \"https://www.colsubsidio.com/\"\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"RODRIGUEZ\",\n    \"primerNombre\": \"MARIA FERNANDA\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_RECUPERACION_1\"\n}"
+        },
+        "response": {
+          "status": 400,
+          "statusText": "Bad Request",
+          "headers": {
+            "date": "Tue, 26 May 2026 19:36:53 GMT",
+            "content-type": "application/json",
+            "content-length": "303",
+            "connection": "close",
+            "x-amzn-requestid": "ca4fdcb3-915c-4e99-b562-d998f52dfcff",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "303",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d_NtZFgLiYcELcQ=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 19:36:53 GMT"
+          },
+          "data": {
+            "errores": [
+              {
+                "tipo": "http://localhost:8080/exception/NOTB0001",
+                "titulo": "INVALID PARAMETERS",
+                "estado": 400,
+                "detalle": "Faltan atributos en Data",
+                "instancia": "/loans/notification/internal/v1/email/send",
+                "codigoError": "NOTB0004",
+                "origen": "loans-cert-back-nlb-c3fe86ab11fa00e6.elb.us-east-2.amazonaws.com"
+              }
+            ]
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 468,
+          "duration": 468,
+          "size": 303
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "TKLj-OpBa8C4gl8JeuTtq",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "fail",
+            "error": "expected 400 to equal 200"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.4969084,
+        "name": "TC-CAP-03 RECUPERACION_1 Capitalizacion",
+        "path": "TC-CAP-03 RECUPERACION_1 Capitalizacion",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-CAP-04 RECUPERACION_2 Capitalizacion.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"fechaHoraSolicitud\": \"2026-05-25T15:02:48.4339238\",\n    \"linkRedireccion\": \"https://www.colsubsidio.com/\",\n    \"valorCupo\": 1800000,\n    \"horas\": \"24\"\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"RODRIGUEZ\",\n    \"primerNombre\": \"MARIA FERNANDA\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_RECUPERACION_2\"\n}"
+        },
+        "response": {
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "date": "Tue, 26 May 2026 19:36:54 GMT",
+            "content-type": "application/json",
+            "content-length": "158",
+            "connection": "close",
+            "x-amzn-requestid": "f622cc0d-d1ed-45eb-87ac-edfd19023fd2",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "158",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d_NteFZ8iYcEsYQ=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 19:36:54 GMT"
+          },
+          "data": {
+            "resultado": [
+              {
+                "codigo": "200",
+                "descripcion": "CORREO ENVIADO"
+              }
+            ],
+            "enviarCorreoElectronico": {
+              "evento": "CUPO_CREDITO_RECUPERACION_2",
+              "email": "jrojas@gattaca.co"
+            }
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 933,
+          "duration": 933,
+          "size": 158
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "f1UGvM_q5PXz2cHeuIcvV",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.9552309,
+        "name": "TC-CAP-04 RECUPERACION_2 Capitalizacion",
+        "path": "TC-CAP-04 RECUPERACION_2 Capitalizacion",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-CAP-05 POSTMOTOR Capitalizacion.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"fechaHoraSolicitud\": \"2026-05-25T15:02:48.4339238\",\n    \"linkRedireccion\": \"https://www.colsubsidio.com/\",\n    \"valorCupo\": 2000000,\n    \"horas\": \"24\"\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"RODRIGUEZ\",\n    \"primerNombre\": \"MARIA FERNANDA\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CUPO_CREDITO_AUMEN_RECUPERACION_POSTMOTOR\"\n}"
+        },
+        "response": {
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "date": "Tue, 26 May 2026 19:36:55 GMT",
+            "content-type": "application/json",
+            "content-length": "172",
+            "connection": "close",
+            "x-amzn-requestid": "d89efb71-295f-4579-b403-b02b86b61c47",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "172",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d_NtoHbbiYcEN7A=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 19:36:55 GMT"
+          },
+          "data": {
+            "resultado": [
+              {
+                "codigo": "200",
+                "descripcion": "CORREO ENVIADO"
+              }
+            ],
+            "enviarCorreoElectronico": {
+              "evento": "CUPO_CREDITO_AUMEN_RECUPERACION_POSTMOTOR",
+              "email": "jrojas@gattaca.co"
+            }
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 971,
+          "duration": 971,
+          "size": 172
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "drOvZw-VoQheWjEeReBjM",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.9884194,
+        "name": "TC-CAP-05 POSTMOTOR Capitalizacion",
+        "path": "TC-CAP-05 POSTMOTOR Capitalizacion",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-CAP-06 CALIFICACION Capitalizacion.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {\n    \"tipo_producto\": \"CUPO_CREDITO\",\n    \"linkRedireccion\": \"https://www.colsubsidio.com/encuesta\"\n  },\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"RODRIGUEZ\",\n    \"primerNombre\": \"MARIA FERNANDA\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CREDITO_CALIFICACION_EXPERIENCIA\"\n}"
+        },
+        "response": {
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "date": "Tue, 26 May 2026 19:36:56 GMT",
+            "content-type": "application/json",
+            "content-length": "163",
+            "connection": "close",
+            "x-amzn-requestid": "b12d4281-65af-4347-876b-8b7191416d3c",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "163",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d_NtyGQMiYcEmPw=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 19:36:56 GMT"
+          },
+          "data": {
+            "resultado": [
+              {
+                "codigo": "200",
+                "descripcion": "CORREO ENVIADO"
+              }
+            ],
+            "enviarCorreoElectronico": {
+              "evento": "CREDITO_CALIFICACION_EXPERIENCIA",
+              "email": "jrojas@gattaca.co"
+            }
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 998,
+          "duration": 998,
+          "size": 163
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "msI4n6zyVn1KUduhDYRSH",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 1.0126532,
+        "name": "TC-CAP-06 CALIFICACION Capitalizacion",
+        "path": "TC-CAP-06 CALIFICACION Capitalizacion",
+        "iterationIndex": 0
+      },
+      {
+        "test": {
+          "filename": "TC-CAP-07 RECHAZO_MOTOR Capitalizacion.bru"
+        },
+        "request": {
+          "method": "POST",
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "headers": {
+            "x-api-key": "********",
+            "content-type": "application/json"
+          },
+          "data": "{\n  \"adjuntos\": [],\n  \"datos\": {},\n  \"destinatario\": {\n    \"email\": \"jrojas@gattaca.co\",\n    \"primerApellido\": \"RODRIGUEZ\",\n    \"primerNombre\": \"MARIA FERNANDA\"\n  },\n  \"documento\": {\n    \"numero\": \"80229110\",\n    \"tipo\": \"CO1C\"\n  },\n  \"evento\": \"CREDITO_RECHAZO_MOTOR\"\n}"
+        },
+        "response": {
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "date": "Tue, 26 May 2026 19:36:57 GMT",
+            "content-type": "application/json",
+            "content-length": "152",
+            "connection": "close",
+            "x-amzn-requestid": "d0b209e2-b4f6-48ca-8cb4-abbe92af6566",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "strict-transport-security": "max-age=31536000;",
+            "x-amzn-remapped-content-length": "152",
+            "content-security-policy": "default-src 'self'; frame-ancestors 'self'; form-action 'self'",
+            "x-amzn-remapped-connection": "keep-alive",
+            "x-amz-apigw-id": "d_Nt7HJpiYcEeGw=",
+            "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+            "cache-control": "no-store",
+            "x-amzn-remapped-server": "",
+            "x-content-type-options": "nosniff",
+            "pragma": "no-cache",
+            "x-amzn-remapped-date": "Tue, 26 May 2026 19:36:57 GMT"
+          },
+          "data": {
+            "resultado": [
+              {
+                "codigo": "200",
+                "descripcion": "CORREO ENVIADO"
+              }
+            ],
+            "enviarCorreoElectronico": {
+              "evento": "CREDITO_RECHAZO_MOTOR",
+              "email": "jrojas@gattaca.co"
+            }
+          },
+          "url": "https://platform-test-internal.colsubsidio.com/loans/notification/internal/v1/email/send",
+          "responseTime": 932,
+          "duration": 932,
+          "size": 152
+        },
+        "error": null,
+        "status": "pass",
+        "assertionResults": [
+          {
+            "uid": "UM3L9IAdr3l-MOHv1NDgJ",
+            "lhsExpr": "res.status",
+            "rhsExpr": "eq 200",
+            "rhsOperand": "200",
+            "operator": "eq",
+            "status": "pass"
+          }
+        ],
+        "testResults": [],
+        "preRequestTestResults": [],
+        "postResponseTestResults": [],
+        "shouldStopRunnerExecution": false,
+        "runDuration": 0.9495939,
+        "name": "TC-CAP-07 RECHAZO_MOTOR Capitalizacion",
+        "path": "TC-CAP-07 RECHAZO_MOTOR Capitalizacion",
+        "iterationIndex": 0
+      }
+    ],
+    "summary": {
+      "totalRequests": 7,
+      "passedRequests": 6,
+      "failedRequests": 1,
+      "errorRequests": 0,
+      "skippedRequests": 0,
+      "totalAssertions": 7,
+      "passedAssertions": 6,
+      "failedAssertions": 1,
+      "totalTests": 0,
+      "passedTests": 0,
+      "failedTests": 0,
+      "totalPreRequestTests": 0,
+      "passedPreRequestTests": 0,
+      "failedPreRequestTests": 0,
+      "totalPostResponseTests": 0,
+      "passedPostResponseTests": 0,
+      "failedPostResponseTests": 0
+    }
+  }
+]

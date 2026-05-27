@@ -1,0 +1,51 @@
+meta {
+  name: TC-15 EMAIL Evento No Configurado
+  type: http
+  seq: 19
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "adjuntos": [],
+    "datos": {
+      "diaDePago": "1",
+      "fechaHoraSolicitud": "2026-05-22T16:38:48.00000",
+      "numeroTarjetaMultiservicios": "8800010305054110",
+      "tipoCuota": "FIJA",
+      "valorCuota": 75000.0000,
+      "valorCupo": 1500000.0000
+    },
+    "destinatario": {
+      "email": "{{emailDestinatario}}",
+      "primerApellido": "CASTAÑO",
+      "primerNombre": "DAVID"
+    },
+    "documento": {
+      "numero": "80229110",
+      "tipo": "CO1C"
+    },
+    "evento": "EVENTO_INEXISTENTE"
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+docs {
+  Negativo E2 — Evento no configurado en el sistema.
+  Esperado: 400 con mensaje indicando que el evento no está mapeado a ninguna plantilla.
+  NO se consume Infobip.
+  Verifica que el mapeo evento → templateId rechaza valores no permitidos.
+}

@@ -1,0 +1,38 @@
+meta {
+  name: TC-14 SMS Sin OTP
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{baseUrl}}{{smsPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "destinatario": {
+      "numCelular": "{{celularDestinatario}}",
+      "atributos": {
+        "documento": "80229110",
+        "tipoDocumento": "CO1C"
+      }
+    },
+    "evento": "OTP_TERMINOS_CONDICIONES"
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+docs {
+  Negativo E2 — Falta el OTP en atributos.
+  Esperado: 400. El OTP es la variable dinámica clave para este evento.
+}

@@ -1,0 +1,38 @@
+meta {
+  name: TC-08 SMS Sin x-api-key
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{baseUrl}}{{smsPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "destinatario": {
+      "numCelular": "{{celularDestinatario}}",
+      "atributos": {
+        "documento": "80229110",
+        "tipoDocumento": "CO1C",
+        "otp": "612762"
+      }
+    },
+    "evento": "OTP_TERMINOS_CONDICIONES"
+  }
+}
+
+assert {
+  res.status: eq 403
+}
+
+docs {
+  Negativo — Seguridad. Endpoint SMS sin x-api-key.
+  Esperado: 401/403. Importante porque el OTP es información sensible.
+}

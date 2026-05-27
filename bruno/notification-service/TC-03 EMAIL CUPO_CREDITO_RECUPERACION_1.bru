@@ -1,0 +1,50 @@
+meta {
+  name: TC-03 EMAIL CUPO_CREDITO_RECUPERACION_1
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "adjuntos": [],
+    "datos": {
+      "fechaHoraSolicitud": "2026-05-22T15:02:48.4339238",
+      "linkRedireccion": "https://www.colsubsidio.com/"
+    },
+    "destinatario": {
+      "email": "{{emailDestinatario}}",
+      "primerApellido": "CASTAÑO",
+      "primerNombre": "DAVID"
+    },
+    "documento": {
+      "numero": "1003567126",
+      "tipo": "CO1C"
+    },
+    "evento": "CUPO_CREDITO_RECUPERACION_1"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Happy Path — Recordatorio solicitud sin finalizar (previo al motor).
+  Evento mapeado a templateId Infobip 405000000003531.
+  Diferencia con RECUPERACION_2: NO incluye valorCupo (todavía no hay oferta del motor).
+  primerApellido es opcional en este evento.
+  Validar en buzón:
+    - Mensaje recordatorio + advertencia de expiración 24h.
+    - Botón/link a colsubsidio.com.
+}
