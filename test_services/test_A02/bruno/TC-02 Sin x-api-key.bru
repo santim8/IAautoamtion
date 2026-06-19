@@ -1,0 +1,61 @@
+meta {
+  name: TC-02 Sin x-api-key
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/loans/int-req-mgr/internal/v1/status/activation-file
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "datosSolicitud": {
+      "categoria": "C",
+      "cicloFacturacion": "1",
+      "codigoCiudadCorrespondencia": "11001",
+      "codigoCiudadResidencia": "11001",
+      "codigoDepartamentoCorrespondencia": "11",
+      "codigoDepartamentoResidencia": "11",
+      "codigoVendedor": "128",
+      "cupoAsignado": "4000000.0000",
+      "direccionCorrespondencia1": "Cll wallaby 42 Sidney",
+      "direccionCorrespondencia2": "Cll wallaby 42 Sidney",
+      "fechaSolicitud": "20260520",
+      "numeroIdentificacion": "112349649",
+      "numeroSolicitud": "3006096",
+      "numeroTarjetaAsignado": "8899010101455529",
+      "oficinaRadicacionSolicitud": "147",
+      "primerApellido": "MENDOZA",
+      "primerNombre": "ANYIS",
+      "segundoApellido": "ROMERO",
+      "segundoNombre": "KARINA",
+      "telefonoOficina": "3333333333",
+      "telefonoResidencia": "3333333333",
+      "tipoCupo": "NORMAL",
+      "tipoIdentificacion": "CO1C",
+      "tipoNovedad": "2",
+      "valorCuotaFija": "200000.0000",
+      "zonaPostalResidencia": "000000"
+    },
+    "idCaso": "121212",
+    "trailer": {
+      "consecutivo": "54321"
+    }
+  }
+}
+
+assert {
+  res.status: eq 403
+}
+
+docs {
+  Negativo — Seguridad. Sin header x-api-key.
+  El gateway debe rechazar con 403 Forbidden.
+}
