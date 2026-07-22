@@ -1,0 +1,63 @@
+meta {
+  name: TC-27 EMAIL CUPO_CREDITO_AUMEN_RECUPERACION_POSTMOTOR
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "adjuntos": [],
+    "datos": {
+      "valorCupo": 2500000,
+      "fechaHoraSolicitud": "2026-05-25T10:30:00.000",
+      "linkRedireccion": "https://www.colsubsidio.com/",
+      "horas": "24"
+    },
+    "destinatario": {
+      "email": "{{emailDestinatario}}",
+      "primerApellido": "Castaño",
+      "primerNombre": "David"
+    },
+    "documento": {
+      "numero": "80229110",
+      "tipo": "CO1C"
+    },
+    "evento": "CUPO_CREDITO_AUMEN_RECUPERACION_POSTMOTOR"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Happy Path — Recuperación post-motor para aumento de cupo.
+  Evento mapeado a templateId Infobip 405000000003533.
+  
+  Variables obligatorias en BE config:
+    - correoElectronico → destinatario.email
+    - idUsuario → documento.numero
+    - primerNombre → destinatario.primerNombre
+    - valorCupo → datos.valorCupo
+    - fechaHoraSolicitud → datos.fechaHoraSolicitud
+    - linkRedireccion → datos.linkRedireccion
+    - horas → datos.horas (tiempo de expiración de la oferta)
+  
+  hasAttachments: false → adjuntos debe ir [].
+  
+  Validar en buzón:
+    - Mensaje recordatorio de oferta post-motor con valor del aumento.
+    - Link de redirección al onboarding.
+    - Advertencia de expiración en N horas.
+}

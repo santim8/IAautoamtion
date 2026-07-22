@@ -1,0 +1,30 @@
+meta {
+  name: TC-17 EMAIL JSON Malformado
+  type: http
+  seq: 21
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: text
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:text {
+  { "evento": "CUPO_CREDITO_RECHAZADO", "datos": {
+}
+
+assert {
+  res.status: eq 400
+}
+
+docs {
+  Negativo E2 — Body JSON malformado (faltan llaves de cierre).
+  Esperado: 400 Bad Request.
+  NO se consume Infobip.
+}

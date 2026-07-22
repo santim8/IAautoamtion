@@ -1,0 +1,36 @@
+meta {
+  name: Affiliation Validations[V1][VALIDACIONES]
+  type: http
+  seq: 8
+}
+
+post {
+  url: https://platform-test-internal.colsubsidio.com/loans/eligibility/internal/v1/affiliation-validations
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+  x-api-key: ecn24ysGnZ4X17cU5lX4Q9gyFvyPR7fD1DkwR7I7
+}
+
+body:json {
+  {
+    "idCaso": "31213",
+    "documento": {
+      "tipo": "CO1C",
+      "numero": "1075662894"
+    }
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Valida afiliación interna por idCaso y documento.
+  Solo requiere x-api-key, sin token de sesión.
+  Expected: 200 OK
+}

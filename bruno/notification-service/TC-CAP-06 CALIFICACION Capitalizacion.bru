@@ -1,0 +1,46 @@
+meta {
+  name: TC-CAP-06 CALIFICACION Capitalizacion
+  type: http
+  seq: 36
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "adjuntos": [],
+    "datos": {
+      "tipo_producto": "CUPO_CREDITO",
+      "linkRedireccion": "https://www.colsubsidio.com/encuesta-satisfaccion"
+    },
+    "destinatario": {
+      "email": "{{emailDestinatario}}",
+      "primerApellido": "RODRIGUEZ",
+      "primerNombre": "MARIA FERNANDA"
+    },
+    "documento": {
+      "numero": "80229110",
+      "tipo": "CO1C"
+    },
+    "evento": "CREDITO_CALIFICACION_EXPERIENCIA"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Test de capitalización para CREDITO_CALIFICACION_EXPERIENCIA (templateId 405000000003587).
+  Input: primerNombre=MARIA FERNANDA, primerApellido=RODRIGUEZ.
+  Validar en buzón: capitalización aplicada.
+}

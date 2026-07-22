@@ -1,0 +1,61 @@
+meta {
+  name: TC-01 EMAIL CUPO_CREDITO_APROBADO
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "adjuntos": [
+      {
+        "contenido": "data:application/pdf;base64,JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9GaWx0ZXIvRmxhdGVEZWNvZGUvTGVuZ3RoIDQ0Pj5zdHJlYW0KeJwzUvDiMlAwUjBQsLHhcgkN9wxxNQTzgkM9I50UFAyAOACSiAfXCmVuZHN0cmVhbQplbmRvYmoKMSAwIG9iago8PC9UeXBlL1BhZ2UvUGFyZW50IDIgMCBSL0NvbnRlbnRzIDMgMCBSL01lZGlhQm94WzAgMCA2MTIgNzkyXS9SZXNvdXJjZXM8PC9Gb250PDwvRjE8PC9UeXBlL0ZvbnQvU3VidHlwZS9UeXBlMS9CYXNlRm9udC9IZWx2ZXRpY2E+Pj4+Pj4+PgplbmRvYmoKMiAwIG9iago8PC9UeXBlL1BhZ2VzL0NvdW50IDEvS2lkc1sxIDAgUl0+PgplbmRvYmoKNCAwIG9iago8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFI+PgplbmRvYmoKeHJlZgowIDUKMDAwMDAwMDAwMCA2NTUzNSBmCjAwMDAwMDAxMzQgMDAwMDAgbgowMDAwMDAwMjY1IDAwMDAwIG4KMDAwMDAwMDAxNSAwMDAwMCBuCjAwMDAwMDAzMTYgMDAwMDAgbgp0cmFpbGVyPDwvU2l6ZSA1L1Jvb3QgNCAwIFI+PgpzdGFydHhyZWYKMzYyCiUlRU9G",
+        "nombreArchivo": "PAG_4782297_1777998808625.pdf",
+        "tipo": "base64"
+      }
+    ],
+    "datos": {
+      "diaDePago": "1",
+      "fechaHoraSolicitud": "2026-05-22T16:38:48.00000",
+      "numeroTarjetaMultiservicios": "8800010305054110",
+      "tipoCuota": "FIJA",
+      "valorCuota": 130000.0000,
+      "valorCupo": 2600000.0000
+    },
+    "destinatario": {
+      "email": "{{emailDestinatario}}",
+      "primerApellido": "CASTAÑO",
+      "primerNombre": "DAVID"
+    },
+    "documento": {
+      "numero": "80229110",
+      "tipo": "CO1C"
+    },
+    "evento": "CUPO_CREDITO_APROBADO"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Happy Path — Aprobación de cupo de crédito con adjunto PDF.
+  Evento mapeado a templateId Infobip 405000000003535.
+  Variables esperadas en correo: diaDePago, valorCupo, valorCuota, tipoCuota, numeroTarjetaMultiservicios, fechaHoraSolicitud.
+  Validar en buzón:
+    - Nombre renderizado como "David Castaño" (capitalización según TASK 203063).
+    - Adjunto PDF visible y descargable.
+    - From: credito@info.colsubsidio.com, FromName: Credito Colsubsidio.
+  Nota: El base64 del adjunto es un PDF mínimo válido para pruebas. Reemplazar por uno real si se requiere validar contenido.
+}

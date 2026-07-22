@@ -1,0 +1,41 @@
+meta {
+  name: TC-00 Generate Token
+  type: http
+  seq: 0
+}
+
+post {
+  url: {{apigeeUrl}}/oauth/client_credential/accesstoken?grant_type=client_credentials
+  body: formUrlEncoded
+  auth: none
+}
+
+params:query {
+  grant_type: client_credentials
+}
+
+headers {
+  content-type: application/x-www-form-urlencoded
+}
+
+body:form-urlencoded {
+  grant_type: client_credentials
+  client_id: {{clientId}}
+  client_secret: {{clientSecret}}
+}
+
+script:post-response {
+  if (res.status === 200 && res.body && res.body.access_token) {
+    bru.setEnvVar("accessToken", res.body.access_token);
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.access_token: isDefined
+}
+
+docs {
+  Prerequisito — OAuth2 Client Credentials contra Apigee.
+  Guarda el access_token en la variable de entorno `accessToken` para reutilizarlo en otros requests.
+}

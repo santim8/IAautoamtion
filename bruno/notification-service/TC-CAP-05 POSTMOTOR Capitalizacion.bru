@@ -1,0 +1,48 @@
+meta {
+  name: TC-CAP-05 POSTMOTOR Capitalizacion
+  type: http
+  seq: 35
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "adjuntos": [],
+    "datos": {
+      "fechaHoraSolicitud": "2026-05-25T15:02:48.4339238",
+      "linkRedireccion": "https://www.colsubsidio.com/",
+      "valorCupo": 2000000,
+      "horas": "24"
+    },
+    "destinatario": {
+      "email": "{{emailDestinatario}}",
+      "primerApellido": "RODRIGUEZ",
+      "primerNombre": "MARIA FERNANDA"
+    },
+    "documento": {
+      "numero": "80229110",
+      "tipo": "CO1C"
+    },
+    "evento": "CUPO_CREDITO_AUMEN_RECUPERACION_POSTMOTOR"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Test de capitalización para CUPO_CREDITO_AUMEN_RECUPERACION_POSTMOTOR (templateId 405000000003533).
+  Input: primerNombre=MARIA FERNANDA, primerApellido=RODRIGUEZ.
+  Validar en buzón: capitalización aplicada.
+}

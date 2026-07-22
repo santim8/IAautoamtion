@@ -1,0 +1,61 @@
+meta {
+  name: TC-28 EMAIL CREDITO_CALIFICACION_EXPERIENCIA
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "adjuntos": [],
+    "datos": {
+      "tipo_producto": "Cupo de Crédito Colsubsidio",
+      "linkRedireccion": "https://www.colsubsidio.com/encuesta-satisfaccion"
+    },
+    "destinatario": {
+      "email": "{{emailDestinatario}}",
+      "primerApellido": "CASTAÑO",
+      "primerNombre": "DAVID"
+    },
+    "documento": {
+      "numero": "80229110",
+      "tipo": "CO1C"
+    },
+    "evento": "CREDITO_CALIFICACION_EXPERIENCIA"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Happy Path — Encuesta de calificación de experiencia.
+  Evento mapeado a templateId Infobip 405000000003587.
+  
+  Variables obligatorias en BE config:
+    - correoElectronico → destinatario.email
+    - idUsuario → documento.numero
+    - primerNombre → destinatario.primerNombre
+    - tipo_producto → datos.tipo_producto
+    - linkRedireccion → datos.linkRedireccion
+  
+  hasAttachments: false → adjuntos debe ir [].
+  
+  Nota: el atributo se llama "tipo_producto" (snake_case con guión bajo),
+  distinto al estilo camelCase del resto. Confirmar con BE el nombre exacto.
+  
+  Validar en buzón:
+    - Invitación a calificar la experiencia con el producto.
+    - Link a encuesta funcional.
+}

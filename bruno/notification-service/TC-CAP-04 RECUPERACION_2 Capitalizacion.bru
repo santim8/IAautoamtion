@@ -1,0 +1,49 @@
+meta {
+  name: TC-CAP-04 RECUPERACION_2 Capitalizacion
+  type: http
+  seq: 34
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "adjuntos": [],
+    "datos": {
+      "fechaHoraSolicitud": "2026-05-25T15:02:48.4339238",
+      "linkRedireccion": "https://www.colsubsidio.com/",
+      "valorCupo": 1800000,
+      "horas": "24"
+    },
+    "destinatario": {
+      "email": "{{emailDestinatario}}",
+      "primerApellido": "RODRIGUEZ",
+      "primerNombre": "MARIA FERNANDA"
+    },
+    "documento": {
+      "numero": "80229110",
+      "tipo": "CO1C"
+    },
+    "evento": "CUPO_CREDITO_RECUPERACION_2"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Test de capitalización para CUPO_CREDITO_RECUPERACION_2 (templateId 405000000003534).
+  Input: primerNombre=MARIA FERNANDA, primerApellido=RODRIGUEZ.
+  Incluye campo "horas" (intento de cubrir "Faltan atributos en Data" detectado en TC-04).
+  Validar en buzón: capitalización aplicada.
+}

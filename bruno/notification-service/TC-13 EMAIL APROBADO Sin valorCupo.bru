@@ -1,0 +1,50 @@
+meta {
+  name: TC-13 EMAIL APROBADO Sin valorCupo
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "adjuntos": [],
+    "datos": {
+      "diaDePago": "1",
+      "fechaHoraSolicitud": "2026-05-22T16:38:48.00000",
+      "numeroTarjetaMultiservicios": "8800010305054110",
+      "tipoCuota": "FIJA",
+      "valorCuota": 130000.0000
+    },
+    "destinatario": {
+      "email": "{{emailDestinatario}}",
+      "primerApellido": "CASTAÑO",
+      "primerNombre": "DAVID"
+    },
+    "documento": {
+      "numero": "80229110",
+      "tipo": "CO1C"
+    },
+    "evento": "CUPO_CREDITO_APROBADO"
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+docs {
+  Negativo E2 — Variable dinámica obligatoria faltante.
+  valorCupo es obligatorio para CUPO_CREDITO_APROBADO (resumen del producto).
+  Esperado: 400 con mensaje indicando que falta la variable para esta plantilla.
+  NO se consume Infobip.
+}

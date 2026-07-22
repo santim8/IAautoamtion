@@ -1,0 +1,58 @@
+meta {
+  name: TC-29 EMAIL CREDITO_RECHAZO_MOTOR
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "adjuntos": [],
+    "datos": {},
+    "destinatario": {
+      "email": "{{emailDestinatario}}",
+      "primerNombre": "David"
+    },
+    "documento": {
+      "numero": "80229110",
+      "tipo": "CO1C"
+    },
+    "evento": "CREDITO_RECHAZO_MOTOR"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Happy Path — Rechazo de crédito por el motor.
+  Evento mapeado a templateId Infobip 405000000004909.
+  
+  Variables obligatorias en BE config (mínimas):
+    - correoElectronico → destinatario.email
+    - idUsuario → documento.numero
+    - primerNombre → destinatario.primerNombre
+  
+  No requiere variables dinámicas extra en datos.
+  hasAttachments: false → adjuntos debe ir [].
+  
+  ⚠️ DIFERENCIA con CUPO_CREDITO_RECHAZADO (TC-02):
+    - CUPO_CREDITO_RECHAZADO: rechazo genérico, incluye valorCupo y datos del producto.
+    - CREDITO_RECHAZO_MOTOR: rechazo por el motor de decisión, mensaje más simple.
+  Confirmar con PO el matiz exacto entre ambos.
+  
+  Validar en buzón:
+    - Mensaje de rechazo por evaluación del motor.
+    - Tono y contenido distinto al rechazo general.
+}

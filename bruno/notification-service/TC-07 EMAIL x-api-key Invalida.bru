@@ -1,0 +1,52 @@
+meta {
+  name: TC-07 EMAIL x-api-key Invalida
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: api-key-invalida-12345
+  content-type: application/json
+}
+
+body:json {
+  {
+    "adjuntos": [],
+    "datos": {
+      "diaDePago": "1",
+      "fechaHoraSolicitud": "2026-05-22T16:38:48.00000",
+      "numeroTarjetaMultiservicios": "8800010305054110",
+      "tipoCuota": "FIJA",
+      "valorCuota": 75000.0000,
+      "valorCupo": 1500000.0000
+    },
+    "destinatario": {
+      "email": "{{emailDestinatario}}",
+      "primerApellido": "CASTAÑO",
+      "primerNombre": "DAVID"
+    },
+    "documento": {
+      "numero": "80229110",
+      "tipo": "CO1C"
+    },
+    "evento": "CUPO_CREDITO_RECHAZADO"
+  }
+}
+
+assert {
+  res.status: eq 403
+}
+
+docs {
+  Negativo — Seguridad. x-api-key con valor inválido.
+  Esperado: 401/403.
+  Validar:
+    - No se invoca Infobip.
+    - Log de seguridad debe registrar el intento (sin exponer la key inválida).
+}

@@ -1,0 +1,70 @@
+meta {
+  name: Get Token CIAM
+  type: http
+  seq: 3
+}
+
+post {
+  url: https://colsubsidio-test.apigee.net/api/v3/afiliacion/validador/token/ciam
+  body: json
+  auth: none
+}
+
+headers {
+  accept: application/json
+  authorization: Bearer {{tokenApegee}}
+  content-type: application/json
+  x-api-key: 816a9aa1-bbe9-4878-bce9-839d4448a2b4
+}
+
+body:json {
+  {
+    "uid": "bb99d52a895d4fa9a60d8a7128120c50",
+    "cliente": {
+      "nombres": "Diego",
+      "apellidos": "Buitrago",
+      "telefono": "+573043760558",
+      "correo": "correo@ejemplo.com",
+      "documento": {
+        "tipo": "2",
+        "numero": "878787878"
+      }
+    },
+    "empresa": {
+      "documento": {
+        "tipo": "",
+        "numero": ""
+      }
+    },
+    "sesion": {
+      "tiempoSegundos": 7200
+    },
+    "tipoMarketing": "B2C",
+    "credenciales": {
+      "gigyaApiKey": "4_8iVHMwS2exdEd0YQvlfe-g"
+    }
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+script:pre-request {
+  const { data } = await axios.post(
+    'https://colsubsidio-test.apigee.net/oauth/client_credential/accesstoken?grant_type=client_credentials',
+    'grant_type=client_credentials&client_id=cmnGMnGPVKLJwWLfWxqFCSZOR5hIjhWb&client_secret=uKCYJXAVkLY5gsWt',
+    { headers: { 'content-type': 'application/x-www-form-urlencoded' } }
+  );
+  bru.setEnvVar("tokenBizagi", data.access_token);
+}
+
+script:post-response {
+  bru.setEnvVar("tokenCIAM",res.body.access_token)
+}
+
+docs {
+  Genera token CIAM para el usuario via validador de afiliación.
+  Usa Bearer {{tokenBizagi}} obtenido automáticamente desde Apigee en el pre-request.
+  Expected: 200 OK
+}

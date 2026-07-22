@@ -1,0 +1,30 @@
+{
+    "_hu": "193147 - [HU] Formulario de información personal - Novedades de cupo en Flujo Autogestionado",
+    "_feature": "188665",
+    "request": {
+        "idCaso": "270006",
+        "tipoSolicitud": "3",
+        "documento": {
+            "tipo": "CO1C",
+            "numero": "41336668"
+        },
+        "tipoAfiliacion": "D",
+        "datosPersona": {
+            "contacto": {
+                "correo": "test39@example.com",
+                "telefono": "3001234567"
+            }
+        }
+    },
+    "response": {
+        "resultado": [
+            {
+                "codigo": 202,
+                "descripcion": "ACCEPTED"
+            }
+        ],
+        "guardarDatosPersona": {
+            "idCaso": "270006"
+        }
+    }
+}

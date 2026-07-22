@@ -1,0 +1,87 @@
+meta {
+  name: TC-01 Happy Path Aumento
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/loans/int-req-mgr/internal/v1/status/activation-file
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+  x-api-key: {{apiKey}}
+}
+
+body:json {
+  {
+    "datosSolicitud": {
+      "categoria": "C",
+      "cicloFacturacion": "1",
+      "codigoCiudadCorrespondencia": "11001",
+      "codigoCiudadResidencia": "11001",
+      "codigoDepartamentoCorrespondencia": "11",
+      "codigoDepartamentoResidencia": "11",
+      "codigoVendedor": "128",
+      "cupoAsignado": "4000000.0000",
+      "direccionCorrespondencia1": "Cll wallaby 42 Sidney",
+      "direccionCorrespondencia2": "Cll wallaby 42 Sidney",
+      "fechaSolicitud": "20260520",
+      "numeroIdentificacion": "112349649",
+      "numeroSolicitud": "3006096",
+      "numeroTarjetaAsignado": "8899010101455529",
+      "oficinaRadicacionSolicitud": "147",
+      "primerApellido": "MENDOZA",
+      "primerNombre": "ANYIS",
+      "segundoApellido": "ROMERO",
+      "segundoNombre": "KARINA",
+      "telefonoOficina": "3333333333",
+      "telefonoResidencia": "3333333333",
+      "tipoCupo": "NORMAL",
+      "tipoIdentificacion": "CO1C",
+      "tipoNovedad": "2",
+      "valorCuotaFija": "200000.0000",
+      "zonaPostalResidencia": "000000"
+    },
+    "idCaso": "121213",
+    "trailer": {
+      "consecutivo": "54321"
+    }
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.resultado[0].codigo: eq 202
+  res.body.resultado[0].descripcion: eq "Archivo enviado"
+  res.body.archivo.estado: eq "ENVIADO"
+  res.body.archivo.nombre: matches ^A02\d+\.txt$
+  res.body.archivo.ruta: contains s3://
+  res.body.archivo.ruta: contains 2_cupo_credito
+  res.body.archivo.ruta: contains 112349649-121213
+  res.body.archivo.ruta: contains intercambio-entidades-ascard
+  res.body.archivo.fechaEnvio: isDefined
+}
+
+docs {
+  Happy Path — Notificación de activación de archivo para novedad de Aumento (tipoNovedad=2).
+  Payload base entregado por el equipo. Expected: 200 OK.
+
+  Respuesta esperada (contrato confirmado):
+  {
+    "resultado": [{ "codigo": 202, "descripcion": "Archivo enviado" }],
+    "archivo": {
+      "nombre": "A02<digitos>.txt",
+      "ruta": "s3://loans-{env}-back-documents/aplicaciones-de-prestamo/{noveltyType}_cupo_credito/{numId}-{idCaso}/acuerdos-de-prestamo/intercambio-entidades-ascard/<nombre>",
+      "estado": "ENVIADO",
+      "fechaEnvio": "<ISO-8601>"
+    }
+  }
+
+  Notas:
+  - El path S3 incluye {noveltyType} = tipoNovedad (aquí 2 = aumento).
+  - El path S3 incluye {numId}-{idCaso} → permite trazabilidad por caso.
+  - El nombre A02<...>.txt es el que se sube por SFTP a Redeban.
+}

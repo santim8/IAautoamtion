@@ -1,0 +1,47 @@
+meta {
+  name: TC-CAP-03 RECUPERACION_1 Capitalizacion
+  type: http
+  seq: 33
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "adjuntos": [],
+    "datos": {
+      "fechaHoraSolicitud": "2026-05-25T15:02:48.4339238",
+      "linkRedireccion": "https://www.colsubsidio.com/",
+      "horas": "24"
+    },
+    "destinatario": {
+      "email": "{{emailDestinatario}}",
+      "primerApellido": "RODRIGUEZ",
+      "primerNombre": "MARIA FERNANDA"
+    },
+    "documento": {
+      "numero": "80229110",
+      "tipo": "CO1C"
+    },
+    "evento": "CUPO_CREDITO_RECUPERACION_1"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Test de capitalización para CUPO_CREDITO_RECUPERACION_1 (templateId 405000000003531).
+  Input: primerNombre=MARIA FERNANDA, primerApellido=RODRIGUEZ.
+  Validar en buzón: el correo debe mostrar "Maria Fernanda" y "Rodriguez".
+}

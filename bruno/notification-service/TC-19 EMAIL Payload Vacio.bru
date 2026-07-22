@@ -1,0 +1,30 @@
+meta {
+  name: TC-19 EMAIL Payload Vacio
+  type: http
+  seq: 23
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 400
+}
+
+docs {
+  Negativo E2 — Body completamente vacío.
+  Esperado: 400 con lista de campos obligatorios faltantes.
+  NO se consume Infobip.
+}

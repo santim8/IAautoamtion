@@ -1,0 +1,51 @@
+meta {
+  name: TC-06 EMAIL Sin x-api-key
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "adjuntos": [],
+    "datos": {
+      "diaDePago": "1",
+      "fechaHoraSolicitud": "2026-05-22T16:38:48.00000",
+      "numeroTarjetaMultiservicios": "8800010305054110",
+      "tipoCuota": "FIJA",
+      "valorCuota": 75000.0000,
+      "valorCupo": 1500000.0000
+    },
+    "destinatario": {
+      "email": "{{emailDestinatario}}",
+      "primerApellido": "CASTAÑO",
+      "primerNombre": "DAVID"
+    },
+    "documento": {
+      "numero": "80229110",
+      "tipo": "CO1C"
+    },
+    "evento": "CUPO_CREDITO_RECHAZADO"
+  }
+}
+
+assert {
+  res.status: eq 403
+}
+
+docs {
+  Negativo — Seguridad. Petición sin header x-api-key.
+  Esperado: 401/403 del gateway o WAF antes de tocar el servicio.
+  Validar:
+    - No se invoca Infobip.
+    - No se crea log de envío.
+}

@@ -1,0 +1,42 @@
+meta {
+  name: TC-05 SMS OTP_TERMINOS_CONDICIONES
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}{{smsPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "destinatario": {
+      "numCelular": "{{celularDestinatario}}",
+      "atributos": {
+        "documento": "1007223413",
+        "tipoDocumento": "CO1C",
+        "otp": "612762"
+      }
+    },
+    "evento": "OTP_TERMINOS_CONDICIONES"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Happy Path — Envío de OTP por SMS para aceptación de términos y condiciones.
+  Endpoint dedicado a SMS (estructura distinta a email).
+  Validar:
+    - SMS llega al número con el OTP visible.
+    - El OTP NO aparece en CloudWatch logs en texto plano (validar con consulta de logs).
+}

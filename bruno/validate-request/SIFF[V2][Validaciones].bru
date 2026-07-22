@@ -1,0 +1,32 @@
+meta {
+  name: SIFF[V2][Validaciones]
+  type: http
+  seq: 10
+}
+
+post {
+  url: https://colsubsidio-test.apigee.net/api/v2/credito/elegibilidad/productos
+  body: json
+  auth: inherit
+}
+
+headers {
+  accept: application/json
+  authorization: Bearer MMsPczgtfejuhJcj4JbION0MtDjM
+  content-type: application/json
+}
+
+body:json {
+  {
+    "idCaso": "a6d876f9c98d90",
+    "documento": {
+      "tipo": "CO1C",
+      "numero": "1075662894"
+    }
+  }
+}
+
+settings {
+  encodeUrl: false
+  timeout: 0
+}

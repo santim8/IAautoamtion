@@ -1,0 +1,61 @@
+meta {
+  name: Get Offer[Bizagi]
+  type: http
+  seq: 12
+}
+
+get {
+  url: https://platform-test-external.colsubsidio.com/loans/loan-offer/external/v1/product/2/request/offer/279892
+  body: none
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+assert {
+  res.status: eq 200
+}
+
+script:pre-request {
+  const { data: apigee } = await axios.post(
+    'https://colsubsidio-test.apigee.net/oauth/client_credential/accesstoken?grant_type=client_credentials',
+    'grant_type=client_credentials&client_id=cmnGMnGPVKLJwWLfWxqFCSZOR5hIjhWb&client_secret=uKCYJXAVkLY5gsWt',
+    { headers: { 'content-type': 'application/x-www-form-urlencoded' } }
+  );
+  
+  const { data: ciam } = await axios.post(
+    'https://colsubsidio-test.apigee.net/api/v3/afiliacion/validador/token/ciam',
+    {
+      "uid": "bb99d52a895d4fa9a60d8a7128120c50",
+      "cliente": {
+        "nombres": "Diego",
+        "apellidos": "Buitrago",
+        "telefono": "+573043760558",
+        "correo": "correo@ejemplo.com",
+        "documento": { "tipo": "2", "numero": "878787878" }
+      },
+      "empresa": { "documento": { "tipo": "", "numero": "" } },
+      "sesion": { "tiempoSegundos": 7200 },
+      "tipoMarketing": "B2C",
+      "credenciales": { "gigyaApiKey": "4_8iVHMwS2exdEd0YQvlfe-g" }
+    },
+    {
+      headers: {
+        'authorization': `Bearer ${apigee.access_token}`,
+        'content-type': 'application/json',
+        'x-api-key': '816a9aa1-bbe9-4878-bce9-839d4448a2b4'
+      }
+    }
+  );
+  
+  req.setHeader("authorization", ciam.access_token);
+}
+
+docs {
+  Obtiene la oferta de crédito para un idRequest dado.
+  Pre-request encadena: Apigee OAuth → CIAM token → Loan Offer.
+  Cambiar el idRequest (177618) en la URL según el caso de prueba.
+  Expected: 200 OK
+}

@@ -1,0 +1,44 @@
+meta {
+  name: TC-26 SMS NumCelular Formato Invalido
+  type: http
+  seq: 30
+}
+
+post {
+  url: {{baseUrl}}{{smsPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "destinatario": {
+      "numCelular": "abc123",
+      "atributos": {
+        "documento": "80229110",
+        "tipoDocumento": "CO1C",
+        "otp": "612762"
+      }
+    },
+    "evento": "OTP_TERMINOS_CONDICIONES"
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+docs {
+  Negativo E2 — numCelular con caracteres no numéricos.
+  Esperado: 400 con mensaje claro.
+  Variantes a probar manualmente:
+    - "300" (3 dígitos, longitud incorrecta)
+    - "30021531621234" (más de 10 dígitos)
+    - "+573002153162" (con código país, ¿lo acepta?)
+  ⚠️ CONFIRMAR formato esperado con BE.
+}

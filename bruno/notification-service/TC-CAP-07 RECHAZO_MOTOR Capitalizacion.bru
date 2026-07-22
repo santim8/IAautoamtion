@@ -1,0 +1,44 @@
+meta {
+  name: TC-CAP-07 RECHAZO_MOTOR Capitalizacion
+  type: http
+  seq: 37
+}
+
+post {
+  url: {{baseUrl}}{{emailPath}}
+  body: json
+  auth: none
+}
+
+headers {
+  x-api-key: {{apiKey}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "adjuntos": [],
+    "datos": {},
+    "destinatario": {
+      "email": "{{emailDestinatario}}",
+      "primerApellido": "RODRIGUEZ",
+      "primerNombre": "MARIA FERNANDA"
+    },
+    "documento": {
+      "numero": "80229110",
+      "tipo": "CO1C"
+    },
+    "evento": "CREDITO_RECHAZO_MOTOR"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Test de capitalización para CREDITO_RECHAZO_MOTOR (templateId 405000000004909).
+  Input: primerNombre=MARIA FERNANDA, primerApellido=RODRIGUEZ.
+  No requiere variables dinámicas extra (datos vacío).
+  Validar en buzón: capitalización aplicada.
+}
