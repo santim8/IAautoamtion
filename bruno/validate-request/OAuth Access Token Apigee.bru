@@ -1,0 +1,32 @@
+meta {
+  name: OAuth Access Token Apigee
+  type: http
+  seq: 2
+}
+
+post {
+  url: https://colsubsidio-test.apigee.net/oauth/client_credential/accesstoken?grant_type=client_credentials
+  body: formUrlEncoded
+  auth: none
+}
+
+headers {
+  content-type: application/x-www-form-urlencoded
+}
+
+body:form-urlencoded {
+  grant_type: client_credentials
+  client_id: cmnGMnGPVKLJwWLfWxqFCSZOR5hIjhWb
+  client_secret: uKCYJXAVkLY5gsWt
+}
+
+script:post-response {
+  console.log("data:", res.body.access_token)
+  bru.setEnvVar("tokenApegee",res.body.access_token)
+}
+
+docs {
+  Obtiene el access token de Apigee via client_credentials.
+  Ejecutar primero y copiar el access_token en la variable {{token}} del environment.
+  Expected: 200 OK con campo access_token en el body.
+}

@@ -1,0 +1,71 @@
+meta {
+  name: Validate Request
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/loans/req-mgr/external/v1/product/2/request/validate-request
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "documento": {
+      "tipo": "CO1C",
+      "numero": "1095915781"
+    },
+    "canalOrigen": "WEB",
+    "tipoSolicitud": "1"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+script:pre-request {
+  const { data: apigee } = await axios.post(
+    'https://colsubsidio-test.apigee.net/oauth/client_credential/accesstoken?grant_type=client_credentials',
+    'grant_type=client_credentials&client_id=cmnGMnGPVKLJwWLfWxqFCSZOR5hIjhWb&client_secret=uKCYJXAVkLY5gsWt',
+    { headers: { 'content-type': 'application/x-www-form-urlencoded' } }
+  );
+  
+  const { data: ciam } = await axios.post(
+    'https://colsubsidio-test.apigee.net/api/v3/afiliacion/validador/token/ciam',
+    {
+      "uid": "bb99d52a895d4fa9a60d8a7128120c50",
+      "cliente": {
+        "nombres": "Diego",
+        "apellidos": "Buitrago",
+        "telefono": "+573043760558",
+        "correo": "correo@ejemplo.com",
+        "documento": { "tipo": "2", "numero": "878787878" }
+      },
+      "empresa": { "documento": { "tipo": "", "numero": "" } },
+      "sesion": { "tiempoSegundos": 7200 },
+      "tipoMarketing": "B2C",
+      "credenciales": { "gigyaApiKey": "4_8iVHMwS2exdEd0YQvlfe-g" }
+    },
+    {
+      headers: {
+        'authorization': `Bearer ${apigee.access_token}`,
+        'content-type': 'application/json',
+        'x-api-key': '816a9aa1-bbe9-4878-bce9-839d4448a2b4'
+      }
+    }
+  );
+  
+  req.setHeader("authorization", ciam.access_token);
+}
+
+docs {
+  Happy Path — Originación CC sin caso previo en Bizagi.
+  tipoSolicitud=1 debe habilitar la creación del caso.
+  Expected: 200 OK
+}

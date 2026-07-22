@@ -7,6 +7,48 @@ from bizagi_cancel_case import BizagiAutomator, log
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 
+def consultar_por_id_caso(id_caso: str) -> None:
+    """Abre Bizagi, hace login y busca directamente el caso por su ID en el
+    buscador superior. No necesita número de documento."""
+    automator = BizagiAutomator("0", "CC")
+    automator.headless = False
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False, args=["--start-maximized"])
+        context = browser.new_context(no_viewport=True)
+        page = context.new_page()
+
+        try:
+            page.goto(automator.base_url, wait_until="load")
+            log.info("Página abierta: %s", automator.base_url)
+
+            if automator.esta_logueado(page):
+                log.info("Sesión activa detectada")
+            else:
+                log.info("Iniciando sesión...")
+                if not automator.login(page):
+                    log.error("Falló el login")
+                    return
+
+            log.info("Buscando caso %s directamente en el menú...", id_caso)
+            _cerrar_dialogo_y_buscar_caso(automator, page, id_caso)
+
+            try:
+                input("Navegador abierto. Presiona Enter aquí para cerrarlo...")
+            except EOFError:
+                log.info("Sin consola interactiva: el navegador quedará abierto hasta que lo cierres.")
+                try:
+                    page.wait_for_event("close", timeout=0)
+                except Exception:
+                    while browser.is_connected():
+                        page.wait_for_timeout(1000)
+
+        except Exception as e:
+            log.error("Error en el proceso principal: %s", e)
+        finally:
+            browser.close()
+
+
 def consultar_caso(document_type: str, document_number: str) -> str | None:
     """Abre Bizagi, navega a consultas, busca el documento y obtiene la última
     solicitud. Deja el navegador ABIERTO para que el usuario interactúe.
@@ -122,12 +164,23 @@ def _parse_args(argv: list[str]) -> tuple[str, str] | None:
 
 
 def main() -> None:
-    parsed = _parse_args(sys.argv[1:])
+    args = sys.argv[1:]
+
+    # Modo directo por ID de caso: --caso 279770
+    if len(args) >= 2 and args[0] == "--caso":
+        id_caso = args[1]
+        log.info("Consultando caso por ID: %s", id_caso)
+        consultar_por_id_caso(id_caso)
+        return
+
+    parsed = _parse_args(args)
     if parsed is None:
         print("Uso: python bizagi_consultar_caso.py [CE] <número_documento>")
+        print("     python bizagi_consultar_caso.py --caso <id_caso>")
         print("Ejemplo: python bizagi_consultar_caso.py CE-212584")
         print("Ejemplo: python bizagi_consultar_caso.py CE 212584")
         print("Ejemplo: python bizagi_consultar_caso.py 1075662894")
+        print("Ejemplo: python bizagi_consultar_caso.py --caso 279770")
         return
 
     document_type, document_number = parsed

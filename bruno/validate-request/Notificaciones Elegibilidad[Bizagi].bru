@@ -1,0 +1,55 @@
+meta {
+  name: Notificaciones Elegibilidad[Bizagi]
+  type: http
+  seq: 4
+}
+
+post {
+  url: https://colsubsidio-test.apigee.net/api/v2/credito/elegibilidad/notificaciones
+  body: json
+  auth: none
+}
+
+headers {
+  authorization: Bearer {{tokenBizagi}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "datosAdicionales": {
+      "primerApellido": "PEDRAZA",
+      "primerNombre": "SANTIAGO",
+      "segundoApellido": "PUENTES",
+      "tipoAfiliacion": "D"
+    },
+    "documento": {
+      "numero": "1000502751",
+      "tipo": "CO1C"
+    },
+    "estadoPaso": "OK",
+    "idCaso": "279238",
+    "idProducto": "2",
+    "noveltyType": "1",
+    "paso": "VALIDATION"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+script:pre-request {
+  const { data } = await axios.post(
+    'https://colsubsidio-test.apigee.net/oauth/client_credential/accesstoken?grant_type=client_credentials',
+    'grant_type=client_credentials&client_id=cmnGMnGPVKLJwWLfWxqFCSZOR5hIjhWb&client_secret=uKCYJXAVkLY5gsWt',
+    { headers: { 'content-type': 'application/x-www-form-urlencoded' } }
+  );
+  bru.setEnvVar("tokenBizagi", data.access_token);
+}
+
+docs {
+  Happy Path — Notificación de elegibilidad en paso VALIDATION.
+  estadoPaso=OK y noveltyType=1 (Incremento).
+  Expected: 200 OK
+}

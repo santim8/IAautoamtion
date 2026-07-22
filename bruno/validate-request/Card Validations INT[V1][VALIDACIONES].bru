@@ -1,0 +1,35 @@
+meta {
+  name: Card Validations INT[V1][VALIDACIONES]
+  type: http
+  seq: 8
+}
+
+post {
+  url: https://platform-test-internal.colsubsidio.com/loans/eligibility/internal/v1/card-validations
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+  x-api-key: ecn24ysGnZ4X17cU5lX4Q9gyFvyPR7fD1DkwR7I7
+}
+
+body:json {
+  {
+    "documento": {
+      "tipo": "CO1C",
+      "numero": "1075662894"
+    }
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Valida elegibilidad de tarjeta via endpoint interno.
+  Solo requiere x-api-key, sin token de sesión.
+  Expected: 200 OK
+}
