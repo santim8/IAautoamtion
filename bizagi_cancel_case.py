@@ -203,8 +203,8 @@ class BizagiAutomator:
 
     def _navegar_a_admin_casos(self, page: Page, ultima_solicitud: str | None) -> None:
         try:
-            page.wait_for_selector('span.text:has-text("Admin")', timeout=10000)
-            page.click('span.text:has-text("Admin")')
+            page.wait_for_selector("#menuListAdmin", timeout=10000)
+            page.click("#menuListAdmin")
             self._wait(page,2000)
 
             page.wait_for_selector(

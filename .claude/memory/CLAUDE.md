@@ -14,6 +14,27 @@ Aplica el mismo contexto, prompts y convenciones para ambos proyectos en cada se
 
 ---
 
+## Documentos de contexto (`.claude/memory/`)
+
+Leerlos **antes** de diseñar o ejecutar pruebas del tema correspondiente:
+
+**Gestión Documental / Zona Gris**
+- [project_gestion_documental_zona_gris.md](project_gestion_documental_zona_gris.md) — épica de negocio: Caso 1 (el motor manda a Zona Gris) y Caso 2 (el usuario no acepta la oferta), campos nuevos, eliminación de Estado Civil, pantallas de ingresos y de confirmación, puntos abiertos
+- [project_gestion_documental_preguntas_abiertas.md](project_gestion_documental_preguntas_abiertas.md) — **consolidado de preguntas sin resolver**, priorizadas por impacto en pruebas
+- [project_gestion_documental_mapa_flujos.md](project_gestion_documental_mapa_flujos.md) — **mapa pantalla-por-pantalla de cada flujo que llega a carga documental** (se va completando flujo por flujo desde los mockups)
+- [project_carga_documental_reglas_tecnicas.md](project_carga_documental_reglas_tecnicas.md) — FE/Drupal, endpoint de documentos requeridos (matriz Bizagi), trama uFlow, evento `CASE_REVIEW` y validaciones de archivos
+- [project_hu217172_pantalla_ingresos.md](project_hu217172_pantalla_ingresos.md) — PBI 217172: pantalla de ingresos por tipo de trabajador (**fuente: SAP**), campos por perfil y revisión de la suite TC001-TC017
+- [project_hu213144_revision_documental_backoffice.md](project_hu213144_revision_documental_backoffice.md) — RF-213144: formulario del Analista en Bizagi (paneles A-G), causales de rechazo, rutas Aprobado/Devolver
+- [reference_drupal_contenido_gestion_documental.md](reference_drupal_contenido_gestion_documental.md) — matriz de contenido parametrizable en Drupal (items 1-35): labels, límites de caracteres [Restringido/Sugerido] y listas editables
+- [reference_flujo_actual_cupo_servicios.md](reference_flujo_actual_cupo_servicios.md) — **línea base**: mapa pantalla→servicio del flujo actual de cupo (aprobado en firme) con evidencia real, dónde se injerta Gestión Documental y qué campos ya existen en el contrato
+- [reference_figma_gestion_documental.md](reference_figma_gestion_documental.md) — mockups (vigente: node-id `29654-55949`)
+
+**Workflows**
+- [workflow_consultar_pr.md](workflow_consultar_pr.md) — consultar Pull Requests en Azure DevOps
+- [workflow_cancelar_caso.md](workflow_cancelar_caso.md) / [workflow_cancelar_caso_vigente.md](workflow_cancelar_caso_vigente.md) — cancelación de casos en Bizagi
+
+---
+
 ## Azure DevOps
 
 El token y la organización están en `token.txt` (en la raíz de este repo):

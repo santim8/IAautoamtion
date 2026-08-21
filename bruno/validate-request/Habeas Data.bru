@@ -1,0 +1,31 @@
+meta {
+  name: Habeas Data
+  type: http
+  seq: 16
+}
+
+post {
+  url: https://dev.colsubsidio.com/creditos/solicitud/api/habeas-data
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: */*
+  content-type: application/json
+  Origin: https://dev.colsubsidio.com
+  Referer: https://dev.colsubsidio.com/
+  Cookie: {{habeasDataCookie}}
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Registra la aceptación de habeas data del flujo de solicitud (frontend BFF, no pasa por Apigee/CIAM).
+  Autenticación por cookie de sesión de navegador (no por Bearer token como el resto de la colección).
+  Requiere la var de entorno {{habeasDataCookie}} con: xcolsubvarnamex, glt_4_* (SSO), userToken, caseType, validationsSuccess.
+  El userToken es un JWT de corta duración (~2h) — capturar cookies frescas desde DevTools antes de ejecutar si falla con 401/403.
+  Sin body, Content-Length: 0.
+}

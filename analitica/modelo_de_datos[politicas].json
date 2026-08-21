@@ -1,0 +1,32 @@
+[
+  {
+    "evento": "Políticas 1A",
+    "event": "interactivo",
+    "eventName": "cupo_credito",
+    "seccion": "{{seccion}}",
+    "portal": "Web - Canal Autogestionado",
+    "producto": "cupo_credito",
+    "link_text": "{{link_text}}",
+    "page_path": "{{page_path}}",
+    "link_url": "{{link_url}}",
+    "label": "enlaces politicas"
+  },
+  {
+    "evento": "Políticas 1B",
+    "event": "interactivo",
+    "eventName": "cupo_credito",
+    "seccion": "{{seccion}}",
+    "portal": "Web - Canal Autogestionado",
+    "producto": "cupo_credito",
+    "link_text": "{{link_text}}",
+    "page_path": "{{page_path}}",
+    "link_url": "{{link_url}}",
+    "tipo_documento": "{{tipo_documento}}",
+    "numero_documento": "{{numero_documento}}",
+    "categoria_afiliado": "{{categoria_afiliado}}",
+    "empresa_afiliado": "{{empresa_afiliado}}",
+    "nit": "{{nit}}",
+    "email": "{{email}}",
+    "celular": "{{celular}}"
+  }
+]

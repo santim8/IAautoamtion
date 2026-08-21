@@ -1,29 +1,31 @@
 meta {
-  name: SIFF[V2][Validaciones]
+  name: SIIF EXT [V1][VALIDACIONES] copy
   type: http
-  seq: 9
+  seq: 15
 }
 
 post {
   url: https://platform-test-external.colsubsidio.com/loans/eligibility/external/v1/product-validations
   body: json
-  auth: inherit
+  auth: none
 }
 
 headers {
-  accept: application/json
   content-type: application/json
-  ~authorization: Bearer MMsPczgtfejuhJcj4JbION0MtDjM
 }
 
 body:json {
   {
-    "idCaso": "a6d876f9c98d90",
+    "idCaso": "4325",
     "documento": {
       "tipo": "CO1C",
-      "numero": "80057089"
+      "numero": "79528108"
     }
   }
+}
+
+assert {
+  res.status: eq 200
 }
 
 script:pre-request {
@@ -64,7 +66,9 @@ script:pre-request {
   req.setHeader("authorization", ciam.access_token);
 }
 
-settings {
-  encodeUrl: false
-  timeout: 0
+docs {
+  Card Validations — verifica elegibilidad de tarjeta por documento.
+  Pre-request encadena: Apigee OAuth → CIAM token → card-validations.
+  El token CIAM no lleva prefijo Bearer.
+  Expected: 200 OK
 }

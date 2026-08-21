@@ -1,9 +1,9 @@
 [
   {
     "evento": "Solicitud Cupo 1A",
+    "variante": "campaña",
     "event": "interactivo",
     "eventName": "cupo_credito",
-    "tipo_novedad": "[activacion|aumento|reactivacion]",
     "seccion": "modal_{{[ofertaFirme|preaprobado]}}",
     "portal": "Web - Canal Autogestionado",
     "producto": "cupo_credito",
@@ -21,28 +21,30 @@
     "utm_source": "{{utm_source}}",
     "utm_medium": "{{utm_medium}}",
     "utm_campaign": "{{utm_campaign}}",
-    "tipo_campana": "[preaprobado|ofertaFirme|normal]"
+    "tipo_campana": "[ofertaFirme|preaprobado]"
   },
   {
     "evento": "Solicitud Cupo 1B",
+    "variante": "campaña",
     "event": "interactivo",
     "eventName": "virtual_page",
-    "title": "modal_{{[activacion|aumento|reactivacion]}}",
+    "title": "modal_{{[ofertaFirme|preaprobado]}}",
     "url": "/creditos/solicitud/cupo-de-credito/informacion-personal/modal_{{[ofertaFirme|preaprobado]}}",
     "portal": "Web - Canal Autogestionado",
     "producto": "cupo_credito",
-    "tipo_campana": "modal_{{[ofertaFirme|preaprobado]}}"
+    "tipo_campana": "[ofertaFirme|preaprobado]"
   },
   {
     "evento": "Solicitud Cupo 1C",
+    "variante": "novedad",
     "event": "interactivo",
     "eventName": "cupo_credito",
     "tipo_novedad": "[activacion|aumento|reactivacion]",
-    "seccion": "modal_{{[ofertaFirme|preaprobado]}}",
+    "seccion": "modal_{{[activacion|aumento|reactivacion]}}",
     "portal": "Web - Canal Autogestionado",
     "producto": "cupo_credito",
     "link_text": "{{link_text}}",
-    "page_path": "/creditos/solicitud/cupo-de-credito/informacion-personal/modal_{{[ofertaFirme|preaprobado]}}",
+    "page_path": "/creditos/solicitud/cupo-de-credito/politicas/modal_{{[activacion|aumento|reactivacion]}}",
     "link_url": "{{link_url}}",
     "user_status": "{{user_status}}",
     "tipo_documento": "{{tipo_documento}}",
@@ -58,10 +60,12 @@
   },
   {
     "evento": "Solicitud Cupo 1D",
+    "variante": "novedad",
     "event": "interactivo",
     "eventName": "virtual_page",
+    "tipo_novedad": "[activacion|aumento|reactivacion]",
     "title": "modal_{{[activacion|aumento|reactivacion]}}",
-    "url": "/creditos/solicitud/cupo-de-credito/informacion-personal/modal_{{[ofertaFirme|preaprobado]}}",
+    "url": "/creditos/solicitud/cupo-de-credito/politicas/modal_{{[activacion|aumento|reactivacion]}}",
     "portal": "Web - Canal Autogestionado",
     "producto": "cupo_credito"
   }

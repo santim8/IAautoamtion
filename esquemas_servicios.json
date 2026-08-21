@@ -1,0 +1,994 @@
+{
+  "generado": "2026-08-21T20:30:26.931901+00:00",
+  "servicios": {
+    "GET /eligibility/external/v1/campaigns/": {
+      "ejemplos": 1,
+      "request": null,
+      "response": {
+        "properties": {
+          "campanas": {
+            "items": {
+              "properties": {
+                "CODIGO_CAMPANA": {
+                  "type": "integer"
+                },
+                "CODIGO_DE_GARANTIA": {
+                  "type": "integer"
+                },
+                "CUOTA": {
+                  "type": "integer"
+                },
+                "ESTADO_DE_CAMPANA": {
+                  "type": "integer"
+                },
+                "FECHA_VIGENCIA": {
+                  "type": "string"
+                },
+                "GESTION_DOCUMENTAL": {
+                  "type": "integer"
+                },
+                "LIBRANZA_SN": {
+                  "type": "string"
+                },
+                "MONTO": {
+                  "type": "integer"
+                },
+                "NOMBRE_CAMPANA": {
+                  "type": "string"
+                },
+                "PLAN_DE_INTERES": {
+                  "type": "integer"
+                },
+                "PLAZO": {
+                  "type": "integer"
+                },
+                "PRODUCTO": {
+                  "type": "string"
+                },
+                "SUBPRODUCTO": {
+                  "type": "integer"
+                },
+                "TASA": {
+                  "type": "integer"
+                },
+                "TIPO_CAMPANA": {
+                  "type": "integer"
+                },
+                "TIPO_PRODUCTO": {
+                  "type": "string"
+                },
+                "VERSION": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "CODIGO_CAMPANA",
+                "CODIGO_DE_GARANTIA",
+                "CUOTA",
+                "ESTADO_DE_CAMPANA",
+                "FECHA_VIGENCIA",
+                "GESTION_DOCUMENTAL",
+                "LIBRANZA_SN",
+                "MONTO",
+                "NOMBRE_CAMPANA",
+                "PLAN_DE_INTERES",
+                "PLAZO",
+                "PRODUCTO",
+                "SUBPRODUCTO",
+                "TASA",
+                "TIPO_CAMPANA",
+                "TIPO_PRODUCTO",
+                "VERSION"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "documento": {
+            "type": "string"
+          },
+          "tipo_id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "campanas",
+          "documento",
+          "tipo_id"
+        ],
+        "type": "object"
+      }
+    },
+    "GET /request/offer/": {
+      "ejemplos": 1,
+      "request": null,
+      "response": {
+        "properties": {
+          "obtenerOfertaCredito": {
+            "properties": {
+              "cuotaManejo": {
+                "type": "number"
+              },
+              "fechaVigencia": {
+                "type": "string"
+              },
+              "idCaso": {
+                "type": "string"
+              },
+              "montoAprobado": {
+                "type": "number"
+              },
+              "novedad": {
+                "properties": {
+                  "aumento": {
+                    "type": "boolean"
+                  },
+                  "codigo": {
+                    "type": "string"
+                  },
+                  "creacionOActivacion": {
+                    "type": "boolean"
+                  },
+                  "reactivacion": {
+                    "type": "boolean"
+                  },
+                  "tipo": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "aumento",
+                  "codigo",
+                  "creacionOActivacion",
+                  "reactivacion",
+                  "tipo"
+                ],
+                "type": "object"
+              },
+              "opcionesPago": {
+                "items": {
+                  "properties": {
+                    "cantidadCuotas": {
+                      "type": "integer"
+                    },
+                    "cicloFacturacion": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "idProducto": {
+                      "type": "string"
+                    },
+                    "marcasCambio": {
+                      "type": "null"
+                    },
+                    "monto": {
+                      "type": "number"
+                    },
+                    "nombreProducto": {
+                      "type": "string"
+                    },
+                    "productoActual": {
+                      "type": "null"
+                    },
+                    "productoAprobado": {
+                      "type": "null"
+                    },
+                    "tasaAvanceNMV": {
+                      "type": "number"
+                    },
+                    "tasaEA": {
+                      "type": "number"
+                    },
+                    "tasaNMV": {
+                      "type": "number"
+                    },
+                    "tipoPago": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "cantidadCuotas",
+                    "cicloFacturacion",
+                    "idProducto",
+                    "marcasCambio",
+                    "monto",
+                    "nombreProducto",
+                    "productoActual",
+                    "productoAprobado",
+                    "tasaAvanceNMV",
+                    "tasaEA",
+                    "tasaNMV",
+                    "tipoPago"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "seguros": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "cuotaManejo",
+              "fechaVigencia",
+              "idCaso",
+              "montoAprobado",
+              "novedad",
+              "opcionesPago",
+              "seguros"
+            ],
+            "type": "object"
+          },
+          "resultado": {
+            "items": {
+              "properties": {
+                "codigo": {
+                  "type": "integer"
+                },
+                "descripcion": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "codigo",
+                "descripcion"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "obtenerOfertaCredito",
+          "resultado"
+        ],
+        "type": "object"
+      }
+    },
+    "POST /card-validations": {
+      "ejemplos": 1,
+      "request": {
+        "properties": {
+          "documento": {
+            "properties": {
+              "numero": {
+                "type": "string"
+              },
+              "tipo": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "numero",
+              "tipo"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "documento"
+        ],
+        "type": "object"
+      },
+      "response": {
+        "properties": {
+          "resultado": {
+            "items": {
+              "properties": {
+                "codigo": {
+                  "type": "integer"
+                },
+                "descripcion": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "codigo",
+                "descripcion"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "resultadoValidacion": {
+            "properties": {
+              "datosSinProcesar": {
+                "type": "string"
+              },
+              "estado": {
+                "type": "string"
+              },
+              "validacion": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "datosSinProcesar",
+              "estado",
+              "validacion"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "resultado",
+          "resultadoValidacion"
+        ],
+        "type": "object"
+      }
+    },
+    "POST /decision-engine": {
+      "ejemplos": 1,
+      "request": {
+        "properties": {
+          "idCaso": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "idCaso"
+        ],
+        "type": "object"
+      },
+      "response": {
+        "properties": {
+          "iniciarBiometria": {
+            "properties": {
+              "idCaso": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "idCaso"
+            ],
+            "type": "object"
+          },
+          "resultado": {
+            "items": {
+              "properties": {
+                "codigo": {
+                  "type": "integer"
+                },
+                "descripcion": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "codigo",
+                "descripcion"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "iniciarBiometria",
+          "resultado"
+        ],
+        "type": "object"
+      }
+    },
+    "POST /eligibility/external/v1/product-validations": {
+      "ejemplos": 1,
+      "request": {
+        "properties": {
+          "documento": {
+            "properties": {
+              "numero": {
+                "type": "string"
+              },
+              "tipo": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "numero",
+              "tipo"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "documento"
+        ],
+        "type": "object"
+      },
+      "response": {
+        "properties": {
+          "resultado": {
+            "items": {
+              "properties": {
+                "codigo": {
+                  "type": "integer"
+                },
+                "descripcion": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "codigo",
+                "descripcion"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "resultadoValidacion": {
+            "properties": {
+              "datosSinProcesar": {
+                "type": "string"
+              },
+              "estado": {
+                "type": "string"
+              },
+              "validacion": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "datosSinProcesar",
+              "estado",
+              "validacion"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "resultado",
+          "resultadoValidacion"
+        ],
+        "type": "object"
+      }
+    },
+    "POST /eligibility/external/v2/affiliation-validations": {
+      "ejemplos": 1,
+      "request": {
+        "properties": {
+          "documento": {
+            "properties": {
+              "numero": {
+                "type": "string"
+              },
+              "tipo": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "numero",
+              "tipo"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "documento"
+        ],
+        "type": "object"
+      },
+      "response": {
+        "properties": {
+          "resultado": {
+            "items": {
+              "properties": {
+                "codigo": {
+                  "type": "integer"
+                },
+                "descripcion": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "codigo",
+                "descripcion"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "resultadoValidacion": {
+            "properties": {
+              "datosAdicionales": {
+                "properties": {
+                  "categoria": {
+                    "type": "string"
+                  },
+                  "empleadores": {
+                    "items": {
+                      "properties": {
+                        "numeroDocumento": {
+                          "type": "string"
+                        },
+                        "tipoDocumento": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "numeroDocumento",
+                        "tipoDocumento"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "numeroDocumento": {
+                    "type": "string"
+                  },
+                  "numeroTarjetaMultiservicio": {
+                    "type": "string"
+                  },
+                  "primerApellido": {
+                    "type": "string"
+                  },
+                  "primerNombre": {
+                    "type": "string"
+                  },
+                  "segundoApellido": {
+                    "type": "string"
+                  },
+                  "segundoNombre": {
+                    "type": "string"
+                  },
+                  "tipoAfiliacion": {
+                    "type": "string"
+                  },
+                  "tipoDocumento": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "categoria",
+                  "empleadores",
+                  "numeroDocumento",
+                  "numeroTarjetaMultiservicio",
+                  "primerApellido",
+                  "primerNombre",
+                  "segundoApellido",
+                  "segundoNombre",
+                  "tipoAfiliacion",
+                  "tipoDocumento"
+                ],
+                "type": "object"
+              },
+              "datosSinProcesar": {
+                "type": "string"
+              },
+              "estado": {
+                "type": "string"
+              },
+              "validacion": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "datosAdicionales",
+              "datosSinProcesar",
+              "estado",
+              "validacion"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "resultado",
+          "resultadoValidacion"
+        ],
+        "type": "object"
+      }
+    },
+    "POST /external/v1/product/2/request/offer-config": {
+      "ejemplos": 1,
+      "request": {
+        "properties": {
+          "cicloFacturacion": {
+            "type": "string"
+          },
+          "ejercePoderPolitico": {
+            "type": "boolean"
+          },
+          "idCaso": {
+            "type": "string"
+          },
+          "idProducto": {
+            "type": "string"
+          },
+          "manejaRecursosPublicos": {
+            "type": "boolean"
+          },
+          "montoCuota": {
+            "type": "integer"
+          },
+          "montoCupo": {
+            "type": "string"
+          },
+          "montoMinimo": {
+            "type": "integer"
+          },
+          "montoModificado": {
+            "type": "boolean"
+          },
+          "montoOferta": {
+            "type": "integer"
+          },
+          "nombreProducto": {
+            "type": "string"
+          },
+          "opcionPago": {
+            "type": "string"
+          },
+          "reconocimientoPublico": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "cicloFacturacion",
+          "ejercePoderPolitico",
+          "idCaso",
+          "idProducto",
+          "manejaRecursosPublicos",
+          "montoCuota",
+          "montoCupo",
+          "montoMinimo",
+          "montoModificado",
+          "montoOferta",
+          "nombreProducto",
+          "opcionPago",
+          "reconocimientoPublico"
+        ],
+        "type": "object"
+      },
+      "response": {
+        "properties": {
+          "configurarOferta": {
+            "properties": {
+              "idCaso": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "idCaso"
+            ],
+            "type": "object"
+          },
+          "resultado": {
+            "items": {
+              "properties": {
+                "codigo": {
+                  "type": "integer"
+                },
+                "descripcion": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "codigo",
+                "descripcion"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "configurarOferta",
+          "resultado"
+        ],
+        "type": "object"
+      }
+    },
+    "POST /loans/loan-util/external/modification-quota-amount": {
+      "ejemplos": 1,
+      "request": {
+        "properties": {
+          "cupoAprobado": {
+            "type": "integer"
+          },
+          "fechaModificacionCupo": {
+            "type": "string"
+          },
+          "nuevoCupo": {
+            "type": "integer"
+          },
+          "numeroDocumento": {
+            "type": "string"
+          },
+          "numeroSolicitud": {
+            "type": "string"
+          },
+          "tipoDocumento": {
+            "type": "string"
+          },
+          "tipoProducto": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cupoAprobado",
+          "fechaModificacionCupo",
+          "nuevoCupo",
+          "numeroDocumento",
+          "numeroSolicitud",
+          "tipoDocumento",
+          "tipoProducto"
+        ],
+        "type": "object"
+      },
+      "response": {
+        "properties": {
+          "cuotaFija": {
+            "type": "integer"
+          },
+          "nuevoCupo": {
+            "type": "integer"
+          },
+          "numeroSolicitud": {
+            "type": "string"
+          },
+          "resultado": {
+            "items": {
+              "properties": {
+                "codigo": {
+                  "type": "integer"
+                },
+                "descripcion": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "codigo",
+                "descripcion"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "cuotaFija",
+          "nuevoCupo",
+          "numeroSolicitud",
+          "resultado"
+        ],
+        "type": "object"
+      }
+    },
+    "POST /loans/req-mgr/external/v1/product/2/request/request-data": {
+      "ejemplos": 1,
+      "request": {
+        "properties": {
+          "datosPersona": {
+            "properties": {
+              "contacto": {
+                "properties": {
+                  "correo": {
+                    "type": "string"
+                  },
+                  "telefono": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "correo",
+                  "telefono"
+                ],
+                "type": "object"
+              },
+              "datosFinancieros": {
+                "properties": {
+                  "ingresosAdicionales": {
+                    "type": "null"
+                  },
+                  "otrosIngresosLaborales": {
+                    "type": "null"
+                  },
+                  "salario": {
+                    "type": "null"
+                  }
+                },
+                "required": [
+                  "ingresosAdicionales",
+                  "otrosIngresosLaborales",
+                  "salario"
+                ],
+                "type": "object"
+              },
+              "datosPersonales": {
+                "properties": {
+                  "estadoCivil": {
+                    "type": "null"
+                  }
+                },
+                "required": [
+                  "estadoCivil"
+                ],
+                "type": "object"
+              },
+              "informacionCampanas": {
+                "properties": {
+                  "fechaVigencia": {
+                    "type": "string"
+                  },
+                  "gestionDocumental": {
+                    "type": "string"
+                  },
+                  "monto": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "fechaVigencia",
+                  "gestionDocumental",
+                  "monto"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "contacto",
+              "datosFinancieros",
+              "datosPersonales",
+              "informacionCampanas"
+            ],
+            "type": "object"
+          },
+          "documento": {
+            "properties": {
+              "numero": {
+                "type": "string"
+              },
+              "tipo": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "numero",
+              "tipo"
+            ],
+            "type": "object"
+          },
+          "idCaso": {
+            "type": "string"
+          },
+          "tipoAfiliacion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "datosPersona",
+          "documento",
+          "idCaso",
+          "tipoAfiliacion"
+        ],
+        "type": "object"
+      },
+      "response": {
+        "properties": {
+          "guardarDatosPersona": {
+            "properties": {
+              "idCaso": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "idCaso"
+            ],
+            "type": "object"
+          },
+          "resultado": {
+            "items": {
+              "properties": {
+                "codigo": {
+                  "type": "integer"
+                },
+                "descripcion": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "codigo",
+                "descripcion"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "guardarDatosPersona",
+          "resultado"
+        ],
+        "type": "object"
+      }
+    },
+    "POST validate-request": {
+      "ejemplos": 1,
+      "request": {
+        "properties": {
+          "canalOrigen": {
+            "type": "string"
+          },
+          "documento": {
+            "properties": {
+              "numero": {
+                "type": "string"
+              },
+              "tipo": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "numero",
+              "tipo"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "canalOrigen",
+          "documento"
+        ],
+        "type": "object"
+      },
+      "response": {
+        "properties": {
+          "crearCaso": {
+            "properties": {
+              "documento": {
+                "properties": {
+                  "numero": {
+                    "type": "string"
+                  },
+                  "tipo": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "numero",
+                  "tipo"
+                ],
+                "type": "object"
+              },
+              "idCaso": {
+                "type": "string"
+              },
+              "idProducto": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "documento",
+              "idCaso",
+              "idProducto"
+            ],
+            "type": "object"
+          },
+          "resultado": {
+            "items": {
+              "properties": {
+                "codigo": {
+                  "type": "integer"
+                },
+                "descripcion": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "codigo",
+                "descripcion"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "crearCaso",
+          "resultado"
+        ],
+        "type": "object"
+      }
+    }
+  }
+}

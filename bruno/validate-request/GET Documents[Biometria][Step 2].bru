@@ -1,0 +1,21 @@
+meta {
+  name: GET Documents[Biometria][Step 2]
+  type: http
+  seq: 13
+}
+
+get {
+  url: https://platform-test-internal.colsubsidio.com/loans/identity/internal/v1/validator/documents-to-sign/237659
+  body: none
+  auth: inherit
+}
+
+headers {
+  content-type: application/json
+  x-api-key: ecn24ysGnZ4X17cU5lX4Q9gyFvyPR7fD1DkwR7I7
+}
+
+settings {
+  encodeUrl: false
+  timeout: 0
+}
