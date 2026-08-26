@@ -32,6 +32,7 @@ import os
 import re
 import subprocess
 import sys
+import threading
 import time
 from datetime import datetime, timezone
 
@@ -68,6 +69,34 @@ ENDPOINTS_RASTREADOS = [
     "/loans/loan-util/external/modification-quota-amount",
 ]
 
+# La version del path es un comodin: los servicios pasan de v1 a v2 segun se
+# activen las novedades, y con la version fija ese trafico dejaria de
+# reconocerse justo cuando mas interesa mirarlo. Se guarda la version que
+# realmente llego para poder avisar del cambio.
+RE_VERSION = re.compile(r"/v(\d+)/")
+
+
+def patron_endpoint(endpoint):
+    """Compila un endpoint rastreado dejando /vN/ como comodin."""
+    partes = [re.escape(t) for t in RE_VERSION.split(endpoint)[::2]]
+    return re.compile(r"/v\d+/".join(partes))
+
+
+def version_declarada(endpoint):
+    m = RE_VERSION.search(endpoint)
+    return m.group(1) if m else None
+
+
+def version_de(url):
+    m = RE_VERSION.search(url)
+    return m.group(1) if m else None
+
+
+def casan(endpoints, url):
+    """Patrones rastreados que casan con esta URL, con la version al vuelo."""
+    return [e for e in endpoints if patron_endpoint(e).search(url)]
+
+
 # --- redaccion -------------------------------------------------------------
 HEADERS_SENSIBLES = {
     "authorization", "cookie", "set-cookie", "x-api-key", "apikey",
@@ -99,9 +128,14 @@ TOLERANCIA_CAMBIO_MS = 300
 ESQUEMAS_DEFAULT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 "esquemas_servicios.json")
 
-# La pantalla de personalizacion de oferta pinta con lo que devuelve este
-# servicio, asi que el pantallazo util es el del instante de su respuesta.
-SHOT_RESPUESTA_DEFAULT = "request/offer"
+# Servicios cuya respuesta pinta una pantalla que vale la pena dejar retratada
+# en ese instante. Todos son OPCIONALES: si el flujo no pasa por esa pantalla
+# el servicio no responde y simplemente no hay pantallazo, sin ruido.
+SHOT_RESPUESTA_DEFAULT = ",".join([
+    "request/offer",                 # personalizacion de oferta
+    "parametros/estado_civil",       # datos personales; a veces se omite
+    "modification-quota-amount",     # modificacion del cupo en personalizacion
+])
 
 
 def redactar_texto(txt):
@@ -216,6 +250,7 @@ class Observador:
         self.dir = dir_salida
         self.hosts = hosts           # [] = capturar todo
         self.endpoints = endpoints or []   # endpoints de negocio a marcar
+        self.endpoints_rx = [(e, patron_endpoint(e)) for e in self.endpoints]
         self.solo_endpoints = solo_endpoints
         # pantallas que ademas merecen un segundo pantallazo mas tarde
         # (pantalla final / thank-you page: suele pintar contenido async)
@@ -223,7 +258,10 @@ class Observador:
         self.extra_ms = extra_ms
         # tomar pantallazo cuando responda ciertos endpoints clave
         # (hardcodeado: request/offer para capturar estado de personalización)
-        self.screenshot_on_response = screenshot_on_response or SHOT_RESPUESTA_DEFAULT
+        patrones = screenshot_on_response or SHOT_RESPUESTA_DEFAULT
+        if isinstance(patrones, str):
+            patrones = [x.strip() for x in patrones.split(",") if x.strip()]
+        self.screenshot_on_response = patrones
         self.redactar = redactar
         self.settle_ms = settle_ms
         # --- alcance por pestana (independiente del filtro de hosts) ---
@@ -237,7 +275,9 @@ class Observador:
         self.pendientes = {}         # pagina -> (url, timestamp_ms) cambio en espera
         self.extras = []             # [(paso, pagina, cuando_ms)] pantallazos extra
         self.shots_dif = []          # [(paso, pagina, cuando_ms)] shot de paso adelantado
-        self.shot_por_req = {}       # request -> (nombre, bytes) shot tomado al responder
+        self.shots_resp = []         # [(pagina, nombre, bytes)] shots por responder
+        self.disparados = set()      # (paso, patron) ya disparados, para no repetir
+        self.sockets = 0             # websockets vistos, para el resumen
         self.pend_req = {}           # request -> metadata, para casar con su response
         self.paso_por_pagina = {}    # pagina -> su paso actual (soporte multi-pestana)
         self.ids_pagina = {}         # pagina -> numero de pestana, para el reporte
@@ -246,7 +286,7 @@ class Observador:
     # -- endpoints de negocio
     def casar_endpoints(self, url):
         """Todos los patrones rastreados que casan con esta URL (pueden ser varios)."""
-        return [e for e in self.endpoints if e in url]
+        return [e for e, rx in self.endpoints_rx if rx.search(url)]
 
     # -- filtro por destino (a que host va el request)
     def interesa(self, url):
@@ -329,7 +369,7 @@ class Observador:
         d = os.path.join(self.dir, f"{idx:02d}_{slug}")
         os.makedirs(d, exist_ok=True)
         paso = {"idx": idx, "url": url, "slug": slug, "dir": d,
-                "ts": ahora_iso(), "requests": [], "titulo": "",
+                "ts": ahora_iso(), "requests": [], "sockets": [], "titulo": "",
                 "pestana": self.id_pestana(page)}
         self.pasos.append(paso)
         self.paso_por_pagina[page] = paso
@@ -457,23 +497,64 @@ class Observador:
         }
 
     def on_response(self, response):
+        pagina = self.pagina_de(response.request)
+        if self.patron and not self.pagina_permitida(pagina):
+            return
+        # Antes del filtro de captura a proposito: hay disparadores que no son
+        # endpoints rastreados (estado_civil), y en modo "endpoints" interesa()
+        # los descartaria y el pantallazo no se tomaria nunca.
+        self.mirar_disparadores(response, pagina)
         if not self.interesa(response.url):
             return
-        if self.patron and not self.pagina_permitida(self.pagina_de(response.request)):
-            return
-        # pantallazo en el instante en que responde el endpoint clave
-        if self.screenshot_on_response and self.screenshot_on_response in response.url:
-            pagina = self.pagina_de(response.request)
-            if pagina:
-                try:
-                    slug = re.sub(r"[^A-Za-z0-9._-]+", "-",
-                                  self.screenshot_on_response).strip("-")
-                    self.shot_por_req[response.request] = (
-                        "screenshot_on_response_%s.png" % slug,
-                        pagina.screenshot(full_page=True))
-                except Exception as e:
-                    print("! pantallazo on_response fallo: %s" % e)
         self.cola_resp.append(response)
+
+    def mirar_disparadores(self, response, pagina):
+        """Retrata la pantalla en el instante en que responde un servicio clave.
+
+        Se dispara una sola vez por paso y por patron: el preflight OPTIONS y el
+        POST de un mismo endpoint casan igual, y no hace falta el mismo
+        pantallazo dos veces.
+        """
+        if not self.screenshot_on_response or pagina is None:
+            return
+        paso = self.paso_por_pagina.get(pagina)
+        idx = paso["idx"] if paso else -1
+        for patron in self.screenshot_on_response:
+            if patron not in response.url:
+                continue
+            if (idx, patron) in self.disparados:
+                continue
+            self.disparados.add((idx, patron))
+            slug = re.sub(r"[^A-Za-z0-9._-]+", "-", patron).strip("-")
+            try:
+                self.shots_resp.append((pagina,
+                                        "screenshot_on_response_%s.png" % slug,
+                                        pagina.screenshot(full_page=True,
+                                                          timeout=5000)))
+                print("   [shot] %s respondio; pantalla capturada" % patron)
+            except Exception as e:
+                print("! pantallazo al responder %s fallo: %s" % (patron, e))
+
+    def volcar_shots(self):
+        """Escribe los pantallazos ya con el paso resuelto.
+
+        Se hace desde el loop y despues de drenar respuestas, para que un
+        request que adelanta de paso deje su pantallazo en el paso correcto.
+        """
+        if not self.shots_resp:
+            return
+        pendientes, self.shots_resp = self.shots_resp, []
+        for pagina, nombre, datos in pendientes:
+            paso = self.paso_por_pagina.get(pagina) or self.paso_actual()
+            if paso is None:
+                continue
+            try:
+                with open(os.path.join(paso["dir"], nombre), "wb") as f:
+                    f.write(datos)
+                print("[paso %02d] pantallazo al responder %s"
+                      % (paso["idx"], nombre[23:-4]))
+            except OSError as e:
+                print("! no pude guardar %s: %s" % (nombre, e))
 
     def drenar_respuestas(self):
         """Lee los bodies en el loop principal, no dentro del handler."""
@@ -528,19 +609,59 @@ class Observador:
                 reg["response_headers"] = redactar_headers(reg["response_headers"])
                 reg["request_body"] = redactar_body(reg["request_body"])
                 reg["response_body"] = redactar_body(reg["response_body"])
-            paso = self.guardar(reg, self.pagina_de(response.request),
-                                t0_ms=meta["t0"] * 1000)
-            # el shot que se tomo al responder se guarda ya con el paso resuelto
-            shot = self.shot_por_req.pop(response.request, None)
-            if shot and paso:
-                nombre, datos = shot
-                try:
-                    with open(os.path.join(paso["dir"], nombre), "wb") as f:
-                        f.write(datos)
-                    print("[paso %02d] pantallazo al responder %s"
-                          % (paso["idx"], self.screenshot_on_response))
-                except Exception as e:
-                    print("! no pude guardar el pantallazo on_response: %s" % e)
+            self.guardar(reg, self.pagina_de(response.request),
+                         t0_ms=meta["t0"] * 1000)
+
+    def enganchar_socket(self, pagina, ws):
+        """Los frames del socket son evidencia de primera: llevan el avance del
+        flujo (step / stepStatus), que no viaja por HTTP.
+
+        No se les aplica el filtro de hosts ni el de endpoints: son pocos, van
+        a un dominio distinto al del backend (API Gateway) y perderlos deja el
+        reporte sin la mitad de la historia.
+        """
+        if self.patron and not self.pagina_permitida(pagina):
+            return
+        self.sockets += 1
+        print("   [ws] abierto %s" % ws.url)
+        ws.on("framesent",
+              lambda datos: self.guardar_frame(pagina, ws, "enviado", datos))
+        ws.on("framereceived",
+              lambda datos: self.guardar_frame(pagina, ws, "recibido", datos))
+        ws.on("close", lambda _ws=ws: print("   [ws] cerrado %s" % _ws.url))
+
+    def guardar_frame(self, pagina, ws, direccion, datos):
+        """Un frame cae en el paso que estuviera abierto en esa pestana."""
+        if isinstance(datos, (bytes, bytearray)):
+            texto = datos.decode("utf-8", "replace")
+        else:
+            texto = str(datos)
+        if len(texto) > MAX_BODY:
+            texto = texto[:MAX_BODY]
+        if self.redactar:
+            texto = redactar_body(texto)
+        frame = {"ts": ahora_iso(), "direccion": direccion, "url": ws.url,
+                 "payload": texto}
+        paso = self.paso_por_pagina.get(pagina) or self.paso_actual()
+        if paso is None:
+            return
+        paso.setdefault("sockets", []).append(frame)
+        with open(os.path.join(paso["dir"], "websocket.jsonl"), "a",
+                  encoding="utf-8") as f:
+            f.write(json.dumps(frame, ensure_ascii=False) + "\n")
+        flecha = "->" if direccion == "enviado" else "<-"
+        # el payload cortado a lo bruto tapaba justo step/stepStatus, que es lo
+        # unico que se mira en vivo; el JSON completo queda en el .jsonl
+        resumen = None
+        try:
+            d = json.loads(texto)
+            if isinstance(d, dict) and d.get("step"):
+                resumen = "%-14s %s" % (d["step"], d.get("stepStatus", ""))
+                if d.get("idCase"):
+                    resumen += "  (caso %s)" % d["idCase"]
+        except (json.JSONDecodeError, TypeError):
+            pass
+        print("   [ws %s] %s" % (flecha, resumen or texto[:120]))
 
     def guardar(self, reg, pagina=None, t0_ms=None):
         # Si la ruta de esta pestana ya cambio y el paso nuevo sigue esperando el
@@ -593,6 +714,7 @@ class Observador:
         page.on("close", lambda _p=page: self.pendientes.pop(_p, None))
         # una pestana abierta POR la observada (popup de biometria, OAuth, etc.)
         page.on("popup", lambda hija, _p=page: self.registrar_hija(_p, hija))
+        page.on("websocket", lambda ws, _p=page: self.enganchar_socket(_p, ws))
         try:
             # expose_binding (no expose_function) para saber DESDE QUE pestana llego
             page.expose_binding("__obsRuta",
@@ -699,6 +821,16 @@ CSS_REPORTE = """
   pre { background:var(--bg); border:1px solid var(--bd); border-radius:4px; padding:8px;
         overflow-x:auto; font-size:11px; max-height:320px; margin:0; }
   .nota { color:var(--err); font-size:12px; }
+  .ws { background:var(--card); border:1px solid var(--bd); border-left:3px solid var(--acc);
+        border-radius:4px; margin-bottom:6px; }
+  .ws summary { font-size:12px; }
+  .ws .dir { font-weight:700; min-width:20px; }
+  .ws .paso-st { font-weight:700; }
+  .ws.fail { border-left-color:var(--err); }
+  .ws.fail .paso-st { color:var(--err); }
+  .ws.okk .paso-st { color:var(--ok); }
+  .subt { margin:14px 0 6px; font-size:11px; text-transform:uppercase;
+          color:var(--mut); letter-spacing:.4px; }
   .shot .cap { font-size:10px; color:var(--mut); margin:2px 0 0; }
   .shot img + a img { margin-top:6px; }
 """
@@ -714,10 +846,15 @@ def _bloque_endpoints(cob, esc):
     for c in vistos:
         malos = [s for s in c["statuses"] if s >= 400]
         cls = "malo" if malos else "bueno"
+        # una version distinta a la declarada no es un fallo, pero hay que verla
+        esperado = c.get("version_declarada")
+        movida = bool(esperado and c.get("versiones") and esperado not in c["versiones"])
         filas.append(
             '<tr class="' + cls + '">'
             '<td class="n">' + esc(c["veces"]) + '&times;</td>'
             '<td class="e">' + esc(c["endpoint"]) + '</td>'
+            '<td class="ver' + (' movida' if movida else '') + '">'
+            + esc(nota_version(c)) + '</td>'
             '<td class="p">paso ' + esc(", ".join(str(p) for p in c["pasos"])) + '</td>'
             '<td class="st">' + esc(", ".join(str(s) for s in c["statuses"])) + '</td>'
             '</tr>')
@@ -726,7 +863,7 @@ def _bloque_endpoints(cob, esc):
             '<tr class="ausente">'
             '<td class="n">&mdash;</td>'
             '<td class="e">' + esc(c["endpoint"]) + '</td>'
-            '<td class="p" colspan="2">no aparecio</td>'
+            '<td class="p" colspan="3">no aparecio</td>'
             '</tr>')
     return ('<section class="idx-ep"><h3>Endpoints rastreados '
             '<small>' + esc(len(vistos)) + ' de ' + esc(len(cob)) + '</small></h3>'
@@ -742,6 +879,8 @@ CSS_ENDPOINTS = """
   .idx-ep .n { width:44px; text-align:right; font-weight:700; }
   .idx-ep .e { font-family:ui-monospace,Consolas,monospace; word-break:break-all; }
   .idx-ep .p, .idx-ep .st { color:var(--mut); white-space:nowrap; width:1%; }
+  .idx-ep .ver { color:var(--mut); white-space:nowrap; width:1%; font-size:11px; }
+  .idx-ep .ver.movida { color:var(--acc); font-weight:700; }
   .idx-ep tr.bueno .n { color:var(--ok); }
   .idx-ep tr.malo .n, .idx-ep tr.malo .st { color:var(--err); font-weight:700; }
   .idx-ep tr.ausente td { color:var(--mut); opacity:.65; }
@@ -750,6 +889,47 @@ CSS_ENDPOINTS = """
   .req.track { border-left-width:5px; }
   .req.track summary { background:color-mix(in srgb, var(--acc) 7%, transparent); }
 """
+
+def _rango_disparador(nombre):
+    """Ordena los pantallazos por el orden en que se declaro cada disparador.
+
+    Alfabeticamente, modification-quota-amount le ganaba a request/offer y
+    quedaba de principal una pantalla que no es la que retrata el paso.
+    """
+    slug = nombre[len("screenshot_on_response_"):-len(".png")]
+    patrones = [re.sub(r"[^A-Za-z0-9._-]+", "-", x).strip("-")
+                for x in SHOT_RESPUESTA_DEFAULT.split(",")]
+    return (patrones.index(slug) if slug in patrones else len(patrones), slug)
+
+
+def _bloque_socket(frames, esc, esc_cuerpo):
+    """Los frames del websocket del paso, con el step/stepStatus a la vista.
+
+    Ese par es lo que dice si el flujo avanzo o se cayo, asi que se saca del
+    payload y se pinta en el encabezado en vez de esconderlo en el JSON.
+    """
+    if not frames:
+        return ""
+    filas = []
+    for fr in frames:
+        paso_ws = est = ""
+        try:
+            d = json.loads(fr["payload"])
+            paso_ws, est = d.get("step", ""), d.get("stepStatus", "")
+        except (json.JSONDecodeError, TypeError, AttributeError):
+            pass
+        cls = "fail" if est.upper() in ("FAIL", "ERROR") else ("okk" if est else "")
+        flecha = "&rarr;" if fr["direccion"] == "enviado" else "&larr;"
+        etiqueta = (esc(paso_ws) + " " + esc(est)) if paso_ws else esc(fr["direccion"])
+        filas.append(
+            '<details class="ws ' + cls + '"><summary>'
+            '<span class="dir">' + flecha + '</span>'
+            '<span class="paso-st">' + etiqueta + '</span>'
+            '<span class="d">' + esc(fr["ts"][11:19]) + '</span>'
+            '</summary><div class="det"><pre>' + esc_cuerpo(fr["payload"]) + '</pre>'
+            '<h5>Socket</h5><pre>' + esc(fr["url"]) + '</pre></div></details>')
+    return '<p class="subt">WebSocket (' + esc(len(frames)) + ' mensajes)</p>' + "".join(filas)
+
 
 def escribir_reporte(obs, flujo, ruta):
     import html as _h
@@ -807,8 +987,9 @@ def escribir_reporte(obs, flujo, ruta):
         # servicio manda (es el estado real de la pantalla con datos), y el
         # de la navegacion queda abajo como referencia.
         base = "%02d_%s/" % (paso["idx"], paso["slug"])
-        onresp = sorted(f for f in os.listdir(paso["dir"])
-                        if f.startswith("screenshot_on_response_") and f.endswith(".png"))                  if os.path.isdir(paso["dir"]) else []
+        onresp = sorted((f for f in os.listdir(paso["dir"])
+                         if f.startswith("screenshot_on_response_")
+                         and f.endswith(".png")), key=_rango_disparador)                  if os.path.isdir(paso["dir"]) else []
         imgs = [(base + f, "al responder " + f[23:-4].replace("-", "/")) for f in onresp]
         if os.path.exists(os.path.join(paso["dir"], "screenshot.png")):
             imgs.append((base + "screenshot.png", "al entrar a la pantalla"))
@@ -821,6 +1002,7 @@ def escribir_reporte(obs, flujo, ruta):
             '<p class="cap">' + esc(cap) + '</p>'
             for src_, cap in imgs[1:])
         cuerpo = "".join(reqs) or '<p class="vacio">Sin requests al backend en este paso.</p>'
+        cuerpo += _bloque_socket(paso.get("sockets") or [], esc, esc_cuerpo)
         secciones.append(
             '<section class="paso">'
             '<div class="shot">'
@@ -874,7 +1056,8 @@ def cobertura_endpoints(pasos, endpoints):
     Es lo que responde "el flujo si llamo a decision-engine?" de un vistazo,
     incluyendo los que NUNCA se vieron (que suele ser el hallazgo interesante).
     """
-    cob = {e: {"endpoint": e, "veces": 0, "pasos": [], "statuses": [], "urls": []}
+    cob = {e: {"endpoint": e, "veces": 0, "pasos": [], "statuses": [], "urls": [],
+               "version_declarada": version_declarada(e), "versiones": []}
            for e in endpoints}
     for paso in pasos:
         for r in paso["requests"]:
@@ -889,7 +1072,21 @@ def cobertura_endpoints(pasos, endpoints):
                     c["statuses"].append(r["status"])
                 if len(c["urls"]) < 5 and r["url"] not in c["urls"]:
                     c["urls"].append(r["url"])
+                v = version_de(r["url"])
+                if v and v not in c["versiones"]:
+                    c["versiones"].append(v)
     return cob
+
+
+def nota_version(c):
+    """'v2 (declarado v1)' cuando la version que llego no es la esperada."""
+    if not c["versiones"]:
+        return ""
+    visto = "/".join("v" + v for v in c["versiones"])
+    esperado = c["version_declarada"]
+    if esperado and esperado not in c["versiones"]:
+        return "%s  <-- declarado v%s" % (visto, esperado)
+    return visto
 
 
 def imprimir_cobertura(cob):
@@ -901,19 +1098,42 @@ def imprimir_cobertura(cob):
     for c in sorted(vistos, key=lambda x: -x["veces"]):
         malos = [s for s in c["statuses"] if s >= 400]
         marca = "  <-- %s" % malos if malos else ""
-        print("  %2dx  pasos %-12s %s%s"
-              % (c["veces"], ",".join(str(p) for p in c["pasos"]), c["endpoint"], marca))
+        ver = nota_version(c)
+        print("  %2dx  pasos %-12s %-58s %s%s"
+              % (c["veces"], ",".join(str(p) for p in c["pasos"]), c["endpoint"],
+                 ver, marca))
     if faltantes:
         print("  no aparecieron (%d):" % len(faltantes))
         for c in faltantes:
             print("       %s" % c["endpoint"])
 
+_CERRANDO = threading.Lock()
+_CERRADO = [False]
+
+
 def cerrar(obs, flujo, ruta_esquemas=None, generar=False):
+    with _CERRANDO:
+        if _CERRADO[0]:
+            return
+        _CERRADO[0] = True
+    return _cerrar(obs, flujo, ruta_esquemas, generar)
+
+
+def _cerrar(obs, flujo, ruta_esquemas=None, generar=False):
+    # Los pantallazos por respuesta se capturan en el handler y se escriben
+    # desde el loop; si el loop se colgo siguen en memoria. Volcarlos aqui es
+    # lo unico que los salva, y no toca Playwright, asi que es seguro incluso
+    # desde el hilo vigilante.
+    try:
+        obs.volcar_shots()
+    except (AttributeError, OSError):
+        pass
     resumen = {
         "flujo": flujo,
         "generado": ahora_iso(),
         "pasos": [{"idx": p["idx"], "url": p["url"], "titulo": p["titulo"], "ts": p["ts"],
                    "pestana": p.get("pestana", 0), "requests": len(p["requests"]),
+                   "websocket": len(p.get("sockets") or []),
                    "fallos": sum(1 for r in p["requests"] if r["status"] >= 400)}
                   for p in obs.pasos],
     }
@@ -975,12 +1195,24 @@ def cerrar(obs, flujo, ruta_esquemas=None, generar=False):
                            "resultados": obs.validacion},
                           f, ensure_ascii=False, indent=2)
 
+    # websockets.json: todos los frames en orden, con el paso en que cayeron
+    frames = [dict(fr, paso=p["idx"], pantalla=p["url"])
+              for p in obs.pasos for fr in (p.get("sockets") or [])]
+    if frames:
+        with open(os.path.join(obs.dir, "websockets.json"), "w", encoding="utf-8") as f:
+            json.dump(frames, f, ensure_ascii=False, indent=2)
+
     escribir_har(obs, os.path.join(obs.dir, "captura.har"))
     escribir_reporte(obs, flujo, os.path.join(obs.dir, "reporte.html"))
 
     total = sum(len(p["requests"]) for p in obs.pasos)
     fallos = sum(s["fallos"] for s in resumen["pasos"])
     print("\n%d pasos, %d requests, %d con status >= 400" % (len(obs.pasos), total, fallos))
+    n_ws = sum(len(p.get("sockets") or []) for p in obs.pasos)
+    if n_ws:
+        malos = [fr for fr in frames if '"stepStatus":"FAIL"' in fr["payload"].replace(" ", "")]
+        print("%d mensaje(s) de websocket%s"
+              % (n_ws, (", %d con stepStatus FAIL" % len(malos)) if malos else ""))
     if obs.sin_pestana:
         print("Aviso: %d request(s) sin pestana identificable (service worker) "
               "quedaron fuera." % obs.sin_pestana)
@@ -1021,14 +1253,26 @@ class ObsDesdeDisco:
                         except json.JSONDecodeError:
                             continue   # linea a medias por un cierre abrupto
                         # re-marcar contra la lista de endpoints vigente
-                        casan = [e for e in endpoints if e in r.get("url", "")]
-                        if casan:
-                            r["rastreados"] = casan
+                        marcados = casan(endpoints, r.get("url", ""))
+                        if marcados:
+                            r["rastreados"] = marcados
                         reqs.append(r)
+            frames = []
+            jsonlws = os.path.join(d, "websocket.jsonl")
+            if os.path.exists(jsonlws):
+                with open(jsonlws, encoding="utf-8") as f:
+                    for ln in f:
+                        ln = ln.strip()
+                        if not ln:
+                            continue
+                        try:
+                            frames.append(json.loads(ln))
+                        except json.JSONDecodeError:
+                            continue
             self.pasos.append({
                 "idx": int(idx), "url": (reqs[0]["url"] if reqs else ""), "slug": slug,
                 "dir": d, "ts": (reqs[0]["ts"] if reqs else ""), "requests": reqs,
-                "titulo": "", "pestana": 0,
+                "sockets": frames, "titulo": "", "pestana": 0,
             })
 
 
@@ -1054,6 +1298,38 @@ def rehacer_reporte(dir_evidencia, endpoints, ruta_esquemas=None, generar=False)
     cerrar(obs, os.path.basename(dir_evidencia.rstrip("/\\")),
            ruta_esquemas=ruta_esquemas, generar=generar)
     return 0
+
+def vigilar_parada(obs, flujo, ruta_esquemas, generar, stop_file, gracia=20):
+    """Escribe el reporte aunque el loop no conteste al centinela.
+
+    Playwright puede quedarse leyendo el cuerpo de una respuesta que nunca
+    termina, o hablando con una pestana que se colgo. En ese caso el loop no
+    vuelve a mirar el centinela y la corrida se quedaria sin reporte pese a
+    tener toda la evidencia ya escrita en disco. Este hilo espera un margen y,
+    si nadie atendio, cierra el mismo y sale.
+    """
+    while True:
+        time.sleep(1)
+        if not os.path.exists(stop_file):
+            continue
+        limite = time.time() + gracia
+        while os.path.exists(stop_file) and time.time() < limite:
+            time.sleep(0.5)
+        if not os.path.exists(stop_file) or _CERRADO[0]:
+            return                       # el loop lo atendio; todo normal
+        print("\n! El navegador no responde tras %d s. Genero el reporte con lo "
+              "capturado y salgo." % gracia)
+        try:
+            os.remove(stop_file)
+        except OSError:
+            pass
+        try:
+            cerrar(obs, flujo, ruta_esquemas=ruta_esquemas, generar=generar)
+        except Exception as e:
+            print("! el reporte fallo: %s" % e)
+        sys.stdout.flush()
+        os._exit(0)     # sin cleanup de Playwright: es justo lo que esta colgado
+
 
 # --- main ------------------------------------------------------------------
 def main():
@@ -1081,8 +1357,8 @@ def main():
                     help="espera del pantallazo extra tras abrir el paso")
     ap.add_argument("--screenshot-on-response", default=SHOT_RESPUESTA_DEFAULT,
                     metavar="PATRON",
-                    help="toma un pantallazo cuando responda un endpoint que case "
-                         "con PATRON (default: %(default)s)")
+                    help="pantallazo cuando responda un endpoint que case con "
+                         "PATRON; varios separados por coma (default: %(default)s)")
     ap.add_argument("--solo-endpoints", action="store_true",
                     help=argparse.SUPPRESS)   # compat: equivale a --captura endpoints
     ap.add_argument("--endpoints", default=None, metavar="LISTA",
@@ -1098,6 +1374,9 @@ def main():
                     help="NO redacta tokens ni cookies (cuidado con la evidencia)")
     ap.add_argument("--settle-ms", type=int, default=1200,
                     help="espera tras un cambio de pantalla antes del screenshot")
+    ap.add_argument("--stop-file", default=None, metavar="RUTA",
+                    help="corta limpiamente cuando aparezca ese archivo; equivale a "
+                         "Ctrl+C, asi que el reporte se genera igual (lo usa el panel)")
     ap.add_argument("--duracion", type=int, default=0,
                     help="corta solo tras N segundos (0 = hasta Ctrl+C)")
     ap.add_argument("--lanzar-chrome", action="store_true",
@@ -1216,8 +1495,24 @@ def observar(args, obs):
         print("Escuchando. Navega normal. Ctrl+C para cerrar y generar el reporte.\n")
 
         limite = (time.time() + args.duracion) if args.duracion else None
+        if args.stop_file and os.path.exists(args.stop_file):
+            os.remove(args.stop_file)   # sobra de una corrida anterior
+        if args.stop_file:
+            threading.Thread(
+                target=vigilar_parada, daemon=True,
+                args=(obs, args.flujo, args.esquemas, args.generar_esquemas,
+                      args.stop_file)).start()
         try:
             while True:
+                if args.stop_file and os.path.exists(args.stop_file):
+                    # parada limpia pedida desde afuera: sale por el mismo camino
+                    # que Ctrl+C, con lo cual el finally arma el reporte igual
+                    print("\nParada solicitada.")
+                    try:
+                        os.remove(args.stop_file)
+                    except OSError:
+                        pass
+                    break
                 if limite and time.time() >= limite:
                     print("\nLimite de %d s alcanzado." % args.duracion)
                     break
@@ -1245,6 +1540,7 @@ def observar(args, obs):
                     actual = obs.paso_por_pagina.get(pagina)
                     if not actual or actual["url"] != url_real:
                         obs.abrir_paso(pagina, url_real)
+                obs.volcar_shots()
                 obs.tomar_extras()
                 obs.tomar_shots_diferidos()
         except KeyboardInterrupt:
@@ -1253,6 +1549,7 @@ def observar(args, obs):
             # Tras un Ctrl+C, Playwright ya esta cancelando sus tareas: leer los
             # bodies pendientes puede reventar. Que eso NO impida el reporte.
             try:
+                obs.volcar_shots()        # no perder los del ultimo instante
                 obs.vaciar_pendientes()   # no perder la ultima pantalla
                 obs.tomar_shots_diferidos(forzar=True)
                 obs.tomar_extras(forzar=True)

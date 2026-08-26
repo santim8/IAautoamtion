@@ -7,11 +7,28 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 log = logging.getLogger(__name__)
 
 
+def _credencial(nombre):
+    """Credencial obligatoria, tomada del entorno.
+
+    Antes venia con un valor por defecto escrito en el codigo y versionado, asi
+    que cualquiera que clonara el repo terminaba operando Bizagi con la cuenta
+    de otra persona sin enterarse.
+    """
+    valor = os.environ.get(nombre)
+    if not valor:
+        raise SystemExit(
+            "Falta la variable de entorno " + nombre + ".\n"
+            "Configurala una sola vez en PowerShell y abre una consola nueva:\n"
+            '  setx BIZAGI_USER "tu.usuario"\n'
+            '  setx BIZAGI_PASSWORD "tu.clave"')
+    return valor
+
+
 class BizagiAutomator:
     def __init__(self, document_number: str | None = None, document_type: str | None = None):
         self.base_url = "https://test-procesosdigitales-colsubsidio.bizagi.com/#"
-        self.username = os.environ.get("BIZAGI_USER", "angie.uribeav")
-        self.password = os.environ.get("BIZAGI_PASSWORD", "2025*CRD")
+        self.username = _credencial("BIZAGI_USER")
+        self.password = _credencial("BIZAGI_PASSWORD")
         self.document_number = document_number or "2001002110"
         self.document_type = document_type or "CC"
 
