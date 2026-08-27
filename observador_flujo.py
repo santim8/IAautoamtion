@@ -195,6 +195,18 @@ def ahora_iso():
     return datetime.now(timezone.utc).isoformat()
 
 
+def ruta_de(url):
+    """La URL sin query ni fragmento: esquema, host y path.
+
+    El patron de --solo-url tiene que casar contra la ruta real. Las paginas
+    auxiliares de SSO llevan la URL de la app dentro del fragmento
+    (#origin=https://.../creditos/solicitud/login) y se hacian pasar por la
+    pestana buena: el observador se fijaba a una de ellas y la app quedaba
+    ignorada, con la corrida entera vacia.
+    """
+    return (url or "").split("#")[0].split("?")[0]
+
+
 def es_url_real(url):
     """about:blank y chrome:// no son pantallas del flujo, son ruido de arranque."""
     return bool(url) and url.startswith(("http://", "https://"))
@@ -304,7 +316,7 @@ class Observador:
         """Engancha el candado a la primera pestana cuya URL case con el patron."""
         if self.lock is not None or not self.patron:
             return False
-        if self.patron not in (url or ""):
+        if self.patron not in ruta_de(url):
             return False
         self.lock = page
         print("\n>> Pestana fijada: %s" % url)
