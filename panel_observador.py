@@ -100,6 +100,9 @@ def _orden_servicio(nombre):
     except ValueError:
         return (len(SERVICIOS_CATALOGO), nombre)
 STOP_FILE = os.path.join(AQUI, ".detener_observador")
+# Lo que se escribe dentro del centinela para pedir parada sin reporte; el
+# observador lo lee y deja la evidencia cruda para reportarla despues.
+SIN_REPORTE = "sin-reporte"
 PUERTO = 9222
 
 RE_MARCA = re.compile(r"_(\d{4})-(\d{2})-(\d{2})_(\d{2})(\d{2})(\d{2})$")
@@ -327,6 +330,7 @@ class Herramienta(ttk.Frame):
         self.proc = None
         self.cola = queue.Queue()
         self.salida = []          # todo el stdout, para el veredicto final
+        self.dir_corrida = None   # carpeta de evidencia de la ultima corrida
         self.vars = {}
         self._construir()
 
@@ -368,6 +372,19 @@ class Herramienta(ttk.Frame):
         self.b_parar = ttk.Button(botones, text=self._texto_parada(),
                                   command=self.detener, state="disabled")
         self.b_parar.pack(side="left", padx=8)
+        self.b_reporte = None
+        if self.spec["parada"] == "centinela":
+            # separadas a proposito: a veces uno corta la captura para seguir
+            # navegando y solo quiere el reporte mas tarde
+            self.b_solo_parar = ttk.Button(botones, text="Detener sin reporte",
+                                           command=self.detener_seco,
+                                           state="disabled")
+            self.b_solo_parar.pack(side="left")
+            self.b_reporte = ttk.Button(botones, text="Generar reporte",
+                                        command=self.generar_reporte)
+            self.b_reporte.pack(side="left", padx=8)
+        else:
+            self.b_solo_parar = None
         ttk.Button(botones, text="Limpiar log", command=self.limpiar).pack(side="left")
 
         self.estado = tk.StringVar(value="Listo.")
@@ -523,6 +540,8 @@ class Herramienta(ttk.Frame):
         self.after(0, self._corriendo)
         for linea in self.proc.stdout:
             self.salida.append(linea)
+            if linea.startswith("Evidencia:"):
+                self.dir_corrida = linea.split(":", 1)[1].strip()
             self.cola.put((linea, None))
         self.proc.wait()
         self.after(0, self._fin)
@@ -530,6 +549,8 @@ class Herramienta(ttk.Frame):
     def _corriendo(self):
         if self.spec["parada"]:
             self.b_parar.configure(state="normal")
+        if self.b_solo_parar:
+            self.b_solo_parar.configure(state="normal")
         self.estado.set({"centinela": "Capturando. Navega en Chrome; al terminar, Detener.",
                          "terminar": "Corriendo. El navegador queda abierto."}
                         .get(self.spec["parada"], "Corriendo..."))
@@ -537,6 +558,8 @@ class Herramienta(ttk.Frame):
     def _fin(self):
         self.b_ir.configure(state="normal")
         self.b_parar.configure(state="disabled")
+        if self.b_solo_parar:
+            self.b_solo_parar.configure(state="disabled")
         self.proc = None
         veredicto = self.spec.get("estado")
         if veredicto:
@@ -549,17 +572,45 @@ class Herramienta(ttk.Frame):
         for cb in getattr(self, "al_terminar", []):
             cb()
 
-    def detener(self):
+    def detener(self, con_reporte=True):
         if not self.ocupada():
             return
         self.b_parar.configure(state="disabled")
+        if self.b_solo_parar:
+            self.b_solo_parar.configure(state="disabled")
         if self.spec["parada"] == "centinela":
-            self.estado.set("Cerrando y generando reporte...")
+            self.estado.set("Cerrando y generando reporte..." if con_reporte
+                            else "Cerrando sin generar el reporte...")
             with open(self.spec["stop_file"], "w", encoding="utf-8") as f:
-                f.write(str(time.time()))
+                f.write("" if con_reporte else SIN_REPORTE)
         else:
             self.estado.set("Cerrando...")
             self.proc.terminate()
+
+    def detener_seco(self):
+        """Corta la captura y deja la evidencia cruda; el reporte, cuando quieras."""
+        self.detener(con_reporte=False)
+
+    def generar_reporte(self):
+        """--rehacer-reporte sobre la ultima corrida (o la mas reciente en disco)."""
+        if self.ocupada():
+            messagebox.showinfo("Captura en curso",
+                                "Detén la captura antes de generar el reporte.")
+            return
+        d = self.dir_corrida
+        if not d or not os.path.isdir(d):
+            corridas = listar_corridas()
+            d = corridas[0]["dir"] if corridas else None
+        if not d:
+            messagebox.showinfo("Sin corridas", "Todavia no hay evidencia capturada.")
+            return
+        self.limpiar()
+        self.salida = []
+        self.dir_corrida = d
+        self.estado.set("Generando reporte de %s..." % os.path.basename(d))
+        cmd = [sys.executable, "-u", os.path.join(AQUI, self.spec["script"]),
+               "--rehacer-reporte", d]
+        threading.Thread(target=self._hilo, args=(cmd, False), daemon=True).start()
 
 
 # --- pestana de corridas ---------------------------------------------------

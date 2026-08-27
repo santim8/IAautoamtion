@@ -278,6 +278,7 @@ class Observador:
         self.shots_resp = []         # [(pagina, nombre, bytes)] shots por responder
         self.disparados = set()      # (paso, patron) ya disparados, para no repetir
         self.sockets = 0             # websockets vistos, para el resumen
+        self.sin_reporte = False     # se paro pidiendo NO generar el reporte
         self.pend_req = {}           # request -> metadata, para casar con su response
         self.paso_por_pagina = {}    # pagina -> su paso actual (soporte multi-pestana)
         self.ids_pagina = {}         # pagina -> numero de pestana, para el reporte
@@ -1299,6 +1300,30 @@ def rehacer_reporte(dir_evidencia, endpoints, ruta_esquemas=None, generar=False)
            ruta_esquemas=ruta_esquemas, generar=generar)
     return 0
 
+SIN_REPORTE = "sin-reporte"
+
+
+def modo_parada(stop_file):
+    """Que pidio quien escribio el centinela: parar y reportar, o solo parar."""
+    try:
+        with open(stop_file, encoding="utf-8") as f:
+            return f.read().strip().lower()
+    except OSError:
+        return ""
+
+
+def avisar_pendiente(obs):
+    """Corrida detenida a proposito sin reporte: la evidencia cruda ya esta."""
+    try:
+        obs.volcar_shots()
+    except (AttributeError, OSError):
+        pass
+    print("\nDetenido sin generar el reporte.")
+    print("Evidencia: " + os.path.abspath(obs.dir))
+    print("Cuando quieras el reporte:  --rehacer-reporte \"%s\""
+          % os.path.abspath(obs.dir))
+
+
 def vigilar_parada(obs, flujo, ruta_esquemas, generar, stop_file, gracia=20):
     """Escribe el reporte aunque el loop no conteste al centinela.
 
@@ -1317,16 +1342,22 @@ def vigilar_parada(obs, flujo, ruta_esquemas, generar, stop_file, gracia=20):
             time.sleep(0.5)
         if not os.path.exists(stop_file) or _CERRADO[0]:
             return                       # el loop lo atendio; todo normal
-        print("\n! El navegador no responde tras %d s. Genero el reporte con lo "
-              "capturado y salgo." % gracia)
+        if modo_parada(stop_file) == SIN_REPORTE:
+            obs.sin_reporte = True
+        print("\n! El navegador no responde tras %d s. Salgo%s."
+              % (gracia, "" if getattr(obs, "sin_reporte", False)
+                 else " y genero el reporte con lo capturado"))
         try:
             os.remove(stop_file)
         except OSError:
             pass
         try:
-            cerrar(obs, flujo, ruta_esquemas=ruta_esquemas, generar=generar)
+            if getattr(obs, "sin_reporte", False):
+                avisar_pendiente(obs)
+            else:
+                cerrar(obs, flujo, ruta_esquemas=ruta_esquemas, generar=generar)
         except Exception as e:
-            print("! el reporte fallo: %s" % e)
+            print("! el cierre fallo: %s" % e)
         sys.stdout.flush()
         os._exit(0)     # sin cleanup de Playwright: es justo lo que esta colgado
 
@@ -1432,8 +1463,11 @@ def main():
         except OSError:
             pass
         return 1
-    cerrar(obs, args.flujo, ruta_esquemas=args.esquemas,
-           generar=args.generar_esquemas)
+    if getattr(obs, "sin_reporte", False):
+        avisar_pendiente(obs)
+    else:
+        cerrar(obs, args.flujo, ruta_esquemas=args.esquemas,
+               generar=args.generar_esquemas)
     return 0
 
 
@@ -1506,8 +1540,11 @@ def observar(args, obs):
             while True:
                 if args.stop_file and os.path.exists(args.stop_file):
                     # parada limpia pedida desde afuera: sale por el mismo camino
-                    # que Ctrl+C, con lo cual el finally arma el reporte igual
-                    print("\nParada solicitada.")
+                    # que Ctrl+C. Segun lo que diga el centinela, se arma el
+                    # reporte o se deja la evidencia cruda para generarlo luego.
+                    obs.sin_reporte = modo_parada(args.stop_file) == SIN_REPORTE
+                    print("\nParada solicitada%s."
+                          % (" (sin reporte)" if obs.sin_reporte else ""))
                     try:
                         os.remove(args.stop_file)
                     except OSError:
