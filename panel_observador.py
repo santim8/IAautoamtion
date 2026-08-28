@@ -104,6 +104,9 @@ def _orden_servicio(nombre):
     except ValueError:
         return (len(SERVICIOS_CATALOGO), nombre)
 STOP_FILE = os.path.join(AQUI, ".detener_observador")
+# Centinela propio: la analitica y el observador de red pueden correr a la
+# vez sobre la misma pestana, y cada uno tiene que poder pararse solo.
+STOP_FILE_ANALITICA = os.path.join(AQUI, ".detener_analitica")
 # Lo que se escribe dentro del centinela para pedir parada sin reporte; el
 # observador lo lee y deja la evidencia cruda para reportarla despues.
 SIN_REPORTE = "sin-reporte"
@@ -221,6 +224,23 @@ HERRAMIENTAS = [
             {"tipo": "check", "arg": "--generar-esquemas",
              "etiqueta": "Tomar esta corrida como baseline de esquemas",
              "valor": False},
+        ],
+    },
+    {
+        "id": "analitica",
+        "nombre": "Analitica dataLayer",
+        "script": "observador_analitica.py",
+        "boton": "Iniciar captura",
+        "parada": "centinela",
+        "stop_file": STOP_FILE_ANALITICA,
+        "previo": preparar_chrome,
+        "ayuda": "Haces el flujo a mano; anota cada push al dataLayer y filtra el "
+                 "ruido de GTM, igual que TermsAndConditionsAnalyticsSolid.",
+        "campos": [
+            {"tipo": "texto", "arg": "--flujo", "etiqueta": "Flujo",
+             "valor": "terminos", "ancho": 26},
+            {"tipo": "texto", "arg": "--solo-url", "etiqueta": "Solo URL que contenga",
+             "valor": "creditos/solicitud", "ancho": 30},
         ],
     },
     {

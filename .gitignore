@@ -24,3 +24,6 @@ usuarios_prueba.json
 
 # Ajustes por maquina del panel
 panel.config.json
+
+# Eventos de analitica capturados a mano
+evidencias_analitica/
