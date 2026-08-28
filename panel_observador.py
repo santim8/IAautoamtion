@@ -63,6 +63,10 @@ SUITE_BIOMETRIA = os.path.join("src", "test", "resources", "suits", "testng-biom
 DIR_DATOS = os.path.join(os.path.expanduser("~"), ".panel_qa")
 USUARIOS = os.path.join(DIR_DATOS, "usuarios_prueba.json")
 USUARIOS_LEGADO = os.path.join(AQUI, "usuarios_prueba.json")
+# Catalogo compartido: este SI se versiona, para que quien clone el repo
+# arranque con los usuarios de prueba del equipo. Siembra el archivo local la
+# primera vez; despues cada quien maneja el suyo y sincroniza a mano.
+USUARIOS_COMPARTIDOS = os.path.join(AQUI, "usuarios_compartidos.json")
 BACKUPS = os.path.join(DIR_DATOS, "backups")
 LOGS = os.path.join(DIR_DATOS, "logs")
 MAX_BACKUPS = 30
@@ -1161,8 +1165,14 @@ class Usuarios(ttk.Frame):
         self.ver_claves = tk.BooleanVar(value=False)
         ttk.Checkbutton(form, text="Mostrar contrasenas en la tabla",
                         variable=self.ver_claves,
-                        command=self.refrescar).grid(row=2, column=0, columnspan=5,
+                        command=self.refrescar).grid(row=2, column=0, columnspan=3,
                                                      sticky="w", pady=(10, 0))
+        # apagado por defecto: publicar deja las claves en el historial de git
+        # para siempre, y eso no se deshace borrando el archivo despues
+        self.publicar_claves = tk.BooleanVar(value=False)
+        ttk.Checkbutton(form, text="Publicar tambien las contrasenas",
+                        variable=self.publicar_claves).grid(
+                            row=2, column=3, columnspan=3, sticky="w", pady=(10, 0))
 
         botones = ttk.Frame(self, padding=(12, 6))
         botones.pack(fill="x")
@@ -1174,8 +1184,12 @@ class Usuarios(ttk.Frame):
                    command=lambda: self.copiar("usuario")).pack(side="left")
         ttk.Button(botones, text="Copiar contrasena",
                    command=lambda: self.copiar("clave")).pack(side="left", padx=8)
+        ttk.Button(botones, text="Traer del repo",
+                   command=self.traer).pack(side="left", padx=(16, 0))
+        ttk.Button(botones, text="Publicar al repo",
+                   command=self.publicar).pack(side="left", padx=8)
         ttk.Button(botones, text="Abrir carpeta de datos",
-                   command=self.abrir_datos).pack(side="left", padx=(16, 0))
+                   command=self.abrir_datos).pack(side="left")
         ttk.Button(botones, text="Eliminar", command=self.eliminar).pack(side="right")
 
         marco = ttk.Frame(self, padding=(12, 4, 12, 6))
@@ -1199,11 +1213,18 @@ class Usuarios(ttk.Frame):
                   padding=(14, 0, 14, 8)).pack(fill="x")
 
     # -- persistencia
+    @staticmethod
+    def _clave(u):
+        return (u.get("tipo", "").upper(), u.get("usuario", "").strip())
+
     def cargar(self):
         os.makedirs(DIR_DATOS, exist_ok=True)
         # el archivo vivia dentro del repo; si sigue ahi, se trae una sola vez
         if not os.path.exists(USUARIOS) and os.path.exists(USUARIOS_LEGADO):
             shutil.copy2(USUARIOS_LEGADO, USUARIOS)
+        # primer arranque tras clonar: el catalogo del repo siembra el local
+        if not os.path.exists(USUARIOS) and os.path.exists(USUARIOS_COMPARTIDOS):
+            shutil.copy2(USUARIOS_COMPARTIDOS, USUARIOS)
         datos = _json_o_nada(USUARIOS)
         self.datos = datos if isinstance(datos, list) else []
         self.refrescar()
@@ -1308,6 +1329,51 @@ class Usuarios(ttk.Frame):
         self.volcar()
         self.limpiar()
         self.refrescar()
+
+    def traer(self):
+        """Agrega los del catalogo del repo que no tengas todavia."""
+        compartidos = _json_o_nada(USUARIOS_COMPARTIDOS)
+        if not isinstance(compartidos, list):
+            messagebox.showinfo("Sin catalogo",
+                                "No hay %s en el repo."
+                                % os.path.basename(USUARIOS_COMPARTIDOS))
+            return
+        tengo = {self._clave(u) for u in self.datos}
+        nuevos = [u for u in compartidos if self._clave(u) not in tengo]
+        if not nuevos:
+            self.estado.set("El catalogo del repo no trae ninguno nuevo.")
+            return
+        self.datos.extend(nuevos)
+        self.volcar()
+        self.refrescar()
+        self.estado.set("%d usuario(s) traidos del repo." % len(nuevos))
+
+    def publicar(self):
+        """Escribe el catalogo que se versiona. La clave va solo si lo pediste."""
+        con_claves = self.publicar_claves.get()
+        aviso = ("Se van a publicar %d usuario(s) en %s, que SI se versiona.\n\n"
+                 % (len(self.datos), os.path.basename(USUARIOS_COMPARTIDOS)))
+        aviso += ("Las contrasenas van incluidas y quedaran en el historial de "
+                  "git de forma permanente, aunque despues borres el archivo."
+                  if con_claves else
+                  "Las contrasenas NO van: cada quien completa las suyas.")
+        if not messagebox.askyesno("Publicar al repo", aviso + "\n\nSeguir?"):
+            return
+        salida = []
+        for u in self.datos:
+            fila = {c: u.get(c, "") for c in self.COLS}
+            if not con_claves:
+                fila["clave"] = ""
+            salida.append(fila)
+        try:
+            with open(USUARIOS_COMPARTIDOS, "w", encoding="utf-8") as f:
+                json.dump(salida, f, ensure_ascii=False, indent=2)
+        except OSError as e:
+            messagebox.showerror("No se pudo publicar", str(e))
+            return
+        self.estado.set("%d usuario(s) publicados%s. Falta commitear el archivo."
+                        % (len(salida), " con contrasena" if con_claves else
+                           " sin contrasenas"))
 
     def abrir_datos(self):
         os.makedirs(BACKUPS, exist_ok=True)

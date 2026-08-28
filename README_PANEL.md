@@ -47,18 +47,38 @@ Por defecto se busca en `~/IdeaProjects/colsubsidioFramework`. Si lo tienes en
 otro lado, copia `panel.config.example.json` a `panel.config.json` y ajusta la
 ruta, o define la variable `COLSUBSIDIO_FRAMEWORK`.
 
+## Usuarios de prueba compartidos
+
+`usuarios_compartidos.json` viaja en el repo. La primera vez que abres la
+pestaña **Usuarios** después de clonar, ese catálogo siembra tu archivo local y
+a partir de ahí cada quien maneja el suyo.
+
+| botón | qué hace |
+|---|---|
+| Traer del repo | agrega los del catálogo que aún no tengas |
+| Publicar al repo | reescribe el catálogo con tu lista actual |
+
+**Las contraseñas no se publican por defecto.** El checkbox *Publicar también
+las contraseñas* las incluye, pero entonces quedan en el historial de git de
+forma permanente: borrar el archivo después no las quita. Con el checkbox
+apagado se comparte todo lo demás y cada quien completa las claves en su
+archivo local.
+
+Después de publicar hay que commitear `usuarios_compartidos.json` a mano.
+
 ## Dónde queda todo
 
 | ruta | contenido |
 |---|---|
 | `evidences/` | una carpeta por corrida del observador (no se versiona) |
 | `esquemas_servicios.json` | contrato observado de cada servicio; **sí se versiona** |
-| `~/.panel_qa/usuarios_prueba.json` | usuarios de prueba, con sus claves en claro |
+| `usuarios_compartidos.json` | catálogo de usuarios del equipo; **sí se versiona** |
+| `~/.panel_qa/usuarios_prueba.json` | tus usuarios, con sus claves en claro |
 | `~/.panel_qa/backups/` | copia previa a cada guardado |
 | `~/.panel_qa/logs/` | log completo de Maven y los Excel exportados |
 
-Los usuarios viven fuera del repo a propósito: dentro, un `git clean -fdx` se
-los llevaría por delante.
+Tu archivo de usuarios vive fuera del repo a propósito: dentro, un
+`git clean -fdx` se lo llevaría por delante.
 
 ## Notas de uso
 
@@ -66,6 +86,9 @@ los llevaría por delante.
 cierre por el mismo camino que `Ctrl+C`, para que alcance a escribir el reporte,
 el último pantallazo y la validación de esquemas. Si el navegador no responde,
 a los 20 segundos el observador genera el reporte igual y sale.
+
+**Detener sin reporte** corta la captura y deja la evidencia cruda; el reporte
+se arma después con **Generar reporte**.
 
 Si una corrida quedara sin `reporte.html`, en **Corridas** la seleccionas y le
 das **Revalidar**: se reconstruye desde los `.jsonl`, que se escriben mientras

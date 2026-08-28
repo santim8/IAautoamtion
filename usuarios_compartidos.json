@@ -1,0 +1,74 @@
+[
+  {
+    "tipo": "CC",
+    "usuario": "1032410060",
+    "clave": "",
+    "descripcion": "APROVADO",
+    "status": "Disponible",
+    "falla": ""
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52167144",
+    "clave": "",
+    "descripcion": "INDEPEDIENTE",
+    "status": "Disponible",
+    "falla": ""
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52961647",
+    "clave": "",
+    "descripcion": "PREAPROVADO",
+    "status": "Con falla",
+    "falla": "Rechaza motor"
+  },
+  {
+    "tipo": "CC",
+    "usuario": "74188681",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": ""
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1078366073",
+    "clave": "",
+    "descripcion": "",
+    "status": "En uso",
+    "falla": ""
+  },
+  {
+    "tipo": "CC",
+    "usuario": "74188681",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": ""
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52961647",
+    "clave": "",
+    "descripcion": "PENSIONADO",
+    "status": "Disponible",
+    "falla": ""
+  },
+  {
+    "tipo": "CC",
+    "usuario": "79978859",
+    "clave": "",
+    "descripcion": "PREAPROVADO",
+    "status": "Con falla",
+    "falla": "motor se demora en responde"
+  },
+  {
+    "tipo": "CC",
+    "usuario": "79386136",
+    "clave": "",
+    "descripcion": "REACTIVACION",
+    "status": "Con falla",
+    "falla": "Falla motor"
+  }
+]
