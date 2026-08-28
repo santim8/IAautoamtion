@@ -1,0 +1,6 @@
+# Instalar con:  pip install -r requirements.txt
+# Y ademas una vez:  playwright install chromium
+
+playwright>=1.40      # observador de flujos y scripts de Bizagi
+jsonschema>=4.0       # validacion de esquemas de los servicios
+openpyxl>=3.1         # exportar a Excel desde el panel

@@ -18,3 +18,9 @@ Thumbs.db
 
 # Evidencias locales (no se versionan)
 evidences/
+
+# Usuarios de prueba (claves en claro, no se versionan)
+usuarios_prueba.json
+
+# Ajustes por maquina del panel
+panel.config.json

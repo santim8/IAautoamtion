@@ -598,7 +598,7 @@
             "type": "boolean"
           },
           "montoCuota": {
-            "type": "integer"
+            "type": "string"
           },
           "montoCupo": {
             "type": "string"
@@ -784,7 +784,7 @@
                     "type": "null"
                   },
                   "salario": {
-                    "type": "null"
+                    "type": "integer"
                   }
                 },
                 "required": [
@@ -797,7 +797,19 @@
               "datosPersonales": {
                 "properties": {
                   "estadoCivil": {
-                    "type": "null"
+                    "properties": {
+                      "codigo": {
+                        "type": "string"
+                      },
+                      "descripcion": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "codigo",
+                      "descripcion"
+                    ],
+                    "type": "object"
                   }
                 },
                 "required": [

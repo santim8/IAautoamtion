@@ -1,12 +1,12 @@
 meta {
-  name: Get Offer[Bizagi]
+  name: Affiliation Validations[V2][VALIDACIONES]
   type: http
-  seq: 12
+  seq: 9
 }
 
-get {
-  url: https://platform-test-external.colsubsidio.com/loans/loan-offer/external/v1/product/2/request/offer/300670
-  body: none
+post {
+  url: https://platform-test-external.colsubsidio.com/loans/eligibility/external/v2/affiliation-validations
+  body: json
   auth: none
 }
 
@@ -14,17 +14,29 @@ headers {
   content-type: application/json
 }
 
+body:json {
+  {
+    "idCaso": "31213",
+    "documento": {
+      "tipo": "CO1C",
+      "numero": "79152092"
+    }
+  }
+}
+
 assert {
   res.status: eq 200
 }
 
 script:pre-request {
+  // 1. Obtener token Apigee
   const { data: apigee } = await axios.post(
     'https://colsubsidio-test.apigee.net/oauth/client_credential/accesstoken?grant_type=client_credentials',
     'grant_type=client_credentials&client_id=cmnGMnGPVKLJwWLfWxqFCSZOR5hIjhWb&client_secret=uKCYJXAVkLY5gsWt',
     { headers: { 'content-type': 'application/x-www-form-urlencoded' } }
   );
   
+  // 2. Obtener token CIAM usando el token de Apigee
   const { data: ciam } = await axios.post(
     'https://colsubsidio-test.apigee.net/api/v3/afiliacion/validador/token/ciam',
     {
@@ -50,12 +62,12 @@ script:pre-request {
     }
   );
   
+  console.log("CIAM response:", JSON.stringify(ciam));
   req.setHeader("authorization", ciam.access_token);
 }
 
 docs {
-  Obtiene la oferta de crédito para un idRequest dado.
-  Pre-request encadena: Apigee OAuth → CIAM token → Loan Offer.
-  Cambiar el idRequest (177618) en la URL según el caso de prueba.
+  Valida afiliación interna por idCaso y documento.
+  Solo requiere x-api-key, sin token de sesión.
   Expected: 200 OK
 }
