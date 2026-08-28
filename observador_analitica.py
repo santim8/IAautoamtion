@@ -26,8 +26,7 @@ from datetime import datetime
 
 from playwright.sync_api import sync_playwright
 
-from observador_flujo import (CSS_REPORTE, ahora_iso, lanzar_chrome, ruta_de,
-                              slug_de_url)
+from observador_flujo import CSS_REPORTE, ahora_iso, lanzar_chrome, ruta_de
 
 SALIDA_DEFAULT = "evidencias_analitica"
 

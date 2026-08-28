@@ -289,7 +289,6 @@ class Observador:
         self.shots_dif = []          # [(paso, pagina, cuando_ms)] shot de paso adelantado
         self.shots_resp = []         # [(pagina, nombre, bytes)] shots por responder
         self.disparados = set()      # (paso, patron) ya disparados, para no repetir
-        self.sockets = 0             # websockets vistos, para el resumen
         self.sin_reporte = False     # se paro pidiendo NO generar el reporte
         self.pend_req = {}           # request -> metadata, para casar con su response
         self.paso_por_pagina = {}    # pagina -> su paso actual (soporte multi-pestana)
@@ -417,7 +416,6 @@ class Observador:
             try:
                 page.screenshot(path=os.path.join(paso["dir"], "screenshot_2.png"),
                                 full_page=True)
-                paso["extra"] = True
                 print(f"[paso {paso['idx']:02d}] pantallazo extra guardado")
             except Exception as e:
                 print(f"  ! pantallazo extra del paso {paso['idx']} fallo: {e}")
@@ -635,7 +633,6 @@ class Observador:
         """
         if self.patron and not self.pagina_permitida(pagina):
             return
-        self.sockets += 1
         print("   [ws] abierto %s" % ws.url)
         ws.on("framesent",
               lambda datos: self.guardar_frame(pagina, ws, "enviado", datos))
