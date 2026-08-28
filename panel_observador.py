@@ -110,6 +110,9 @@ STOP_FILE_ANALITICA = os.path.join(AQUI, ".detener_analitica")
 # Lo que se escribe dentro del centinela para pedir parada sin reporte; el
 # observador lo lee y deja la evidencia cruda para reportarla despues.
 SIN_REPORTE = "sin-reporte"
+# Rutas de la aplicacion: el front se sirve desde dos despliegues y el
+# observador tiene que reconocer la pestana en cualquiera de los dos.
+RUTAS_APP = "creditos/solicitud,loans-dev-solicitud"
 PUERTO = 9222
 
 RE_MARCA = re.compile(r"_(\d{4})-(\d{2})-(\d{2})_(\d{2})(\d{2})(\d{2})$")
@@ -220,7 +223,7 @@ HERRAMIENTAS = [
             {"tipo": "texto", "arg": "--flujo", "etiqueta": "Flujo",
              "valor": "login-credito", "ancho": 26},
             {"tipo": "texto", "arg": "--solo-url", "etiqueta": "Solo URL que contenga",
-             "valor": "creditos/solicitud", "ancho": 30},
+             "valor": RUTAS_APP, "ancho": 42},
             {"tipo": "check", "arg": "--generar-esquemas",
              "etiqueta": "Tomar esta corrida como baseline de esquemas",
              "valor": False},
@@ -240,7 +243,7 @@ HERRAMIENTAS = [
             {"tipo": "texto", "arg": "--flujo", "etiqueta": "Flujo",
              "valor": "terminos", "ancho": 26},
             {"tipo": "texto", "arg": "--solo-url", "etiqueta": "Solo URL que contenga",
-             "valor": "creditos/solicitud", "ancho": 30},
+             "valor": RUTAS_APP, "ancho": 42},
         ],
     },
     {

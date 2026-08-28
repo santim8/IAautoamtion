@@ -47,7 +47,12 @@ HOSTS_DEFAULT = [
     "platform-test-external.colsubsidio.com",
     "platform-test-internal.colsubsidio.com",
     "dev.colsubsidio.com",
+    "d2b80yrnend1dj.cloudfront.net",
 ]
+
+# Rutas de la aplicacion, una por despliegue. Es lo que --solo-url usa por
+# defecto para reconocer la pestana del flujo.
+RUTAS_APP = ["creditos/solicitud", "loans-dev-solicitud"]
 
 # Endpoints de negocio que interesan (match por substring sobre la URL).
 # Espejo de TRACKED_ENDPOINTS del framework Java, para poder comparar 1:1.
@@ -277,7 +282,11 @@ class Observador:
         self.redactar = redactar
         self.settle_ms = settle_ms
         # --- alcance por pestana (independiente del filtro de hosts) ---
-        self.patron = patron_pestana  # None = todas las pestanas
+        # lista de rutas aceptadas; vacia = todas las pestanas
+        if isinstance(patron_pestana, str):
+            patron_pestana = [x.strip() for x in patron_pestana.split(",")
+                              if x.strip()]
+        self.patrones = list(patron_pestana or [])
         self.seguir_popups = seguir_popups
         self.lock = None             # la pestana elegida, una vez encontrada
         self.hijas = set()           # pestanas abiertas POR la elegida
@@ -313,9 +322,10 @@ class Observador:
     # -- filtro por origen (de que pestana viene)
     def intentar_lock(self, page, url):
         """Engancha el candado a la primera pestana cuya URL case con el patron."""
-        if self.lock is not None or not self.patron:
+        if self.lock is not None or not self.patrones:
             return False
-        if self.patron not in ruta_de(url):
+        ruta = ruta_de(url)
+        if not any(p in ruta for p in self.patrones):
             return False
         self.lock = page
         print("\n>> Pestana fijada: %s" % url)
@@ -323,7 +333,7 @@ class Observador:
         return True
 
     def pagina_permitida(self, page):
-        if not self.patron:
+        if not self.patrones:
             return True              # sin --solo-url: todas las pestanas
         if self.lock is None:
             return False             # aun no encontramos la pestana objetivo
@@ -478,7 +488,7 @@ class Observador:
 
     def descartar(self, request):
         """True si el request no pertenece a la pestana bajo observacion."""
-        if not self.patron:
+        if not self.patrones:
             return False
         pagina = self.pagina_de(request)
         if pagina is None:
@@ -509,7 +519,7 @@ class Observador:
 
     def on_response(self, response):
         pagina = self.pagina_de(response.request)
-        if self.patron and not self.pagina_permitida(pagina):
+        if self.patrones and not self.pagina_permitida(pagina):
             return
         # Antes del filtro de captura a proposito: hay disparadores que no son
         # endpoints rastreados (estado_civil), y en modo "endpoints" interesa()
@@ -631,7 +641,7 @@ class Observador:
         a un dominio distinto al del backend (API Gateway) y perderlos deja el
         reporte sin la mitad de la historia.
         """
-        if self.patron and not self.pagina_permitida(pagina):
+        if self.patrones and not self.pagina_permitida(pagina):
             return
         print("   [ws] abierto %s" % ws.url)
         ws.on("framesent",
@@ -1383,8 +1393,9 @@ def main():
     ap.add_argument("--todos-los-hosts", action="store_true",
                     help="captura todo, sin filtro de dominio")
     ap.add_argument("--solo-url", default=None, metavar="PATRON",
-                    help="observa SOLO la pestana cuya URL contenga PATRON; "
-                         "ignora las demas pestanas")
+                    help="observa SOLO la pestana cuya ruta contenga PATRON; "
+                         "varias separadas por coma (las de la app: %s)"
+                         % ", ".join(RUTAS_APP))
     ap.add_argument("--seguir-popups", action="store_true",
                     help="con --solo-url, sigue tambien las pestanas que abra la observada")
     ap.add_argument("--captura", choices=["endpoints", "hosts", "todo"], default="endpoints",
@@ -1453,8 +1464,12 @@ def main():
         print("       Para evitarlo, no empieces el patron con \"/\".\n")
         args.solo_url = limpio
 
+    # sin --solo-url no se filtra nada; con el, se aceptan varias rutas para
+    # que el mismo comando sirva en los dos despliegues del front
+    patrones_pestana = ([x.strip() for x in args.solo_url.split(",") if x.strip()]
+                        if args.solo_url else [])
     obs = Observador(dir_salida, hosts, not args.sin_redactar, args.settle_ms,
-                     patron_pestana=args.solo_url, seguir_popups=args.seguir_popups,
+                     patron_pestana=patrones_pestana, seguir_popups=args.seguir_popups,
                      endpoints=endpoints, solo_endpoints=(modo == "endpoints"),
                      pantallazo_extra=extras, extra_ms=args.extra_ms,
                      screenshot_on_response=args.screenshot_on_response)
@@ -1517,15 +1532,18 @@ def observar(args, obs):
                 except Exception:
                     continue
             if obs.lock is None:
-                print("Aun no veo ninguna pestana con \"%s\"." % args.solo_url)
+                print("Aun no veo ninguna pestana con %s."
+                      % " ni ".join('"%s"' % p for p in obs.patrones))
                 print("Navega a esa URL y la fijo automaticamente.")
         elif es_url_real(activa.url):
             obs.abrir_paso(activa, activa.url)
         else:
             print("Esperando la primera pantalla (la pestana esta en %s)..." % activa.url)
 
-        print("Alcance: %s" % ("SOLO la pestana con \"%s\"" % args.solo_url
-                               if args.solo_url else "todas las pestanas"))
+        print("Alcance: %s"
+              % ("SOLO la pestana con "
+                 + " o ".join('"%s"' % p for p in obs.patrones)
+                 if obs.patrones else "todas las pestanas"))
         if obs.solo_endpoints:
             print("Se guardan: solo los %d endpoints rastreados" % len(obs.endpoints))
         elif obs.hosts:

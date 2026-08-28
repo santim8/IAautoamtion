@@ -146,7 +146,10 @@ def nombre_evento(payload):
 class Analitica:
     def __init__(self, dir_salida, patron):
         self.dir = dir_salida
-        self.patron = patron
+        # varias rutas: el front vive en dos despliegues
+        if isinstance(patron, str):
+            patron = [x.strip() for x in patron.split(",") if x.strip()]
+        self.patrones = list(patron or [])
         self.lock = None
         self.eventos = []          # snapshots en orden de captura
         self.vistos = set()        # (timestamp, payload) ya emitidos
@@ -165,14 +168,14 @@ class Analitica:
     def buscar_pestana(self, paginas):
         """Fija la pestana del flujo. Compara contra la ruta, no contra el query
         ni el fragmento: las paginas de SSO llevan la URL de la app en el hash."""
-        if self.lock is not None or not self.patron:
+        if self.lock is not None or not self.patrones:
             return
         for pg in paginas:
             try:
                 url = pg.url
             except Exception:
                 continue
-            if self.patron in ruta_de(url):
+            if any(p in ruta_de(url) for p in self.patrones):
                 self.lock = pg
                 self.enganchar(pg)
                 print("\n>> Pestana fijada: %s\n" % url)
@@ -321,8 +324,9 @@ def main():
     ap = argparse.ArgumentParser(
         description="Anota los eventos de dataLayer mientras haces el flujo a mano.")
     ap.add_argument("--flujo", default="analitica", help="nombre (va en la carpeta)")
-    ap.add_argument("--solo-url", default="creditos/solicitud", metavar="PATRON",
-                    help="observa SOLO la pestana cuya ruta contenga PATRON")
+    ap.add_argument("--solo-url", default="creditos/solicitud,loans-dev-solicitud", metavar="PATRON",
+                    help="observa SOLO la pestana cuya ruta contenga PATRON; "
+                         "varias separadas por coma")
     ap.add_argument("--puerto", type=int, default=9222, help="puerto CDP de Chrome")
     ap.add_argument("--out", default=SALIDA_DEFAULT, help="carpeta raiz de salida")
     ap.add_argument("--stop-file", default=None, metavar="RUTA",
