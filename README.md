@@ -21,8 +21,8 @@ Necesitas Python 3.10 o superior con `tkinter` (viene en el instalador oficial
 de python.org).
 
 ```
-pip install -r requirements.txt
-playwright install chromium
+python -m pip install -r requirements.txt
+python -m playwright install chromium
 ```
 
 ## Configuración
