@@ -35,6 +35,10 @@ SALIDA_DEFAULT = "evidencias_analitica"
 # usuario que vuelve a hacer clic -- esta mucho mas separado en el tiempo.
 VENTANA_DUPLICADO = 2.0
 
+# Intentos fallidos seguidos antes de rendirse. Si la conexion con la pestana
+# se rompe, todos los siguientes fallan igual y no tiene sentido esperar.
+FALLOS_PARA_CORTAR = 5
+
 # Pantallas que no son del flujo que se esta revisando. Se comparan, exactas,
 # contra el `url` y el `title` del payload; se amplia con --ignorar. No se usa
 # el par event/eventName porque los modales del flujo (modal_reactivacion)
@@ -118,6 +122,12 @@ MONITOR_JS = r"""
 })();
 """
 
+ESTADO_JS = """() => ({
+  instalado: !!window.__dlMonitorInstalled,
+  enganchado: !!(window.dataLayer && window.dataLayer.push
+                 && window.dataLayer.push.__dlWrapped)
+})"""
+
 LEER_JS = """() => {
   try { if (window.__dlEvents && window.__dlEvents.length) return JSON.stringify(window.__dlEvents); } catch (e) {}
   try { var s = sessionStorage.getItem('__dlEvents'); return s ? s : '[]'; } catch (e) { return '[]'; }
@@ -184,6 +194,41 @@ class Analitica:
         self.ultimos = {}          # payload -> momento en que se emitio
         self.ruido = 0
         self.colapsados = 0        # mismo push registrado mas de una vez
+        self.quejas = set()        # fallos ya avisados, para no repetirlos
+        self.reinstalos = 0
+        self.fallos_seguidos = 0   # la pagina dejo de responder
+
+    def quejarse(self, que, error):
+        """Avisa una vez por tipo de fallo. Callar dejaba la captura en cero
+        sin ninguna pista de por que."""
+        clave = "%s|%s" % (que, type(error).__name__)
+        if clave in self.quejas:
+            return
+        self.quejas.add(clave)
+        print("! %s: %s" % (que, str(error).splitlines()[0]))
+
+    def asegurar(self, page):
+        """El monitor tiene que seguir puesto; si no, se repone.
+
+        add_init_script solo corre en documentos nuevos y hay navegaciones
+        donde no alcanza a aplicarse. Sin esta comprobacion la pagina se queda
+        sin hook y no se captura nada.
+        """
+        try:
+            estado = page.evaluate(ESTADO_JS)
+            self.fallos_seguidos = 0
+        except Exception as e:
+            self.fallos_seguidos += 1
+            self.quejarse("no pude consultar el estado del monitor", e)
+            return
+        if estado.get("instalado"):
+            return
+        try:
+            page.evaluate(MONITOR_JS)
+            self.reinstalos += 1
+            print("   [monitor] repuesto tras una navegacion")
+        except Exception as e:
+            self.quejarse("no pude reponer el monitor", e)
 
     def enganchar(self, page):
         # add_init_script se acumula: llamarlo dos veces deja dos copias del
@@ -220,7 +265,10 @@ class Analitica:
         """Lee lo acumulado y emite solo lo que no habiamos visto."""
         try:
             crudo = page.evaluate(LEER_JS)
-        except Exception:
+            self.fallos_seguidos = 0
+        except Exception as e:
+            self.fallos_seguidos += 1
+            self.quejarse("no pude leer los eventos de la pagina", e)
             return
         try:
             snapshots = json.loads(crudo or "[]")
@@ -334,6 +382,12 @@ def cerrar(obs, flujo, incremental=True):
     print("\n%d evento(s) de negocio, %d distintos, %d de ruido omitidos%s"
           % (len(obs.eventos), distintos, obs.ruido,
              ", %d duplicados colapsados" % obs.colapsados if obs.colapsados else ""))
+    if obs.reinstalos:
+        print("(el monitor se repuso %d vez/veces tras navegar)" % obs.reinstalos)
+    if not obs.eventos and not obs.ruido:
+        print("\nNo llego NINGUN push, ni siquiera ruido de GTM. Suele ser que la"
+              "\npestana observada no es la del flujo, o que se cerro y el "
+              "candado\nquedo apuntando a una pagina muerta.")
     if obs.eventos:
         print("\n--- eventos capturados ---")
         for snap in obs.eventos:
@@ -453,7 +507,15 @@ def main():
                 if pagina is None:
                     print("\nNo quedan pestanas abiertas.")
                     break
+                if obs.fallos_seguidos >= FALLOS_PARA_CORTAR:
+                    # girar sin leer nada durante minutos no ayuda a nadie:
+                    # mejor cortar y entregar lo que haya, diciendo por que
+                    print("\nLa pagina observada dejo de responder (%d intentos"
+                          " seguidos).\nCierro y genero el reporte con lo que"
+                          " haya." % obs.fallos_seguidos)
+                    break
                 try:
+                    obs.asegurar(pagina)
                     obs.recoger(pagina)
                     pagina.wait_for_timeout(700)
                 except Exception:
