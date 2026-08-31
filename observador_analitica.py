@@ -29,6 +29,11 @@ from playwright.sync_api import sync_playwright
 from observador_flujo import CSS_REPORTE, ahora_iso, lanzar_chrome, ruta_de
 
 SALIDA_DEFAULT = "evidencias_analitica"
+# Un mismo push puede quedar registrado varias veces (GTM reencola la cola al
+# inicializar, y el hook llega a apilarse). Los duplicados llegan con el payload
+# identico y milisegundos de diferencia; un evento repetido de verdad -- el
+# usuario que vuelve a hacer clic -- esta mucho mas separado en el tiempo.
+VENTANA_DUPLICADO = 2.0
 
 # Espejo de utils/DataLayerMonitor.java. Se mantiene igual a proposito: si el
 # framework cambia el hook, este tiene que cambiar con el o dejarian de ver lo
@@ -124,14 +129,23 @@ def es_ruido(payload):
     evento = str(payload.get("event", "")).lower()
     if evento.startswith("gtm.") or evento == "corewebvitals":
         return True
-    # Ping de routing: eventName=virtual_page que NO viaja como event=virtual_page.
-    # El virtual_page de verdad (onboarding 1A) si lleva event=virtual_page.
-    if str(payload.get("eventName", "")).lower() == "virtual_page" and evento != "virtual_page":
-        return True
+    # A diferencia del framework Java, aqui NO se descarta el
+    # eventName=virtual_page que viaja como event=interactivo: los modales
+    # (modal_reactivacion, etc.) se anuncian asi y son eventos de negocio que
+    # hay que ver. Alla se filtra como artefacto de routing; este observador
+    # existe para mostrar todo lo que pasa.
     anidado = payload.get("value")
     if isinstance(anidado, dict) and str(anidado.get("event", "")).lower() == "corewebvitals":
         return True
     return False
+
+
+def momento(iso):
+    """Segundos del timestamp ISO del snapshot; None si no se puede leer."""
+    try:
+        return datetime.strptime(iso[:23], "%Y-%m-%dT%H:%M:%S.%f").timestamp()
+    except (ValueError, TypeError):
+        return None
 
 
 def nombre_evento(payload):
@@ -151,11 +165,19 @@ class Analitica:
             patron = [x.strip() for x in patron.split(",") if x.strip()]
         self.patrones = list(patron or [])
         self.lock = None
+        self.enganchadas = set()   # add_init_script se acumula: una vez por pagina
         self.eventos = []          # snapshots en orden de captura
         self.vistos = set()        # (timestamp, payload) ya emitidos
+        self.ultimos = {}          # payload -> momento en que se emitio
         self.ruido = 0
+        self.colapsados = 0        # mismo push registrado mas de una vez
 
     def enganchar(self, page):
+        # add_init_script se acumula: llamarlo dos veces deja dos copias del
+        # monitor corriendo en cada documento nuevo.
+        if page in self.enganchadas:
+            return
+        self.enganchadas.add(page)
         try:
             page.add_init_script(MONITOR_JS)   # documentos futuros
         except Exception:
@@ -201,6 +223,15 @@ class Analitica:
             if es_ruido(payload):
                 self.ruido += 1
                 continue
+            firma = clave[1]
+            cuando = momento(snap.get("timestamp", ""))
+            previo = self.ultimos.get(firma)
+            if (previo is not None and cuando is not None
+                    and abs(cuando - previo) <= VENTANA_DUPLICADO):
+                self.colapsados += 1
+                continue           # el mismo push, registrado otra vez
+            if cuando is not None:
+                self.ultimos[firma] = cuando
             snap["_n"] = len(self.eventos) + 1
             self.eventos.append(snap)
             # append inmediato: si el proceso muere, los eventos ya estan en
@@ -266,8 +297,10 @@ def escribir_reporte(obs, flujo, ruta):
         '<header><h1>Eventos de analitica &mdash; ' + esc(flujo) + '</h1>'
         '<p class="resumen"><b>' + esc(len(obs.eventos)) + '</b> eventos de negocio '
         '&middot; <b>' + esc(distintos) + '</b> distintos &middot; '
-        + esc(obs.ruido) + ' de ruido tecnico omitidos (GTM / web-vitals) '
-        '&middot; generado ' + esc(ahora_iso()) + '</p></header>'
+        + esc(obs.ruido) + ' de ruido tecnico omitidos (GTM / web-vitals)'
+        + (' &middot; ' + esc(obs.colapsados) + ' duplicados colapsados'
+           if obs.colapsados else '')
+        + ' &middot; generado ' + esc(ahora_iso()) + '</p></header>'
         + ("".join(filas) or '<p class="vacio">No se capturo ningun evento de negocio.</p>')
         + '</body></html>'
     )
@@ -285,8 +318,9 @@ def cerrar(obs, flujo, incremental=True):
 
     distintos = len({json.dumps(s.get("payload"), sort_keys=True, ensure_ascii=False)
                      for s in obs.eventos})
-    print("\n%d evento(s) de negocio, %d distintos, %d de ruido omitidos"
-          % (len(obs.eventos), distintos, obs.ruido))
+    print("\n%d evento(s) de negocio, %d distintos, %d de ruido omitidos%s"
+          % (len(obs.eventos), distintos, obs.ruido,
+             ", %d duplicados colapsados" % obs.colapsados if obs.colapsados else ""))
     if obs.eventos:
         print("\n--- eventos capturados ---")
         for snap in obs.eventos:
