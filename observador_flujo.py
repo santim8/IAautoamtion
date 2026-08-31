@@ -242,6 +242,76 @@ def lanzar_chrome(puerto):
     return 0
 
 
+def origenes_app(hosts, paginas):
+    """Origenes cuyo almacenamiento hay que vaciar.
+
+    Los hosts del backend mas el de la pestana que este abierta: la sesion no
+    vive solo en la app, tambien en el proveedor de SSO que la autentica.
+    """
+    origenes = {"https://%s" % h for h in hosts if "." in h}
+    for pg in paginas:
+        try:
+            partes = (pg.url or "").split("/")
+            if len(partes) > 2 and partes[0].startswith("http"):
+                origenes.add("%s//%s" % (partes[0], partes[2]))
+        except Exception:
+            continue
+    return sorted(origenes)
+
+
+def limpiar_navegador(browser, paginas, hosts):
+    """Deja el navegador como recien abierto: sin cookies, cache ni storage.
+
+    Es el equivalente a abrir una ventana de incognito, pero sobre el Chrome que
+    ya esta conectado: crear un contexto de incognito por CDP no es algo que
+    Playwright permita sobre un navegador al que solo se engancho.
+    """
+    if not paginas:
+        return
+    pagina = paginas[0]
+    borrados = []
+    try:
+        sesion = pagina.context.new_cdp_session(pagina)
+    except Exception as e:
+        print("! No pude abrir sesion CDP para limpiar: %s" % e)
+        return
+    for comando in ("Network.clearBrowserCookies", "Network.clearBrowserCache"):
+        try:
+            sesion.send(comando)
+            borrados.append(comando.split(".")[1])
+        except Exception as e:
+            print("! %s fallo: %s" % (comando, e))
+    n = 0
+    for origen in origenes_app(hosts, paginas):
+        try:
+            sesion.send("Storage.clearDataForOrigin",
+                        {"origin": origen, "storageTypes": "all"})
+            n += 1
+        except Exception:
+            continue          # origen que Chrome no reconoce: no es un problema
+    # sessionStorage es por pestana, no por origen: Storage.clearDataForOrigin
+    # no lo toca y sobrevivia a la limpieza. Hay que vaciarlo desde la pagina.
+    vaciadas = 0
+    for pg in paginas:
+        try:
+            if not es_url_real(pg.url):
+                continue
+            pg.evaluate("() => { try { sessionStorage.clear(); } catch (e) {}"
+                        " try { localStorage.clear(); } catch (e) {} }")
+            vaciadas += 1
+        except Exception:
+            continue
+    print("Limpieza: %s, storage de %d origen(es), %d pestana(s) vaciadas."
+          % (", ".join(borrados) or "nada", n, vaciadas))
+    # sin recargar, la pagina sigue con la sesion viva en memoria
+    for pg in paginas:
+        try:
+            if es_url_real(pg.url):
+                pg.reload(wait_until="domcontentloaded", timeout=15000)
+        except Exception:
+            continue
+
+
 # --- observador ------------------------------------------------------------
 JS_HOOK_RUTA = """
 (() => {
@@ -1425,6 +1495,9 @@ def main():
                     help="NO redacta tokens ni cookies (cuidado con la evidencia)")
     ap.add_argument("--settle-ms", type=int, default=1200,
                     help="espera tras un cambio de pantalla antes del screenshot")
+    ap.add_argument("--limpiar", action="store_true",
+                    help="arranca sin sesion previa: borra cookies, cache y "
+                         "almacenamiento antes de capturar (como incognito)")
     ap.add_argument("--stop-file", default=None, metavar="RUTA",
                     help="corta limpiamente cuando aparezca ese archivo; equivale a "
                          "Ctrl+C, asi que el reporte se genera igual (lo usa el panel)")
@@ -1519,6 +1592,8 @@ def observar(args, obs):
             paginas = [browser.contexts[0].new_page()]
             obs.enganchar(paginas[0])
         print("Pestanas enganchadas al inicio: %d" % len(paginas))
+        if args.limpiar:
+            limpiar_navegador(browser, paginas, obs.hosts or HOSTS_DEFAULT)
 
         activa = paginas[0]
         if args.solo_url:
