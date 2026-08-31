@@ -35,6 +35,12 @@ SALIDA_DEFAULT = "evidencias_analitica"
 # usuario que vuelve a hacer clic -- esta mucho mas separado en el tiempo.
 VENTANA_DUPLICADO = 2.0
 
+# Pantallas que no son del flujo que se esta revisando. Se comparan, exactas,
+# contra el `url` y el `title` del payload; se amplia con --ignorar. No se usa
+# el par event/eventName porque los modales del flujo (modal_reactivacion)
+# llegan con la misma forma y esos si interesan.
+IGNORADOS_DEFAULT = ["/login-progresive-perfil"]
+
 # Espejo de utils/DataLayerMonitor.java. Se mantiene igual a proposito: si el
 # framework cambia el hook, este tiene que cambiar con el o dejarian de ver lo
 # mismo.
@@ -119,9 +125,14 @@ LEER_JS = """() => {
 
 
 # --- filtro de ruido (espejo de AnalyticsMappingReport.isNoise) -------------
-def es_ruido(payload):
+def es_ruido(payload, ignorados=None):
     if not isinstance(payload, dict) or not payload:
         return True
+    for patron in (ignorados if ignorados is not None else IGNORADOS_DEFAULT):
+        objetivo = patron.strip().lower()
+        if objetivo and any(str(payload.get(c, "")).strip().lower() == objetivo
+                            for c in ("url", "title")):
+            return True
     if "__unserializable" in payload or "webVitalsMeasurement" in payload:
         return True
     if any(isinstance(k, str) and k.startswith("gtm.") for k in payload):
@@ -158,8 +169,10 @@ def nombre_evento(payload):
 
 # --- captura ---------------------------------------------------------------
 class Analitica:
-    def __init__(self, dir_salida, patron):
+    def __init__(self, dir_salida, patron, ignorados=None):
         self.dir = dir_salida
+        self.ignorados = (list(ignorados) if ignorados is not None
+                          else list(IGNORADOS_DEFAULT))
         # varias rutas: el front vive en dos despliegues
         if isinstance(patron, str):
             patron = [x.strip() for x in patron.split(",") if x.strip()]
@@ -220,7 +233,7 @@ class Analitica:
             if clave in self.vistos:
                 continue
             self.vistos.add(clave)
-            if es_ruido(payload):
+            if es_ruido(payload, self.ignorados):
                 self.ruido += 1
                 continue
             firma = clave[1]
@@ -365,6 +378,10 @@ def main():
     ap.add_argument("--out", default=SALIDA_DEFAULT, help="carpeta raiz de salida")
     ap.add_argument("--stop-file", default=None, metavar="RUTA",
                     help="corta limpiamente cuando aparezca ese archivo (lo usa el panel)")
+    ap.add_argument("--ignorar", default=",".join(IGNORADOS_DEFAULT),
+                    metavar="LISTA",
+                    help="pantallas a no mapear, por url o title exactos, "
+                         "separadas por coma (default: %(default)s)")
     ap.add_argument("--rehacer-reporte", default=None, metavar="DIR",
                     help="regenera el reporte desde eventos.jsonl de una corrida")
     ap.add_argument("--lanzar-chrome", action="store_true",
@@ -380,7 +397,9 @@ def main():
     dir_salida = os.path.join(args.out, "%s_%s" % (
         re.sub(r"[^A-Za-z0-9._-]+", "-", args.flujo), marca))
     os.makedirs(dir_salida, exist_ok=True)
-    obs = Analitica(dir_salida, args.solo_url)
+    obs = Analitica(dir_salida, args.solo_url,
+                    ignorados=[x.strip() for x in args.ignorar.split(",")
+                               if x.strip()])
 
     with sync_playwright() as p:
         try:
@@ -402,6 +421,8 @@ def main():
         obs.buscar_pestana(context.pages)
 
         print("Monitor de dataLayer instalado.")
+    if obs.ignorados:
+        print("No se mapean: %s" % ", ".join(obs.ignorados))
         print("Alcance: la pestana cuya ruta contenga \"%s\"" % args.solo_url)
         if obs.lock is None:
             print("Aun no veo esa pestana; navega a ella y la fijo automaticamente.")
