@@ -39,6 +39,11 @@ VENTANA_DUPLICADO = 2.0
 # se rompe, todos los siguientes fallan igual y no tiene sentido esperar.
 FALLOS_PARA_CORTAR = 5
 
+# Playwright espera 30 s por operacion. Con dos consultas por vuelta, una
+# pestana que no responde dejaba el loop sordo al centinela durante un minuto
+# largo: el usuario le daba a Detener y no pasaba nada.
+TIMEOUT_MS = 5000
+
 # Pantallas que no son del flujo que se esta revisando. Se comparan, exactas,
 # contra el `url` y el `title` del payload; se amplia con --ignorar. No se usa
 # el par event/eventName porque los modales del flujo (modal_reactivacion)
@@ -161,6 +166,24 @@ def es_ruido(payload, ignorados=None):
     return False
 
 
+def todas_las_paginas(browser):
+    """Las pestanas de todos los contextos.
+
+    Una pestana nueva no siempre aparece en el contexto que habia al conectar;
+    mirando solo ese, la del flujo podia abrirse y no verse nunca.
+    """
+    paginas = []
+    try:
+        for ctx in browser.contexts:
+            try:
+                paginas.extend(ctx.pages)
+            except Exception:
+                continue
+    except Exception:
+        pass
+    return paginas
+
+
 def momento(iso):
     """Segundos del timestamp ISO del snapshot; None si no se puede leer."""
     try:
@@ -189,6 +212,7 @@ class Analitica:
         self.patrones = list(patron or [])
         self.lock = None
         self.enganchadas = set()   # add_init_script se acumula: una vez por pagina
+        self.por_enganchar = []    # pestanas nuevas, a enganchar desde el loop
         self.eventos = []          # snapshots en orden de captura
         self.vistos = set()        # (timestamp, payload) ya emitidos
         self.ultimos = {}          # payload -> momento en que se emitio
@@ -230,20 +254,40 @@ class Analitica:
         except Exception as e:
             self.quejarse("no pude reponer el monitor", e)
 
+    def anotar_pagina(self, page):
+        """Handler ligero: solo apunta la pestana nueva.
+
+        Hacer llamadas de Playwright dentro de un handler rompe el loop de la
+        API sincrona: a partir de ahi todo falla con "Event loop is closed" y
+        la captura se queda en cero. El trabajo real lo hace el loop.
+        """
+        self.por_enganchar.append(page)
+
+    def enganchar_pendientes(self):
+        pendientes, self.por_enganchar = self.por_enganchar, []
+        for page in pendientes:
+            self.enganchar(page)
+
     def enganchar(self, page):
+        """Instala el monitor. Devuelve si la pestana respondio.
+
+        Callar aqui era grave: una pestana muerta -- de una corrida anterior que
+        quedo abierta -- se enganchaba "bien", se fijaba el candado en ella y
+        toda la captura se iba al vacio.
+        """
         # add_init_script se acumula: llamarlo dos veces deja dos copias del
         # monitor corriendo en cada documento nuevo.
         if page in self.enganchadas:
-            return
-        self.enganchadas.add(page)
+            return True
         try:
+            page.set_default_timeout(TIMEOUT_MS)
             page.add_init_script(MONITOR_JS)   # documentos futuros
-        except Exception:
-            pass
-        try:
             page.evaluate(MONITOR_JS)          # el documento actual
-        except Exception:
-            pass
+        except Exception as e:
+            self.quejarse("no pude instalar el monitor en una pestana", e)
+            return False
+        self.enganchadas.add(page)
+        return True
 
     def buscar_pestana(self, paginas):
         """Fija la pestana del flujo. Compara contra la ruta, no contra el query
@@ -255,11 +299,14 @@ class Analitica:
                 url = pg.url
             except Exception:
                 continue
-            if any(p in ruta_de(url) for p in self.patrones):
-                self.lock = pg
-                self.enganchar(pg)
-                print("\n>> Pestana fijada: %s\n" % url)
-                return
+            if not any(p in ruta_de(url) for p in self.patrones):
+                continue
+            if not self.enganchar(pg):
+                print(">> %s no responde; la salto y sigo buscando." % url[:70])
+                continue
+            self.lock = pg
+            print("\n>> Pestana fijada: %s\n" % url)
+            return
 
     def recoger(self, page):
         """Lee lo acumulado y emite solo lo que no habiamos visto."""
@@ -465,18 +512,18 @@ def main():
         if not browser.contexts:
             print("Chrome esta conectado pero no tiene contexto abierto.")
             return 1
-        context = browser.contexts[0]
-
-        # Engancha lo que ya este abierto y lo que se abra despues: el monitor
-        # tiene que estar puesto ANTES de que la pagina empiece a empujar.
-        for pg in context.pages:
-            obs.enganchar(pg)
-        context.on("page", lambda pg: obs.enganchar(pg))
-        obs.buscar_pestana(context.pages)
+        # Solo se engancha la pestana del flujo, no todas las abiertas: hablarle
+        # a una pestana vieja o colgada bloqueaba el arranque entero, y a las
+        # ajenas no hay nada que mirarles. Las que se abran despues nacen
+        # limpias, asi que esas si se enganchan de una para no perder sus
+        # primeros push.
+        for ctx in browser.contexts:
+            ctx.on("page", obs.anotar_pagina)
+        obs.buscar_pestana(todas_las_paginas(browser))
 
         print("Monitor de dataLayer instalado.")
-    if obs.ignorados:
-        print("No se mapean: %s" % ", ".join(obs.ignorados))
+        if obs.ignorados:
+            print("No se mapean: %s" % ", ".join(obs.ignorados))
         print("Alcance: la pestana cuya ruta contenga \"%s\"" % args.solo_url)
         if obs.lock is None:
             print("Aun no veo esa pestana; navega a ella y la fijo automaticamente.")
@@ -501,12 +548,26 @@ def main():
                     except OSError:
                         pass
                     break
+                obs.enganchar_pendientes()
                 if obs.lock is None:
-                    obs.buscar_pestana(context.pages)
-                pagina = obs.lock or (context.pages[0] if context.pages else None)
-                if pagina is None:
-                    print("\nNo quedan pestanas abiertas.")
-                    break
+                    # Sin candado no se interroga nada. Antes se caia sobre
+                    # context.pages[0], que en un Chrome recien abierto es la
+                    # pestana en blanco: fallaba, sumaba fallos y la corrida se
+                    # cortaba sola antes de que hubiera flujo que mirar.
+                    obs.buscar_pestana(todas_las_paginas(browser))
+                    if obs.lock is None:
+                        if not todas_las_paginas(browser):
+                            print("\nNo quedan pestanas abiertas.")
+                            break
+                        time.sleep(0.7)
+                        continue
+                    obs.fallos_seguidos = 0
+                pagina = obs.lock
+                if obs.lock is not None and obs.lock not in todas_las_paginas(browser):
+                    print("\nSe cerro la pestana observada; busco otra.")
+                    obs.lock = None
+                    obs.fallos_seguidos = 0
+                    continue
                 if obs.fallos_seguidos >= FALLOS_PARA_CORTAR:
                     # girar sin leer nada durante minutos no ayuda a nadie:
                     # mejor cortar y entregar lo que haya, diciendo por que
@@ -519,7 +580,7 @@ def main():
                     obs.recoger(pagina)
                     pagina.wait_for_timeout(700)
                 except Exception:
-                    if obs.lock is not None and obs.lock not in context.pages:
+                    if obs.lock is not None and obs.lock not in todas_las_paginas(browser):
                         print("\nSe cerro la pestana observada.")
                         break
                     time.sleep(0.7)
