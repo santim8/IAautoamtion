@@ -50,6 +50,11 @@ TIMEOUT_MS = 5000
 # llegan con la misma forma y esos si interesan.
 IGNORADOS_DEFAULT = ["/login-progresive-perfil"]
 
+# Valores de `event` que no son interaccion de negocio. pageView es el rastreo
+# de pagina heredado: repite lo que ya dice virtual_page y llena el reporte de
+# entradas duplicadas.
+EVENTOS_TECNICOS = {"corewebvitals", "pageview"}
+
 # Espejo de utils/DataLayerMonitor.java. Se mantiene igual a proposito: si el
 # framework cambia el hook, este tiene que cambiar con el o dejarian de ver lo
 # mismo.
@@ -153,7 +158,7 @@ def es_ruido(payload, ignorados=None):
     if any(isinstance(k, str) and k.startswith("gtm.") for k in payload):
         return True
     evento = str(payload.get("event", "")).lower()
-    if evento.startswith("gtm.") or evento == "corewebvitals":
+    if evento.startswith("gtm.") or evento in EVENTOS_TECNICOS:
         return True
     # A diferencia del framework Java, aqui NO se descarta el
     # eventName=virtual_page que viaja como event=interactivo: los modales
