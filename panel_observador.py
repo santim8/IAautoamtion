@@ -130,6 +130,42 @@ def chrome_arriba(puerto=PUERTO, timeout=1.0):
         return False
 
 
+PERFIL_QA = "chrome-qa-debug"
+
+
+def matar_chrome_qa(emitir):
+    """Cierra solo el Chrome del perfil de QA, no el personal del usuario.
+
+    Se filtra por la linea de comandos, que es lo unico que distingue una
+    instancia de otra: taskkill por nombre se llevaria los dos por delante.
+    """
+    ps = ("Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
+          "Where-Object { $_.CommandLine -like '*%s*' } | "
+          "ForEach-Object { Stop-Process -Id $_.ProcessId -Force }" % PERFIL_QA)
+    try:
+        subprocess.run(["powershell", "-NoProfile", "-Command", ps],
+                       capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError) as e:
+        emitir("! no pude cerrar Chrome: %s" % e, "mal")
+        return False
+    for _ in range(20):                  # hasta 10 s a que suelte el puerto
+        if not chrome_arriba(timeout=0.5):
+            return True
+        time.sleep(0.5)
+    emitir("! Chrome sigue respondiendo en el puerto; ciérralo a mano.", "mal")
+    return False
+
+
+def reiniciar_chrome(emitir):
+    """Un Chrome con muchas pestanas muertas deja de navegar aunque el puerto
+    CDP siga contestando. Reiniciarlo es lo unico que lo arregla."""
+    emitir("> Cerrando el Chrome de QA...", "panel")
+    if not matar_chrome_qa(emitir):
+        return False
+    emitir("> Cerrado. Abriendo uno limpio...", "panel")
+    return preparar_chrome(emitir)
+
+
 def preparar_chrome(emitir):
     """El observador se engancha a un Chrome ya abierto; si no hay, lo abre."""
     if chrome_arriba():
@@ -416,6 +452,9 @@ class Herramienta(ttk.Frame):
         else:
             self.b_solo_parar = None
         ttk.Button(botones, text="Limpiar log", command=self.limpiar).pack(side="left")
+        if self.spec.get("previo") is preparar_chrome:
+            ttk.Button(botones, text="Reiniciar Chrome",
+                       command=self.reiniciar_chrome).pack(side="right")
 
         self.estado = tk.StringVar(value="Listo.")
         self.lbl_estado = ttk.Label(self, textvariable=self.estado, padding=(14, 2))
@@ -471,6 +510,23 @@ class Herramienta(ttk.Frame):
         self.log.configure(state="normal")
         self.log.delete("1.0", "end")
         self.log.configure(state="disabled")
+
+    def reiniciar_chrome(self):
+        if self.ocupada():
+            messagebox.showinfo("Captura en curso",
+                                "Detén la captura antes de reiniciar Chrome.")
+            return
+        if not messagebox.askyesno(
+                "Reiniciar Chrome",
+                "Se cierra el Chrome de QA y se abre uno limpio.\n\n"
+                "Se pierden las pestañas abiertas y la sesión.\n\n"
+                "Seguir?"):
+            return
+        self.estado.set("Reiniciando Chrome...")
+        threading.Thread(
+            target=lambda: (reiniciar_chrome(self.emitir),
+                            self.after(0, lambda: self.estado.set("Chrome listo."))),
+            daemon=True).start()
 
     # -- ejecucion
     def ocupada(self):
