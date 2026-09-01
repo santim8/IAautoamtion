@@ -29,6 +29,10 @@ from playwright.sync_api import sync_playwright
 from observador_flujo import CSS_REPORTE, ahora_iso, lanzar_chrome, ruta_de
 
 SALIDA_DEFAULT = "evidencias_analitica"
+# Los modelo_de_datos[*].json contra los que se contrasta lo capturado. Son
+# editables: agregar o cambiar una entrada alcanza para que un evento nuevo se
+# valide, sin tocar codigo.
+SPECS_DEFAULT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "analitica")
 # Un mismo push puede quedar registrado varias veces (GTM reencola la cola al
 # inicializar, y el hook llega a apilarse). Los duplicados llegan con el payload
 # identico y milisegundos de diferencia; un evento repetido de verdad -- el
@@ -226,6 +230,8 @@ class Analitica:
         self.quejas = set()        # fallos ya avisados, para no repetirlos
         self.reinstalos = 0
         self.fallos_seguidos = 0   # la pagina dejo de responder
+        self.dir_specs = SPECS_DEFAULT
+        self.validacion = None
 
     def quejarse(self, que, error):
         """Avisa una vez por tipo de fallo. Callar dejaba la captura en cero
@@ -375,12 +381,58 @@ CSS_EXTRA = """
   .marca { background:var(--mut); color:#fff; font-size:9px; font-weight:700;
            padding:1px 5px; border-radius:3px; }
   .resumen b { color:var(--fg); }
+  .val { margin:0 0 20px; }
+  .val h3 { font-size:14px; margin:0 0 8px; }
+  .val h3 small { color:var(--mut); font-weight:400; margin-left:6px; }
+  .val table { border-collapse:collapse; width:100%; font-size:12px; }
+  .val td { padding:4px 8px; border-bottom:1px solid var(--bd); vertical-align:top; }
+  .val .st { width:56px; font-weight:700; white-space:nowrap; }
+  .val tr.ok .st { color:var(--ok); }
+  .val tr.falla .st { color:var(--err); }
+  .val tr.sinspec .st { color:var(--mut); }
+  .val .sp { color:var(--mut); font-family:ui-monospace,Consolas,monospace; }
+  .val ul { margin:4px 0 0; padding-left:18px; color:var(--err); }
+  .val li { font-family:ui-monospace,Consolas,monospace; font-size:11px; }
+  .ev.nook { border-left-color:var(--err); }
+  .chip { font-size:9px; font-weight:700; padding:1px 5px; border-radius:3px;
+          letter-spacing:.4px; }
+  .chip.mal { background:var(--err); color:#fff; }
+  .chip.nospec { background:var(--mut); color:#fff; }
 """
+
+
+def _bloque_validacion(val, esc):
+    """Que dice el modelo_de_datos de cada evento capturado."""
+    if not val or not val["resultados"]:
+        return ""
+    filas = []
+    cuenta = {"ok": 0, "falla": 0, "sin-spec": 0}
+    for r in val["resultados"]:
+        cuenta[r["estado"]] += 1
+        cls = {"ok": "ok", "falla": "falla", "sin-spec": "sinspec"}[r["estado"]]
+        etiqueta = {"ok": "ok", "falla": "FALLA", "sin-spec": "sin spec"}[r["estado"]]
+        lista = ("<ul>" + "".join("<li>" + esc(e) + "</li>" for e in r["errores"])
+                 + "</ul>") if r["errores"] else ""
+        filas.append(
+            '<tr class="' + cls + '">'
+            '<td class="st">' + esc(etiqueta) + '</td>'
+            '<td>#' + esc(r["n"]) + ' ' + esc(r["evento"]) + lista + '</td>'
+            '<td class="sp">' + esc(r["spec"]) + '</td></tr>')
+    return ('<section class="val"><h3>Validacion contra modelo_de_datos '
+            '<small>' + esc(cuenta["ok"]) + ' ok &middot; '
+            + esc(cuenta["falla"]) + ' con fallas &middot; '
+            + esc(cuenta["sin-spec"]) + ' sin spec &middot; '
+            + esc(val["specs"]) + '</small></h3>'
+            '<table>' + "".join(filas) + '</table></section>')
 
 
 def escribir_reporte(obs, flujo, ruta):
     def esc(x):
         return _h.escape(str(x) if x is not None else "")
+
+    # por numero de evento, para marcar cada fila con su veredicto
+    veredictos = {r["n"]: r for r in
+                  ((obs.validacion or {}).get("resultados") or [])}
 
     filas = []
     firmas = {}
@@ -389,10 +441,19 @@ def escribir_reporte(obs, flujo, ruta):
         firma = json.dumps(payload, sort_keys=True, ensure_ascii=False)
         repetido = firma in firmas
         firmas.setdefault(firma, snap["_n"])
+        v = veredictos.get(snap["_n"])
+        estado = v["estado"] if v else None
+        chip = ""
+        if estado == "falla":
+            chip = '<span class="chip mal">no cumple spec</span>'
+        elif estado == "sin-spec":
+            chip = '<span class="chip nospec">sin spec</span>'
         filas.append(
-            '<details class="ev' + (' repe' if repetido else '') + '"><summary>'
+            '<details class="ev' + (' repe' if repetido else '')
+            + (' nook' if estado == "falla" else '') + '"><summary>'
             '<span class="num">#' + esc(snap["_n"]) + '</span>'
             '<span class="nom">' + esc(nombre_evento(payload)) + '</span>'
+            + chip
             + ('<span class="marca">repite #' + esc(firmas[firma]) + '</span>'
                if repetido else '')
             + '<span class="ruta">' + esc(ruta_de(snap.get("url", ""))) + '</span>'
@@ -414,11 +475,54 @@ def escribir_reporte(obs, flujo, ruta):
         + (' &middot; ' + esc(obs.colapsados) + ' duplicados colapsados'
            if obs.colapsados else '')
         + ' &middot; generado ' + esc(ahora_iso()) + '</p></header>'
+        + _bloque_validacion(obs.validacion, esc)
         + ("".join(filas) or '<p class="vacio">No se capturo ningun evento de negocio.</p>')
         + '</body></html>'
     )
     with open(ruta, "w", encoding="utf-8") as f:
         f.write(doc)
+
+
+def validar_contra_specs(eventos, dir_specs):
+    """Contrasta cada evento con su entrada de modelo_de_datos.
+
+    Se apoya en analitica/validar_eventos.py para no tener dos criterios de
+    validacion viviendo en paralelo. Si ese modulo no esta, no pasa nada: el
+    reporte sale igual, solo que sin la seccion de validacion.
+    """
+    if not dir_specs or not os.path.isdir(dir_specs):
+        return None
+    sys.path.insert(0, dir_specs)
+    try:
+        import validar_eventos as ve
+    except ImportError as e:
+        print("! no pude cargar el validador: %s" % e)
+        return None
+    try:
+        specs = ve.cargar_specs(dir_specs)
+    except (OSError, ValueError) as e:
+        print("! no pude leer los specs: %s" % e)
+        return None
+    if not specs:
+        return None
+
+    filas = []
+    for snap in eventos:
+        payload = snap.get("payload") or {}
+        if payload.get("event") != "interactivo" or not payload.get("eventName"):
+            continue           # el validador solo cubre los de interaccion
+        nombre, entrada = ve.enrutar(payload, specs)
+        if not entrada:
+            filas.append({"n": snap["_n"], "evento": nombre_evento(payload),
+                          "estado": "sin-spec", "spec": "", "errores": [],
+                          "avisos": []})
+            continue
+        errores, avisos = ve.validar(payload, entrada)
+        filas.append({"n": snap["_n"], "evento": nombre_evento(payload),
+                      "estado": "falla" if errores else "ok",
+                      "spec": "%s :: %s" % (nombre, entrada.get("evento", "")),
+                      "errores": errores, "avisos": avisos})
+    return {"specs": os.path.abspath(dir_specs), "resultados": filas}
 
 
 def cerrar(obs, flujo, incremental=True):
@@ -427,6 +531,11 @@ def cerrar(obs, flujo, incremental=True):
     with open(os.path.join(obs.dir, "payloads.json"), "w", encoding="utf-8") as f:
         json.dump([s.get("payload") for s in obs.eventos], f,
                   ensure_ascii=False, indent=2)
+    obs.validacion = validar_contra_specs(obs.eventos, obs.dir_specs)
+    if obs.validacion:
+        with open(os.path.join(obs.dir, "validacion.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(obs.validacion, f, ensure_ascii=False, indent=2)
     escribir_reporte(obs, flujo, os.path.join(obs.dir, "reporte.html"))
 
     distintos = len({json.dumps(s.get("payload"), sort_keys=True, ensure_ascii=False)
@@ -445,6 +554,20 @@ def cerrar(obs, flujo, incremental=True):
         for snap in obs.eventos:
             print("  %2d  %-34s %s" % (snap["_n"], nombre_evento(snap["payload"]),
                                        ruta_de(snap.get("url", ""))[:64]))
+    val = obs.validacion
+    if val and val["resultados"]:
+        malos = [r for r in val["resultados"] if r["estado"] == "falla"]
+        sin = [r for r in val["resultados"] if r["estado"] == "sin-spec"]
+        print("\n--- validacion contra modelo_de_datos ---")
+        print("  specs: %s" % val["specs"])
+        for r in val["resultados"]:
+            marca = {"ok": "ok  ", "falla": "FALLA", "sin-spec": "?   "}[r["estado"]]
+            print("  %s #%-2s %-16s %s" % (marca, r["n"], r["evento"], r["spec"]))
+            for e in r["errores"]:
+                print("          %s" % e)
+        print("  %d ok, %d con fallas, %d sin spec"
+              % (len(val["resultados"]) - len(malos) - len(sin), len(malos),
+                 len(sin)))
     print("\nEvidencia: " + os.path.abspath(obs.dir))
     print("Reporte:   " + os.path.abspath(os.path.join(obs.dir, "reporte.html")))
 
@@ -484,6 +607,9 @@ def main():
     ap.add_argument("--out", default=SALIDA_DEFAULT, help="carpeta raiz de salida")
     ap.add_argument("--stop-file", default=None, metavar="RUTA",
                     help="corta limpiamente cuando aparezca ese archivo (lo usa el panel)")
+    ap.add_argument("--specs", default=SPECS_DEFAULT, metavar="DIR",
+                    help="carpeta con los modelo_de_datos[*].json contra los "
+                         "que validar (default: %(default)s)")
     ap.add_argument("--ignorar", default=",".join(IGNORADOS_DEFAULT),
                     metavar="LISTA",
                     help="pantallas a no mapear, por url o title exactos, "
@@ -506,6 +632,7 @@ def main():
     obs = Analitica(dir_salida, args.solo_url,
                     ignorados=[x.strip() for x in args.ignorar.split(",")
                                if x.strip()])
+    obs.dir_specs = args.specs
 
     with sync_playwright() as p:
         try:

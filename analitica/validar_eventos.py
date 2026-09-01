@@ -62,6 +62,48 @@ def _por_seccion(entradas, seccion):
     return _por(entradas, seccion=seccion)
 
 
+def _es_dinamico(valor):
+    """Un campo del spec que no sirve para discriminar: plantilla o enum."""
+    if not isinstance(valor, str):
+        return True
+    return "{{" in valor or bool(re.match(r"^\[.+\]$", valor.strip()))
+
+
+def _puntaje(ev, entrada):
+    """Cuantos literales del spec coinciden con el evento; None si contradice.
+
+    Solo cuentan los campos con valor fijo: son los unicos que identifican de
+    que evento se trata. Un {{campo}} o un [a|b] encaja con cualquier cosa.
+    """
+    puntos = 0
+    for k, v in entrada.items():
+        if k in META or _es_dinamico(v):
+            continue
+        if k not in ev or str(ev[k]) != str(v):
+            return None
+        puntos += 1
+    return puntos
+
+
+def enrutar_por_datos(ev, specs):
+    """Busca en TODOS los specs la entrada cuyos literales case mejor.
+
+    Es lo que hace que agregar o editar una entrada en los JSON alcance para
+    que un evento nuevo se valide, sin tocar el codigo del router.
+    """
+    mejor, mejor_pts = (None, None), 0
+    for nombre, entradas in specs.items():
+        if not isinstance(entradas, list):
+            entradas = [entradas]
+        for entrada in entradas:
+            if not isinstance(entrada, dict):
+                continue
+            pts = _puntaje(ev, entrada)
+            if pts is not None and pts > mejor_pts:
+                mejor, mejor_pts = (nombre, entrada), pts
+    return mejor
+
+
 def enrutar(ev, specs):
     """Devuelve (nombre_spec, entrada_spec) o (None, None) si no matchea."""
     en = ev.get("eventName")
@@ -73,7 +115,13 @@ def enrutar(ev, specs):
     if en == "validaciones_caja" and "validaciones" in specs:
         return "validaciones", _por_seccion(specs["validaciones"], sec)
     if en == "virtual_page" and "modales" in specs:
-        return "modales", _por(specs["modales"], eventName="virtual_page", variante=variante)
+        # Solo los modales; el virtual_page de una pantalla normal (login,
+        # onboarding) no tiene nada que ver con Solicitud Cupo 1B y forzarlo
+        # ahi producia fallos inventados.
+        texto = "%s %s" % (ev.get("title", ""), ev.get("url", ""))
+        if "modal_" in texto:
+            return "modales", _por(specs["modales"], eventName="virtual_page",
+                                   variante=variante)
     if en == "cupo_credito":
         if sec.startswith("modal_") and "modales" in specs:
             return "modales", _por(specs["modales"], eventName="cupo_credito", variante=variante)
@@ -83,7 +131,8 @@ def enrutar(ev, specs):
             ents = specs["politicas"]
             entrada = _por(ents, evento="Políticas 1A") if "label" in ev else _por(ents, evento="Políticas 1B")
             return "politicas", (entrada or ents[0])
-    return None, None
+    # Nada casó a mano: que decidan los JSON.
+    return enrutar_por_datos(ev, specs)
 
 
 # ----------------------------- 3. VALIDACION -----------------------------
