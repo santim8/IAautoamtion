@@ -20,6 +20,7 @@ Los tres modos de parada, que es lo que de verdad separa a un script de otro:
 Se abre con doble clic en panel.bat, o con:
     python panel_observador.py
 """
+import importlib
 import json
 import os
 import queue
@@ -35,14 +36,21 @@ import urllib.request
 import webbrowser
 from tkinter import ttk, messagebox
 
-AQUI = os.path.dirname(os.path.abspath(__file__))
-EVIDENCIAS = os.path.join(AQUI, "evidences")
+from rutas import BASE, CONGELADO, DIR_DATOS, RECURSOS, chromium_instalado
+
+EVIDENCIAS = os.path.join(BASE, "evidences")
+
+# Los scripts hermanos que el panel lanza. Congelado no hay .py que pasarle a
+# python: se importan como modulos desde el propio ejecutable (ver _correr_hijo),
+# asi que la lista tambien le dice a PyInstaller que tiene que incluirlos.
+HIJOS = ["observador_flujo", "observador_analitica", "bizagi_cancel_case",
+         "bizagi_consultar_caso"]
 
 
 def _config():
     """Ajustes por maquina, en panel.config.json (no se versiona)."""
     try:
-        with open(os.path.join(AQUI, "panel.config.json"), encoding="utf-8") as f:
+        with open(os.path.join(BASE, "panel.config.json"), encoding="utf-8") as f:
             return json.load(f)
     except (OSError, json.JSONDecodeError):
         return {}
@@ -60,13 +68,23 @@ SUITE_BIOMETRIA = os.path.join("src", "test", "resources", "suits", "testng-biom
 # -fdx o volver a clonar se los lleva por delante (estan en .gitignore, que es
 # justo lo que git clean borra). Aqui sobreviven a cualquier cosa que le pase
 # al repo.
-DIR_DATOS = os.path.join(os.path.expanduser("~"), ".panel_qa")
 USUARIOS = os.path.join(DIR_DATOS, "usuarios_prueba.json")
-USUARIOS_LEGADO = os.path.join(AQUI, "usuarios_prueba.json")
+USUARIOS_LEGADO = os.path.join(BASE, "usuarios_prueba.json")
 # Catalogo compartido: este SI se versiona, para que quien clone el repo
 # arranque con los usuarios de prueba del equipo. Siembra el archivo local la
 # primera vez; despues cada quien maneja el suyo y sincroniza a mano.
-USUARIOS_COMPARTIDOS = os.path.join(AQUI, "usuarios_compartidos.json")
+USUARIOS_COMPARTIDOS = os.path.join(BASE, "usuarios_compartidos.json")
+# Copia de fabrica del catalogo, dentro del .exe. Solo se lee, y solo cuando no
+# hay una al lado del ejecutable: asi el equipo puede dejar un
+# usuarios_compartidos.json actualizado junto al .exe sin reempaquetar nada.
+USUARIOS_SEMILLA = os.path.join(RECURSOS, "usuarios_compartidos.json")
+
+
+def catalogo_compartido():
+    """El catalogo que se lee: el de al lado si existe, si no el de fabrica."""
+    if os.path.exists(USUARIOS_COMPARTIDOS):
+        return USUARIOS_COMPARTIDOS
+    return USUARIOS_SEMILLA if os.path.exists(USUARIOS_SEMILLA) else USUARIOS_COMPARTIDOS
 BACKUPS = os.path.join(DIR_DATOS, "backups")
 LOGS = os.path.join(DIR_DATOS, "logs")
 MAX_BACKUPS = 30
@@ -103,10 +121,10 @@ def _orden_servicio(nombre):
         return (SERVICIOS_CATALOGO.index(nombre.strip()), "")
     except ValueError:
         return (len(SERVICIOS_CATALOGO), nombre)
-STOP_FILE = os.path.join(AQUI, ".detener_observador")
+STOP_FILE = os.path.join(BASE, ".detener_observador")
 # Centinela propio: la analitica y el observador de red pueden correr a la
 # vez sobre la misma pestana, y cada uno tiene que poder pararse solo.
-STOP_FILE_ANALITICA = os.path.join(AQUI, ".detener_analitica")
+STOP_FILE_ANALITICA = os.path.join(BASE, ".detener_analitica")
 # Lo que se escribe dentro del centinela para pedir parada sin reporte; el
 # observador lo lee y deja la evidencia cruda para reportarla despues.
 SIN_REPORTE = "sin-reporte"
@@ -119,7 +137,93 @@ RE_MARCA = re.compile(r"_(\d{4})-(\d{2})-(\d{2})_(\d{2})(\d{2})(\d{2})$")
 RE_CASO = re.compile(r"ltima solicitud:\s*(\d+)")
 
 
+# --- lanzar a los hermanos -------------------------------------------------
+def comando_hijo(script, *args):
+    """Como se corre uno de los scripts de al lado.
+
+    Desde el repo: python script.py. Congelado NO, y este es el detalle que
+    rompe todo si se pasa por alto: sys.executable ya no es python sino el
+    propio panel, y el .py no existe en disco. Lanzarlo igual abriria otra
+    ventana del panel en vez de correr nada.
+
+    Congelado se relanza el mismo .exe con --child, que main() atiende y
+    despacha al modulo antes de construir la UI.
+    """
+    modulo = script[:-3] if script.endswith(".py") else script
+    if CONGELADO:
+        return [sys.executable, "--child", modulo, *args]
+    return [sys.executable, "-u", os.path.join(RECURSOS, modulo + ".py"), *args]
+
+
+def hay_hijo(script):
+    """Congelado los hijos son modulos importados, no archivos que mirar."""
+    modulo = script[:-3] if script.endswith(".py") else script
+    if CONGELADO:
+        return modulo in HIJOS
+    return os.path.exists(os.path.join(RECURSOS, modulo + ".py"))
+
+
+def _correr_hijo(nombre, args):
+    """El .exe haciendo de interprete de uno de sus modulos."""
+    if nombre == "playwright-install":
+        return _bajar_chromium()
+    if nombre not in HIJOS:
+        print("! hijo desconocido: %s" % nombre)
+        return 2
+    # el panel lee este stdout linea por linea para ir pintando el log; sin
+    # esto sale a bloques y la ventana parece congelada hasta el final
+    try:
+        sys.stdout.reconfigure(line_buffering=True, encoding="utf-8",
+                               errors="replace")
+    except (AttributeError, ValueError):
+        pass
+    sys.argv = [nombre + ".py"] + list(args)
+    return importlib.import_module(nombre).main() or 0
+
+
+def _bajar_chromium():
+    from playwright.__main__ import main as playwright_cli
+    sys.argv = ["playwright", "install", "chromium"]
+    try:
+        playwright_cli()
+    except SystemExit as e:
+        return e.code or 0
+    return 0
+
+
 # --- pre-flight y veredictos ----------------------------------------------
+def asegurar_chromium(emitir):
+    """Los scripts de Bizagi abren su PROPIO navegador con Playwright, que no es
+    el Chrome del sistema y hay que bajarlo una vez.
+
+    Desde el repo lo resuelve el `playwright install chromium` del README. En el
+    .exe no hay consola donde correrlo, y meter los 150 MB del navegador dentro
+    del ejecutable lo dejaria inmanejable para repartirlo: se baja solo, una vez,
+    a ~/.panel_qa/browsers.
+    """
+    if chromium_instalado():
+        return True
+    if not CONGELADO:
+        emitir("! Falta el navegador de Playwright. Corre:  "
+               "playwright install chromium", "mal")
+        return False
+    emitir("> Primera vez: bajando el navegador de Playwright (~150 MB). "
+           "Esto tarda unos minutos y no se repite.", "panel")
+    try:
+        r = subprocess.run([sys.executable, "--child", "playwright-install"],
+                           capture_output=True, text=True, encoding="utf-8",
+                           errors="replace", timeout=900)
+    except (OSError, subprocess.SubprocessError) as e:
+        emitir("! No pude bajar el navegador: %s" % e, "mal")
+        return False
+    if not chromium_instalado():
+        emitir("! La descarga no dejo el navegador:\n%s"
+               % (r.stdout or "")[-800:], "mal")
+        return False
+    emitir("> Navegador listo.", "panel")
+    return True
+
+
 def chrome_arriba(puerto=PUERTO, timeout=1.0):
     """Chrome ya expone el puerto CDP? Es lo que decide si hay que lanzarlo."""
     try:
@@ -172,8 +276,8 @@ def preparar_chrome(emitir):
         emitir("> Chrome ya estaba arriba, lo reuso.", "panel")
         return True
     emitir("> Chrome no responde en el puerto %d, lo abro..." % PUERTO, "panel")
-    subprocess.run([sys.executable, os.path.join(AQUI, "observador_flujo.py"),
-                    "--lanzar-chrome"], cwd=AQUI, capture_output=True, text=True)
+    subprocess.run(comando_hijo("observador_flujo", "--lanzar-chrome"),
+                   cwd=BASE, capture_output=True, text=True)
     for _ in range(40):          # hasta 20 s
         if chrome_arriba():
             emitir("> Chrome listo.", "panel")
@@ -310,6 +414,7 @@ HERRAMIENTAS = [
         "script": "bizagi_cancel_case.py",
         "boton": "Cancelar caso",
         "parada": None,
+        "previo": asegurar_chromium,
         "ayuda": "Busca la ultima solicitud del documento y la cancela en Bizagi.",
         "confirmar": ("Se va a cancelar la ultima solicitud del documento "
                       "{Tipo doc} {Documento} en Bizagi.\n\nSeguir?"),
@@ -330,6 +435,7 @@ HERRAMIENTAS = [
         "boton": "Consultar",
         # deja el navegador abierto a proposito; se cierra con Detener
         "parada": "terminar",
+        "previo": asegurar_chromium,
         "ayuda": "Muestra la ultima solicitud y deja el navegador abierto.",
         "estado": estado_consulta,
         "campos": [
@@ -536,7 +642,7 @@ class Herramienta(ttk.Frame):
         """El comando sin argumentos: un script de este repo, o algo externo."""
         if self.spec.get("comando"):
             return [c() if callable(c) else c for c in self.spec["comando"]]
-        return [sys.executable, "-u", os.path.join(AQUI, self.spec["script"])]
+        return comando_hijo(self.spec["script"])
 
     def valores(self):
         return {c["etiqueta"]: str(self.vars[c["etiqueta"]].get()).strip()
@@ -615,7 +721,7 @@ class Herramienta(ttk.Frame):
         entorno = dict(os.environ, PYTHONIOENCODING="utf-8")
         try:
             self.proc = subprocess.Popen(
-                cmd, cwd=self.spec.get("cwd", AQUI),
+                cmd, cwd=self.spec.get("cwd", BASE),
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                 stdin=subprocess.DEVNULL, text=True, encoding="utf-8",
                 errors="replace", bufsize=1, env=entorno)
@@ -694,8 +800,7 @@ class Herramienta(ttk.Frame):
         self.salida = []
         self.dir_corrida = d
         self.estado.set("Generando reporte de %s..." % os.path.basename(d))
-        cmd = [sys.executable, "-u", os.path.join(AQUI, self.spec["script"]),
-               "--rehacer-reporte", d]
+        cmd = comando_hijo(self.spec["script"], "--rehacer-reporte", d)
         threading.Thread(target=self._hilo, args=(cmd, False), daemon=True).start()
 
 
@@ -790,8 +895,7 @@ class Corridas(ttk.Frame):
         herr.limpiar()
         herr.salida = []
         herr.estado.set("Revalidando %s..." % c["nombre"])
-        cmd = [sys.executable, "-u", os.path.join(AQUI, "observador_flujo.py"),
-               "--rehacer-reporte", c["dir"]]
+        cmd = comando_hijo("observador_flujo", "--rehacer-reporte", c["dir"])
         threading.Thread(target=herr._hilo, args=(cmd, False), daemon=True).start()
 
     def borrar(self):
@@ -1305,8 +1409,9 @@ class Usuarios(ttk.Frame):
         if not os.path.exists(USUARIOS) and os.path.exists(USUARIOS_LEGADO):
             shutil.copy2(USUARIOS_LEGADO, USUARIOS)
         # primer arranque tras clonar: el catalogo del repo siembra el local
-        if not os.path.exists(USUARIOS) and os.path.exists(USUARIOS_COMPARTIDOS):
-            shutil.copy2(USUARIOS_COMPARTIDOS, USUARIOS)
+        semilla = catalogo_compartido()
+        if not os.path.exists(USUARIOS) and os.path.exists(semilla):
+            shutil.copy2(semilla, USUARIOS)
         datos = _json_o_nada(USUARIOS)
         self.datos = datos if isinstance(datos, list) else []
         self.refrescar()
@@ -1414,7 +1519,7 @@ class Usuarios(ttk.Frame):
 
     def traer(self):
         """Agrega los del catalogo del repo que no tengas todavia."""
-        compartidos = _json_o_nada(USUARIOS_COMPARTIDOS)
+        compartidos = _json_o_nada(catalogo_compartido())
         if not isinstance(compartidos, list):
             messagebox.showinfo("Sin catalogo",
                                 "No hay %s en el repo."
@@ -1487,10 +1592,12 @@ class Panel:
 
         self.herramientas = {}
         for spec in HERRAMIENTAS:
-            raiz_h = spec.get("cwd", AQUI)
-            objetivo = raiz_h if spec.get("comando") else os.path.join(AQUI, spec["script"])
-            if not os.path.exists(objetivo):
-                continue          # declarada pero sin script/repo: se omite
+            # declarada pero sin script/repo: se omite
+            if spec.get("comando"):
+                if not os.path.exists(spec.get("cwd", BASE)):
+                    continue
+            elif not hay_hijo(spec["script"]):
+                continue
             h = Herramienta(self.tabs, spec)
             self.tabs.add(h, text="  %s  " % spec["nombre"])
             self.herramientas[spec["id"]] = h
@@ -1539,6 +1646,11 @@ class Panel:
 
 
 def main():
+    # Congelado, el .exe hace de dos cosas: la ventana, y el interprete de sus
+    # propios scripts cuando el se relanza a si mismo (ver comando_hijo). Esto
+    # va antes de tocar tkinter: el hijo no tiene ventana que abrir.
+    if len(sys.argv) > 2 and sys.argv[1] == "--child":
+        return _correr_hijo(sys.argv[2], sys.argv[3:])
     raiz = tk.Tk()
     try:
         ttk.Style().theme_use("vista")

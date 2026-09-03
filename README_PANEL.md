@@ -1,7 +1,7 @@
 # Panel QA
 
 Ventana local para lanzar los scripts de este repo sin pasar por la consola.
-Doble clic en `panel.bat`.
+Doble clic en `panel.bat`, o usa el `.exe` (ver *Repartirlo como aplicación*).
 
 ## Pestañas
 
@@ -46,6 +46,35 @@ simplemente no aparecen y el resto del panel funciona igual.
 Por defecto se busca en `~/IdeaProjects/colsubsidioFramework`. Si lo tienes en
 otro lado, copia `panel.config.example.json` a `panel.config.json` y ajusta la
 ruta, o define la variable `COLSUBSIDIO_FRAMEWORK`.
+
+## Repartirlo como aplicación
+
+Para quien no tiene Python ni va a clonar el repo:
+
+```
+construir_exe.bat
+```
+
+Deja `dist\PanelQA.exe` (~54 MB). Se reparte la carpeta `dist\` completa y se
+abre con doble clic; no necesita Python, ni Playwright, ni el repo.
+
+**Dónde escribe.** Junto al `.exe`: `evidences\`, `esquemas_servicios.json`,
+`panel.config.json`. Los usuarios de prueba siguen en `~/.panel_qa/`, igual que
+desde el repo. Conviene dejarlo en una carpeta propia y no en Descargas.
+
+**El navegador de Playwright no viaja dentro.** Solo lo usan las dos pestañas de
+Bizagi, que abren su propio Chromium; el observador se engancha por CDP al
+Chrome de verdad y no lo necesita. La primera vez que se usa una pestaña de
+Bizagi, el panel lo baja solo a `~/.panel_qa/browsers` (~150 MB, unos minutos,
+una sola vez). Si la máquina ya tiene uno de un `playwright install` previo, lo
+reutiliza y no baja nada.
+
+**Las pestañas de Java** (Suite biometría, Validaciones API) siguen necesitando
+Maven y el repo `colsubsidioFramework` en la máquina. Si no están, no aparecen.
+
+**Ojo al empaquetar:** `panel.spec` lista los datos uno por uno a propósito.
+`token.txt` (el PAT de Azure DevOps) vive en esta carpeta, y meter `(".", ".")`
+lo metería dentro del `.exe` que se reparte. No lo cambies por un comodín.
 
 ## Usuarios de prueba compartidos
 

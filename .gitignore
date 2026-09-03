@@ -25,5 +25,9 @@ usuarios_prueba.json
 # Ajustes por maquina del panel
 panel.config.json
 
+# Salida de PyInstaller (ver construir_exe.bat); el .spec si se versiona
+build/
+dist/
+
 # Eventos de analitica capturados a mano
 evidencias_analitica/

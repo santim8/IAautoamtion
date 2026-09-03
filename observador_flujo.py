@@ -39,6 +39,7 @@ from datetime import datetime, timezone
 from playwright.sync_api import sync_playwright
 
 import esquemas as esq
+import rutas
 
 # Hosts del backend que interesan (match por substring sobre la URL).
 # Sacados de bruno/validate-request/.
@@ -129,9 +130,10 @@ TIPOS_SIN_CUERPO = {"image", "font", "media", "stylesheet", "script", "manifest"
 TOLERANCIA_CAMBIO_MS = 300
 
 # Contrato observado de cada servicio. Vive en el repo (no en evidences/) porque
-# es lo que se compara entre corridas y lo que se revisa en un PR.
-ESQUEMAS_DEFAULT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                "esquemas_servicios.json")
+# es lo que se compara entre corridas y lo que se revisa en un PR. Se ESCRIBE
+# con --generar-esquemas, asi que va a BASE: dentro del .exe seria una carpeta
+# temporal que se borra al cerrar.
+ESQUEMAS_DEFAULT = os.path.join(rutas.BASE, "esquemas_servicios.json")
 
 # Servicios cuya respuesta pinta una pantalla que vale la pena dejar retratada
 # en ese instante. Todos son OPCIONALES: si el flujo no pasa por esa pantalla
