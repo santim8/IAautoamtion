@@ -44,32 +44,18 @@ EVIDENCIAS = os.path.join(BASE, "evidences")
 # python: se importan como modulos desde el propio ejecutable (ver _correr_hijo),
 # asi que la lista tambien le dice a PyInstaller que tiene que incluirlos.
 HIJOS = ["observador_flujo", "observador_analitica", "bizagi_cancel_case",
-         "bizagi_consultar_caso"]
+         "bizagi_consultar_caso", "validaciones_api", "biometria_api"]
 
-
-def _config():
-    """Ajustes por maquina, en panel.config.json (no se versiona)."""
-    try:
-        with open(os.path.join(BASE, "panel.config.json"), encoding="utf-8") as f:
-            return json.load(f)
-    except (OSError, json.JSONDecodeError):
-        return {}
-
-
-CONFIG = _config()
-# El framework Java vive en otro repo y cada quien lo clona donde quiere: se
-# puede fijar por entorno o por panel.config.json antes de caer al default.
-FRAMEWORK = (os.environ.get("COLSUBSIDIO_FRAMEWORK")
-             or CONFIG.get("framework")
-             or os.path.join(os.path.expanduser("~"), "IdeaProjects",
-                             "colsubsidioFramework"))
-SUITE_BIOMETRIA = os.path.join("src", "test", "resources", "suits", "testng-biometry.xml")
 # Usuarios de prueba. Viven FUERA del repo a proposito: dentro, un git clean
 # -fdx o volver a clonar se los lleva por delante (estan en .gitignore, que es
 # justo lo que git clean borra). Aqui sobreviven a cualquier cosa que le pase
 # al repo.
 USUARIOS = os.path.join(DIR_DATOS, "usuarios_prueba.json")
 USUARIOS_LEGADO = os.path.join(BASE, "usuarios_prueba.json")
+# Lista de documentos de la pestana Validaciones API. Mismo espiritu que los
+# usuarios de prueba: fuera del repo para que sobreviva a un git clean, y es
+# solo la lista de trabajo del panel (ya no un DataProvider de Java).
+VALIDACIONES_DOCS = os.path.join(DIR_DATOS, "validaciones_docs.json")
 # Catalogo compartido: este SI se versiona, para que quien clone el repo
 # arranque con los usuarios de prueba del equipo. Siembra el archivo local la
 # primera vez; despues cada quien maneja el suyo y sincroniza a mano.
@@ -89,13 +75,9 @@ BACKUPS = os.path.join(DIR_DATOS, "backups")
 LOGS = os.path.join(DIR_DATOS, "logs")
 MAX_BACKUPS = 30
 
-DATA_PROVIDER = os.path.join("src", "test", "java", "execution", "data",
-                             "DataProviderUtil.java")
-# Object[][] raw = { ... }; del DataProvider fillDataApi. El bloque de
-# deduplicacion que sigue (LinkedHashSet) no se toca: dedupe en runtime.
-RE_RAW = re.compile(r"        Object\[\]\[\] raw = \{.*?\n        \};", re.S)
 # [EXCEL_UPDATE] Thread:28 52526685 - Card Validation - PASS - HTTP 200 estado OK
 RE_EXCEL = re.compile(r"\[EXCEL_UPDATE\] Thread:\d+\s+(\S+)\s+-\s+(.+?)\s+-\s+(.+)")
+RE_HTTP_CODE = re.compile(r"HTTP\s+(\d+)")
 # Servicios del catalogo del framework que no se revisan aqui: se descartan al
 # entrar, asi no ocupan columna ni en la tabla ni en el Excel. En minusculas
 # porque el log no siempre respeta el casing del catalogo.
@@ -121,6 +103,44 @@ def _orden_servicio(nombre):
         return (SERVICIOS_CATALOGO.index(nombre.strip()), "")
     except ValueError:
         return (len(SERVICIOS_CATALOGO), nombre)
+
+
+def _decodificar_stdout(cruda):
+    """El stdout del hijo casi siempre es UTF-8, pero alguna tilde suelta (una
+    'O' con acento en cp1252) no es UTF-8 valido: decodificar todo como UTF-8
+    con errors='replace' la cambiaba por el caracter de reemplazo (el rombo
+    con interrogacion). Se intenta UTF-8 estricto primero y solo se cae a
+    cp1252 cuando de verdad no es UTF-8, para no perder la tilde en 'Novedad
+    Estado' (REACTIVACION, ORIGINACION)."""
+    try:
+        return cruda.decode("utf-8")
+    except UnicodeDecodeError:
+        return cruda.decode("cp1252", errors="replace")
+
+
+MARCA_OK = "\U0001F7E2"    # verde
+MARCA_MAL = "\U0001F534"   # rojo
+
+
+def _formato_estado(estado):
+    """Solo para la tabla: cada celda lleva su propio punto de color segun
+    el PASS/FAIL crudo (el Treeview de Tk no permite pintar una celda suelta,
+    solo la fila completa, asi que el punto es lo que distingue celda por
+    celda). 'PASS - HTTP 200 estado OK' ademas se ve como '200 OK'; el codigo
+    es el que trajo la respuesta real, no uno fijo. El crudo (con PASS/FAIL)
+    se sigue guardando en self.resultados para el veredicto y el Excel. Si el
+    servicio no trae PASS ni FAIL (SKIP, o el detalle libre de Card
+    Validation Error) se muestra tal cual llego, sin marca."""
+    alto = estado.upper()
+    if alto.startswith("PASS"):
+        marca = MARCA_OK
+    elif alto.startswith("FAIL"):
+        marca = MARCA_MAL
+    else:
+        return estado
+    m = RE_HTTP_CODE.search(estado)
+    cuerpo = "%s %s" % (m.group(1), "OK" if marca == MARCA_OK else "FAIL") if m else estado
+    return "%s %s" % (marca, cuerpo)
 STOP_FILE = os.path.join(BASE, ".detener_observador")
 # Centinela propio: la analitica y el observador de red pueden correr a la
 # vez sobre la misma pestana, y cada uno tiene que poder pararse solo.
@@ -304,47 +324,56 @@ def estado_cancelacion(texto):
 
 
 def estado_consulta(texto):
+    """Cubre los dos modos de bizagi_consultar_caso: por documento (deja
+    'ultima solicitud' en el log) y por Id de caso directo (deja 'buscado en
+    el buscador superior', porque ahi no hay ninguna solicitud que leer)."""
     m = RE_CASO.search(texto)
     if m:
         return "bien", "Ultima solicitud: %s" % m.group(1)
+    if "buscado en el buscador superior" in texto:
+        return "bien", "Caso abierto en el buscador superior."
+    if "el login" in texto:
+        return "mal", "Fallo el login en Bizagi."
+    if "No se pudo buscar el caso" in texto:
+        return "mal", "No se pudo buscar el caso en el buscador superior."
     return "mal", "No se encontro ninguna solicitud para ese documento."
 
 
-def args_biometria(valores, emitir):
-    """La suite de TestNG trae idCaso/typeDocument/identification fijos en el XML
-    y el test los lee con @Parameters, que no se pueden pisar con -D.
-
-    En vez de tocar el framework, se escribe una copia de la suite con los
-    valores del formulario y se corre esa. Va a target/, que esta en .gitignore,
-    para no ensuciar el repo del framework.
-    """
-    plantilla = os.path.join(FRAMEWORK, SUITE_BIOMETRIA)
-    if not os.path.exists(plantilla):
-        emitir("! No encuentro la suite: %s" % plantilla, "mal")
+def args_consultar(valores, emitir):
+    """Id de caso manda: si esta lleno, busca directo (--caso) y el documento
+    sobra. Si no, exige Tipo doc + Documento, como el flujo original."""
+    id_caso = valores.get("Id caso", "").strip()
+    if id_caso:
+        return ["--caso", id_caso]
+    documento = valores.get("Documento", "").strip()
+    if not documento:
+        emitir("! Escribe el Id de caso, o el Documento para buscar por cedula.", "mal")
         return None
-    with open(plantilla, encoding="utf-8") as f:
-        xml = f.read()
-    cambios = {"idCaso": valores["Id caso"], "typeDocument": valores["Tipo doc"],
-               "identification": valores["Documento"]}
-    for nombre, valor in cambios.items():
-        xml, n = re.subn(r'(<parameter\s+name="%s"\s+value=")[^"]*(")' % nombre,
-                         lambda m: m.group(1) + valor + m.group(2), xml)
-        if not n:
-            emitir("! La suite no declara el parametro %s" % nombre, "mal")
-            return None
-    destino_abs = os.path.join(FRAMEWORK, "target", "panel-suites")
-    os.makedirs(destino_abs, exist_ok=True)
-    ruta = os.path.join(destino_abs, "testng-biometry-panel.xml")
-    with open(ruta, "w", encoding="utf-8") as f:
-        f.write(xml)
-    emitir("> suite: caso %s, %s %s" % (cambios["idCaso"], cambios["typeDocument"],
-                                        cambios["identification"]), "panel")
-    return ["-DsuiteXmlFile=" + os.path.relpath(ruta, FRAMEWORK).replace("\\", "/")]
+    return [valores.get("Tipo doc", "CC"), documento]
 
 
-def mvn():
-    """En Windows el ejecutable es mvn.cmd; el 'mvn' pelado es el script de sh."""
-    return shutil.which("mvn.cmd") or shutil.which("mvn") or "mvn"
+def args_biometria(valores, emitir):
+    """Los mismos 3 campos que antes pedia la suite de TestNG (idCaso,
+    typeDocument, identification), ahora como argumentos de linea de comandos
+    directos para biometria_api.py -- ya no hace falta escribir una copia de
+    testng-biometry.xml."""
+    id_caso = valores.get("Id caso", "").strip()
+    documento = valores.get("Documento", "").strip()
+    if not id_caso or not documento:
+        emitir("! Escribe el Id de caso y el Documento.", "mal")
+        return None
+    return ["--caso", id_caso, "--tipo", valores.get("Tipo doc", "CO1C"), "--doc", documento]
+
+
+def estado_biometria(texto):
+    """biometria_api.py imprime un veredicto final claro; se busca por
+    subcadena, igual que los demas hijos."""
+    if "BIOMETRIA OK" in texto:
+        return "bien", "Biometria completada correctamente."
+    m = re.search(r"BIOMETRIA FALLO en paso (\d): (.+)", texto)
+    if m:
+        return "mal", "Fallo en el paso %s (%s)." % (m.group(1), m.group(2).strip())
+    return "mal", "Termino sin un veredicto claro; revisa el log."
 
 
 # --- registro de herramientas ---------------------------------------------
@@ -392,13 +421,14 @@ HERRAMIENTAS = [
     {
         "id": "biometria",
         "nombre": "Suite biometria",
-        "comando": [mvn, "test"],
-        "cwd": FRAMEWORK,
+        "script": "biometria_api.py",
         "boton": "Correr suite",
-        # mvn no tiene parada limpia; cortarlo solo pierde la corrida de tests
-        "parada": "terminar",
-        "ayuda": "Corre testng-biometry.xml del framework Java con los datos que pongas.",
+        "parada": None,
+        "ayuda": "Autenticacion biometrica + firma de documentos, pegando "
+                 "directo a los mismos endpoints que el framework Java "
+                 "(sin Maven, sin navegador).",
         "argumentos": args_biometria,
+        "estado": estado_biometria,
         "campos": [
             {"tipo": "texto", "solo_forma": True, "etiqueta": "Id caso",
              "valor": "", "ancho": 14, "requerido": True},
@@ -436,13 +466,18 @@ HERRAMIENTAS = [
         # deja el navegador abierto a proposito; se cierra con Detener
         "parada": "terminar",
         "previo": asegurar_chromium,
-        "ayuda": "Muestra la ultima solicitud y deja el navegador abierto.",
+        "ayuda": "Con Id de caso busca directo en el buscador superior, sin "
+                 "documento. Sin Id de caso, exige Tipo doc + Documento y "
+                 "muestra la ultima solicitud. El navegador queda abierto.",
         "estado": estado_consulta,
+        "argumentos": args_consultar,
         "campos": [
-            {"tipo": "opcion", "arg": None, "etiqueta": "Tipo doc",
+            {"tipo": "texto", "solo_forma": True, "etiqueta": "Id caso",
+             "valor": "", "ancho": 14},
+            {"tipo": "opcion", "solo_forma": True, "etiqueta": "Tipo doc",
              "opciones": ["CC", "CE"], "valor": "CC", "ancho": 6},
-            {"tipo": "texto", "arg": None, "etiqueta": "Documento",
-             "valor": "", "ancho": 20, "requerido": True},
+            {"tipo": "texto", "solo_forma": True, "etiqueta": "Documento",
+             "valor": "", "ancho": 20},
         ],
     },
 ]
@@ -946,7 +981,7 @@ class Validaciones(ttk.Frame):
         self.servicios = list(SERVICIOS_FIJOS)   # columnas, en orden del Excel
         self.resultados = {}         # documento -> {servicio: estado}
         self.ruta_log = None
-        self.fallo_build = False
+        self.ok = False              # True cuando la ultima corrida cerro sin FAIL
         self._construir()
 
     def _construir(self):
@@ -1019,8 +1054,6 @@ class Validaciones(ttk.Frame):
         sb2.pack(side="right", fill="y")
         sbh.pack(side="bottom", fill="x")
         self.tabla.pack(side="left", fill="both", expand=True)
-        self.tabla.tag_configure("mal", foreground="#c62828")
-        self.tabla.tag_configure("bien", foreground="#1b7f2b")
         panes.add(mt, weight=3)
 
         ml = ttk.Frame(panes)
@@ -1090,39 +1123,26 @@ class Validaciones(ttk.Frame):
         self.tabla_docs.see(str(len(self.docs) - 1)) if self.docs else None
 
     def cargar_actual(self):
-        """Trae al cuadro la lista que hoy tiene el DataProvider."""
-        ruta = os.path.join(FRAMEWORK, DATA_PROVIDER)
-        try:
-            with open(ruta, encoding="utf-8") as f:
-                bloque = RE_RAW.search(f.read())
-        except OSError as e:
-            messagebox.showerror("No se pudo leer", str(e))
+        """Trae al cuadro la ultima lista que se corrio desde este panel."""
+        datos = _json_o_nada(VALIDACIONES_DOCS)
+        if not isinstance(datos, list):
+            messagebox.showinfo("Sin lista", "Todavia no hay una lista guardada.")
             return
-        if not bloque:
-            messagebox.showerror("No encontrado",
-                                 "No hallé el array raw en %s" % DATA_PROVIDER)
-            return
-        self.docs = re.findall(r'\{"(\w+)",\s*"(\d+)"\}', bloque.group(0))
+        self.docs = [(d.get("tipo", ""), d.get("numero", "")) for d in datos
+                    if isinstance(d, dict)]
         self.refrescar_docs()
 
-    def escribir_provider(self, unicos):
-        """Reescribe el array raw. Guarda copia del original antes de tocarlo."""
-        ruta = os.path.join(FRAMEWORK, DATA_PROVIDER)
-        with open(ruta, encoding="utf-8") as f:
-            contenido = f.read()
-        if not RE_RAW.search(contenido):
-            self.emitir("! No encontre el array raw en %s" % DATA_PROVIDER, "mal")
-            return False
-        os.makedirs(BACKUPS, exist_ok=True)
-        shutil.copy2(ruta, os.path.join(
-            BACKUPS, "DataProviderUtil_%s.java" % time.strftime("%Y%m%d_%H%M%S")))
-        filas = "\n".join('                {"%s", "%s"},' % (t, n) for t, n in unicos)
-        nuevo = "        Object[][] raw = {\n%s\n        };" % filas
-        with open(ruta, "w", encoding="utf-8") as f:
-            f.write(RE_RAW.sub(lambda _m: nuevo, contenido, count=1))
-        self.emitir("> DataProvider reescrito con %d documento(s). Copia del "
-                    "original en backups/." % len(unicos), "panel")
-        return True
+    def guardar_docs_actuales(self, unicos):
+        """Persiste la lista que se va a correr, para que 'Cargar lista
+        actual' la recuerde la proxima vez (reemplaza al DataProvider de
+        Java, que cumplia el mismo papel de 'lista de trabajo')."""
+        try:
+            os.makedirs(DIR_DATOS, exist_ok=True)
+            with open(VALIDACIONES_DOCS, "w", encoding="utf-8") as f:
+                json.dump([{"tipo": t, "numero": n} for t, n in unicos], f,
+                          ensure_ascii=False, indent=2)
+        except OSError as e:
+            self.emitir("! No pude guardar la lista de documentos: %s" % e, "mal")
 
     # -- ejecucion
     def ocupada(self):
@@ -1136,60 +1156,49 @@ class Validaciones(ttk.Frame):
             messagebox.showinfo("Falta la lista",
                                 "Agrega al menos un documento a la lista.")
             return
-        if not os.path.isdir(FRAMEWORK):
-            messagebox.showerror("Sin framework", "No encuentro %s" % FRAMEWORK)
-            return
         self.log.configure(state="normal")
         self.log.delete("1.0", "end")
         self.log.configure(state="disabled")
         self.tabla.delete(*self.tabla.get_children())
         self.servicios = list(SERVICIOS_FIJOS)
-        self.resultados, self.fallo_build = {}, False
+        self.resultados = {}
         self._columnas()
         self.b_ir.configure(state="disabled")
         self.b_excel.configure(state="disabled")
         self.lbl.configure(foreground="")
-        self.estado.set("Compilando y ejecutando...")
+        self.estado.set("Ejecutando...")
         threading.Thread(target=self._hilo, args=(unicos,), daemon=True).start()
 
     def _hilo(self, unicos):
-        try:
-            if not self.escribir_provider(unicos):
-                self.after(0, self._fin)
-                return
-        except OSError as e:
-            self.emitir("! No pude escribir el DataProvider: %s" % e, "mal")
-            self.after(0, self._fin)
-            return
+        self.guardar_docs_actuales(unicos)
 
         os.makedirs(LOGS, exist_ok=True)
         self.ruta_log = os.path.join(
             LOGS, "validaciones_%s.log" % time.strftime("%Y%m%d_%H%M%S"))
-        # test-compile antes de surefire:test: sin eso Maven corre las clases
-        # ya compiladas y ejecuta la lista vieja
-        cmd = [mvn(), "-o", "test-compile", "surefire:test"]
-        self.emitir("> " + " ".join(cmd), "panel")
+        cmd = comando_hijo("validaciones_api", "--hilos", "5",
+                           *["%s:%s" % (t, n) for t, n in unicos])
+        self.emitir("> " + " ".join(cmd[1:]), "panel")
         self.emitir("> log completo: %s" % self.ruta_log, "panel")
         entorno = dict(os.environ, PYTHONIOENCODING="utf-8")
         try:
             self.proc = subprocess.Popen(
-                cmd, cwd=FRAMEWORK, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                stdin=subprocess.DEVNULL, text=True, encoding="utf-8",
-                errors="replace", bufsize=1, env=entorno)
+                cmd, cwd=BASE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                stdin=subprocess.DEVNULL, bufsize=1, env=entorno)
         except OSError as e:
-            self.emitir("! No pude lanzar Maven: %s" % e, "mal")
+            self.emitir("! No pude lanzar la validacion: %s" % e, "mal")
             self.after(0, self._fin)
             return
         self.after(0, lambda: self.b_parar.configure(state="normal"))
         with open(self.ruta_log, "w", encoding="utf-8") as archivo:
-            for linea in self.proc.stdout:
+            for cruda in self.proc.stdout:
+                linea = _decodificar_stdout(cruda)
                 archivo.write(linea)
                 self._linea(linea)
         self.proc.wait()
         self.after(0, self._fin)
 
     def _linea(self, linea):
-        """Del torrente de Maven solo sube al panel lo que se mira."""
+        """Del torrente del hijo solo sube al panel lo que se mira."""
         m = RE_EXCEL.search(linea)
         if m:
             doc, servicio, estado = m.group(1), m.group(2).strip(), m.group(3).strip()
@@ -1201,9 +1210,7 @@ class Validaciones(ttk.Frame):
                         "mal" if malo else "bien")
             return
         t = linea.strip()
-        if t.startswith("Tests run:") or "BUILD " in t:
-            if "BUILD FAILURE" in t:
-                self.fallo_build = True
+        if t.startswith("Tests run:"):
             self.emitir(t, "panel")
 
     def _columnas(self):
@@ -1224,12 +1231,14 @@ class Validaciones(ttk.Frame):
         self._pintar()
 
     def _pintar(self):
+        """Cada celda ya trae su propio punto verde/rojo desde _formato_estado;
+        pintar tambien la fila completa (como antes) tapaba esos puntos con un
+        solo color parejo, y una fila con un FAIL se veia toda roja aunque el
+        resto de celdas estuviera en PASS."""
         self.tabla.delete(*self.tabla.get_children())
         for doc, servs in self.resultados.items():
-            valores = [doc] + [servs.get(s, "") for s in self.servicios]
-            estados = " ".join(servs.values()).upper()
-            tag = "mal" if "FAIL" in estados else ("bien" if "PASS" in estados else "")
-            self.tabla.insert("", "end", tags=(tag,), values=valores)
+            valores = [doc] + [_formato_estado(servs.get(s, "")) for s in self.servicios]
+            self.tabla.insert("", "end", values=valores)
 
     def _fin(self):
         self.b_ir.configure(state="normal")
@@ -1243,14 +1252,12 @@ class Validaciones(ttk.Frame):
             self.estado.set("%d documento(s) con resultado, %d con algun FAIL."
                             % (docs, malos))
             self.lbl.configure(foreground="#c62828" if malos else "#1b7f2b")
-            if self.fallo_build:
-                # ~11 failures fijos de otras clases que piden parametros de
-                # testng.xml; no dicen nada de fillDataApi
-                self.emitir("> BUILD FAILURE es normal aqui: son los tests de otras "
-                            "clases que piden parametros de testng.xml.", "panel")
         else:
             self.estado.set("No hubo lineas de resultado. Revisa el log completo.")
             self.lbl.configure(foreground="#c62828")
+        self.ok = docs > 0 and malos == 0
+        for cb in getattr(self, "al_terminar", []):
+            cb()
 
     def detener(self):
         if self.ocupada():
@@ -1602,10 +1609,20 @@ class Panel:
             self.tabs.add(h, text="  %s  " % spec["nombre"])
             self.herramientas[spec["id"]] = h
 
+        # Pastilla de color para la pestana de Validaciones API: ttk.Notebook
+        # no deja pintar una pestana distinta de las demas, pero si acepta una
+        # imagen junto al texto, y un cuadrito de color no depende de que la
+        # maquina tenga fuente de emoji a color.
+        self._sw_verde = tk.PhotoImage(width=10, height=10)
+        self._sw_verde.put("#1b7f2b", to=(0, 0, 10, 10))
+        self._sw_rojo = tk.PhotoImage(width=10, height=10)
+        self._sw_rojo.put("#c62828", to=(0, 0, 10, 10))
+
         self.validaciones = None
-        if os.path.isdir(FRAMEWORK):
+        if hay_hijo("validaciones_api"):
             self.validaciones = Validaciones(self.tabs)
             self.tabs.add(self.validaciones, text="  Validaciones API  ")
+            self.validaciones.al_terminar = [self._marcar_pestana_validaciones]
 
         self.usuarios = Usuarios(self.tabs)
         self.tabs.add(self.usuarios, text="  Usuarios  ")
@@ -1618,6 +1635,12 @@ class Panel:
 
         raiz.protocol("WM_DELETE_WINDOW", self.cerrar)
         raiz.after(120, self.bombear)
+
+    def _marcar_pestana_validaciones(self):
+        """Se llama al terminar una corrida de Validaciones API: pinta la
+        pastilla verde o roja junto al titulo de la pestana, sin abrirla."""
+        sw = self._sw_verde if self.validaciones.ok else self._sw_rojo
+        self.tabs.tab(self.validaciones, image=sw, compound="right")
 
     def bombear(self):
         """Vuelca a cada log lo que su hilo fue dejando en la cola. Los widgets

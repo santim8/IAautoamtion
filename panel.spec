@@ -25,6 +25,8 @@ HIJOS = [
     "observador_analitica",
     "bizagi_cancel_case",
     "bizagi_consultar_caso",
+    "validaciones_api",
+    "biometria_api",
 ]
 
 datas = [

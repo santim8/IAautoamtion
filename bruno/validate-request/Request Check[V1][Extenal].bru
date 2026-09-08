@@ -1,0 +1,65 @@
+meta {
+  name: Request Check[V1][Extenal]
+  type: http
+  seq: 19
+}
+
+post {
+  url: https://platform-test-external.colsubsidio.com/loans/req-mgr/external/v1/product/2/request/check
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  User-Agent: insomnia/11.1.0
+  Cookie: AWSALBAPP-0=_remove_; AWSALBAPP-1=_remove_; AWSALBAPP-2=_remove_; AWSALBAPP-3=_remove_
+  Authorization: eyJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE3ODg2NDk1NTAsImV4cCI6MTc4ODY1Njc1MCwic3ViIjoiODc4Nzg3ODc4XzIiLCJjdXN0b21lciI6eyJkb2N1bWVudFR5cGUiOiIyIiwiZG9jdW1lbnROdW1iZXIiOiI4Nzg3ODc4NzgiLCJ0b2tlbklkIjoiWEFMfjAyMDQ1MzQ0NDE1NDBjMzkzMjMxMzAzOTMxMzkzNTM5MzIzMjM1MDE5ZjllfkVEZW9TaGhNRGJWSXVMS21yWTJCd3NBUXFVOXJLQ3V4OVlCZzFuaHJjd2JkTmd-IiwidGVsZXBob25lTnVtYmVyIjoiKzU3MzA0Mzc2MDU1OCIsIm1haWwiOiJjb3JyZW9AZWplbXBsby5jb20iLCJmaXJzdE5hbWUiOiJEaWVnbyIsImxhc3ROYW1lIjoiQnVpdHJhZ28iLCJ0aW1lU2Vzc2lvbiI6IjcyMDAiLCJ1c2VybmFtZSI6Ijg3ODc4Nzg3OF8yIn19.fCuZICo-5KvivT7ZvJYWfX3TbrSmECK-tUesjfF3niEZa1CIgEhHWW0uHCWRqIGYeZLLQEALBRbB_S1Y1Q_URIJkjpWchfm3xk1hHmH1LBqsWMKN-pBg2RM9tUQUoYiIofMwHhFSXfVuJKNnsQFwzFRNNXRIQyaVWMAaoVJH8PaIM1q7-tt0muBTV0HrWqLLDDn0Fd4SFlFapcHNz5JeSayu06jiyBNAD-tFu2Jn7w23yGp-e71F54QbEv4CW-uv3CZxG_hQ5w1BhRFW-1gLdoP1LkNV7QegNydNdVOXAREQ2RAQ2u7T7XK9IwWmEQXb6p274-Xr7zE8TCY1MSSvHg
+}
+
+body:json {
+  {
+    "tipo": "CO1C",
+    "numero": "1000000004"
+  }
+}
+
+script:pre-request {
+  const { data: apigee } = await axios.post(
+    'https://colsubsidio-test.apigee.net/oauth/client_credential/accesstoken?grant_type=client_credentials',
+    'grant_type=client_credentials&client_id=cmnGMnGPVKLJwWLfWxqFCSZOR5hIjhWb&client_secret=uKCYJXAVkLY5gsWt',
+    { headers: { 'content-type': 'application/x-www-form-urlencoded' } }
+  );
+  
+  const { data: ciam } = await axios.post(
+    'https://colsubsidio-test.apigee.net/api/v3/afiliacion/validador/token/ciam',
+    {
+      "uid": "bb99d52a895d4fa9a60d8a7128120c50",
+      "cliente": {
+        "nombres": "Diego",
+        "apellidos": "Buitrago",
+        "telefono": "+573043760558",
+        "correo": "correo@ejemplo.com",
+        "documento": { "tipo": "2", "numero": "878787878" }
+      },
+      "empresa": { "documento": { "tipo": "", "numero": "" } },
+      "sesion": { "tiempoSegundos": 7200 },
+      "tipoMarketing": "B2C",
+      "credenciales": { "gigyaApiKey": "4_8iVHMwS2exdEd0YQvlfe-g" }
+    },
+    {
+      headers: {
+        'authorization': `Bearer ${apigee.access_token}`,
+        'content-type': 'application/json',
+        'x-api-key': '816a9aa1-bbe9-4878-bce9-839d4448a2b4'
+      }
+    }
+  );
+  
+  req.setHeader("authorization", ciam.access_token);
+}
+
+settings {
+  encodeUrl: false
+  timeout: 0
+}
