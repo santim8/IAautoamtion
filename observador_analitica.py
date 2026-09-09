@@ -68,8 +68,19 @@ MONITOR_JS = r"""
   var loadStored = function () {
     try { return JSON.parse(sessionStorage.getItem(KEY)) || []; } catch (e) { return []; }
   };
-  var save = function (arr) {
-    try { sessionStorage.setItem(KEY, JSON.stringify(arr)); } catch (e) {}
+  // Guardar serializa el arreglo ENTERO, asi que hacerlo en cada push cuesta
+  // mas mientras mas eventos van: con 700 acumulados le sumaba 7 ms a cada
+  // push de la app. Se difiere y se junta: como mucho una escritura por
+  // segundo, y fuera del camino critico del push.
+  var pendiente = false;
+  var save = function () {
+    if (pendiente) { return; }
+    pendiente = true;
+    setTimeout(function () {
+      pendiente = false;
+      try { sessionStorage.setItem(KEY, JSON.stringify(window.__dlEvents)); }
+      catch (e) {}
+    }, 1000);
   };
   window.__dlEvents = (window.__dlEvents && window.__dlEvents.length)
     ? window.__dlEvents : loadStored();
@@ -98,7 +109,7 @@ MONITOR_JS = r"""
       url: location.href,
       payload: clone(payload)
     });
-    save(window.__dlEvents);
+    save();
   };
 
   var hookDataLayer = function () {
@@ -142,9 +153,18 @@ ESTADO_JS = """() => ({
                  && window.dataLayer.push.__dlWrapped)
 })"""
 
-LEER_JS = """() => {
-  try { if (window.__dlEvents && window.__dlEvents.length) return JSON.stringify(window.__dlEvents); } catch (e) {}
-  try { var s = sessionStorage.getItem('__dlEvents'); return s ? s : '[]'; } catch (e) { return '[]'; }
+# Devuelve solo lo que haya despues de `desde`. Mandar el arreglo entero en
+# cada vuelta movia medio mega cada 700 ms y bloqueaba la pagina ~65 ms cada
+# vez. `total` permite detectar que el arreglo se reinicio (pestana nueva,
+# sessionStorage limpio) y volver a leer desde cero.
+LEER_JS = """(desde) => {
+  var a = null;
+  try { if (window.__dlEvents && window.__dlEvents.length) { a = window.__dlEvents; } } catch (e) {}
+  if (!a) {
+    try { a = JSON.parse(sessionStorage.getItem('__dlEvents')) || []; } catch (e) { a = []; }
+  }
+  var n = a.length;
+  return JSON.stringify({total: n, nuevos: desde < n ? a.slice(desde) : []});
 }"""
 
 
@@ -224,6 +244,7 @@ class Analitica:
         self.por_enganchar = []    # pestanas nuevas, a enganchar desde el loop
         self.eventos = []          # snapshots en orden de captura
         self.vistos = set()        # (timestamp, payload) ya emitidos
+        self.leidos = 0            # cursor: cuantos snapshots ya pedimos
         self.ultimos = {}          # payload -> momento en que se emitio
         self.ruido = 0
         self.colapsados = 0        # mismo push registrado mas de una vez
@@ -322,16 +343,23 @@ class Analitica:
     def recoger(self, page):
         """Lee lo acumulado y emite solo lo que no habiamos visto."""
         try:
-            crudo = page.evaluate(LEER_JS)
+            crudo = page.evaluate(LEER_JS, self.leidos)
             self.fallos_seguidos = 0
         except Exception as e:
             self.fallos_seguidos += 1
             self.quejarse("no pude leer los eventos de la pagina", e)
             return
         try:
-            snapshots = json.loads(crudo or "[]")
-        except (json.JSONDecodeError, TypeError):
+            datos = json.loads(crudo or "{}")
+            snapshots = datos.get("nuevos") or []
+            total = datos.get("total", 0)
+        except (json.JSONDecodeError, TypeError, AttributeError):
             return
+        if total < self.leidos:
+            # el arreglo se reinicio; se relee entero y el dedupe evita repetir
+            self.leidos = 0
+            return
+        self.leidos = total
         for snap in snapshots:
             payload = snap.get("payload")
             clave = (snap.get("timestamp", ""),
