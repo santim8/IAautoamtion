@@ -71,6 +71,7 @@ ENDPOINTS_RASTREADOS = [
     "/loans/req-mgr/external/v1/product/2/request/offer-config",
     "/loans/req-mgr/external/v1/product/2/request/request-data",
     "/request/request-data",
+    "/request/cancel-request",
     "/request/decision-engine/start",
     "/loans/loan-util/external/modification-quota-amount",
 ]
