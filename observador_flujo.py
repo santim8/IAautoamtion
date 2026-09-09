@@ -143,6 +143,7 @@ SHOT_RESPUESTA_DEFAULT = ",".join([
     "request/offer",                 # personalizacion de oferta
     "parametros/estado_civil",       # datos personales; a veces se omite
     "modification-quota-amount",     # modificacion del cupo en personalizacion
+    "creditos/solicitud/login",      # pantalla de login (documento)
 ])
 
 
@@ -370,6 +371,7 @@ class Observador:
         self.extras = []             # [(paso, pagina, cuando_ms)] pantallazos extra
         self.shots_dif = []          # [(paso, pagina, cuando_ms)] shot de paso adelantado
         self.shots_resp = []         # [(pagina, nombre, bytes)] shots por responder
+        self.shots_tarde = []        # [(pagina, nombre, cuando_ms)] esperan render
         self.disparados = set()      # (paso, patron) ya disparados, para no repetir
         self.sin_reporte = False     # se paro pidiendo NO generar el reporte
         self.pend_req = {}           # request -> metadata, para casar con su response
@@ -620,14 +622,44 @@ class Observador:
                 continue
             self.disparados.add((idx, patron))
             slug = re.sub(r"[^A-Za-z0-9._-]+", "-", patron).strip("-")
+            nombre = "screenshot_on_response_%s.png" % slug
+            # Un documento acaba de llegar: la pagina todavia no pinto nada y
+            # retratarla ahora daria una hoja en blanco. Los XHR si valen en el
+            # instante, que es de lo que se trata: ver la pantalla con el dato
+            # que acaba de responder.
             try:
-                self.shots_resp.append((pagina,
-                                        "screenshot_on_response_%s.png" % slug,
+                es_documento = response.request.resource_type == "document"
+            except Exception:
+                es_documento = False
+            if es_documento:
+                self.shots_tarde.append(
+                    (pagina, nombre, time.time() * 1000 + self.settle_ms))
+                print("   [shot] %s cargo; retrato en %d ms"
+                      % (patron, self.settle_ms))
+                continue
+            try:
+                self.shots_resp.append((pagina, nombre,
                                         pagina.screenshot(full_page=True,
                                                           timeout=5000)))
                 print("   [shot] %s respondio; pantalla capturada" % patron)
             except Exception as e:
                 print("! pantallazo al responder %s fallo: %s" % (patron, e))
+
+    def tomar_shots_tarde(self, forzar=False):
+        """Retrata lo que espero a que la pagina pintara."""
+        ahora = time.time() * 1000
+        quedan = []
+        for pagina, nombre, cuando in self.shots_tarde:
+            if not forzar and ahora < cuando:
+                quedan.append((pagina, nombre, cuando))
+                continue
+            try:
+                self.shots_resp.append(
+                    (pagina, nombre, pagina.screenshot(full_page=True,
+                                                       timeout=5000)))
+            except Exception as e:
+                print("! pantallazo de %s fallo: %s" % (nombre[23:-4], e))
+        self.shots_tarde = quedan
 
     def volcar_shots(self):
         """Escribe los pantallazos ya con el paso resuelto.
@@ -1682,6 +1714,7 @@ def observar(args, obs):
                     actual = obs.paso_por_pagina.get(pagina)
                     if not actual or actual["url"] != url_real:
                         obs.abrir_paso(pagina, url_real)
+                obs.tomar_shots_tarde()
                 obs.volcar_shots()
                 obs.tomar_extras()
                 obs.tomar_shots_diferidos()
@@ -1691,6 +1724,7 @@ def observar(args, obs):
             # Tras un Ctrl+C, Playwright ya esta cancelando sus tareas: leer los
             # bodies pendientes puede reventar. Que eso NO impida el reporte.
             try:
+                obs.tomar_shots_tarde(forzar=True)
                 obs.volcar_shots()        # no perder los del ultimo instante
                 obs.vaciar_pendientes()   # no perder la ultima pantalla
                 obs.tomar_shots_diferidos(forzar=True)
