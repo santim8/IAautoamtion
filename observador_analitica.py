@@ -368,9 +368,14 @@ class Analitica:
 
 # --- salida ----------------------------------------------------------------
 CSS_EXTRA = """
-  .ev { background:var(--card); border:1px solid var(--bd); border-left:3px solid var(--acc);
+  /* El borde izquierdo es el veredicto. Neutro cuando no hubo validacion:
+     antes todos salian con el color de acento, un rojo terracota, y un evento
+     que cumplia el schema parecia estar fallando. */
+  .ev { background:var(--card); border:1px solid var(--bd); border-left:3px solid var(--bd);
         border-radius:4px; margin-bottom:6px; }
-  .ev.repe { border-left-color:var(--mut); opacity:.75; }
+  .ev.repe { opacity:.75; }
+  .ev.okk { border-left-color:var(--ok); }
+  .ev.sinspec { border-left-color:var(--mut); }
   .ev summary { cursor:pointer; padding:7px 10px; display:flex; gap:12px;
                 align-items:center; font-size:12px; }
   .ev .num { font-weight:700; min-width:30px; color:var(--mut); }
@@ -394,6 +399,7 @@ CSS_EXTRA = """
   .val ul { margin:4px 0 0; padding-left:18px; color:var(--err); }
   .val li { font-family:ui-monospace,Consolas,monospace; font-size:11px; }
   .ev.nook { border-left-color:var(--err); }
+  .chip.ok { background:var(--ok); color:#fff; }
   .chip { font-size:9px; font-weight:700; padding:1px 5px; border-radius:3px;
           letter-spacing:.4px; }
   .chip.mal { background:var(--err); color:#fff; }
@@ -450,7 +456,8 @@ def escribir_reporte(obs, flujo, ruta):
             chip = '<span class="chip nospec">sin spec</span>'
         filas.append(
             '<details class="ev' + (' repe' if repetido else '')
-            + (' nook' if estado == "falla" else '') + '"><summary>'
+            + {"ok": " okk", "falla": " nook",
+               "sin-spec": " sinspec"}.get(estado, "") + '"><summary>'
             '<span class="num">#' + esc(snap["_n"]) + '</span>'
             '<span class="nom">' + esc(nombre_evento(payload)) + '</span>'
             + chip
