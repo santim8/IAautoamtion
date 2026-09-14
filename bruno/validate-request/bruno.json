@@ -2,5 +2,8 @@
   "version": "1",
   "name": "request_colsubsidio",
   "type": "collection",
-  "ignore": []
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
 }

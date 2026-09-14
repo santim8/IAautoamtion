@@ -44,7 +44,8 @@ EVIDENCIAS = os.path.join(BASE, "evidences")
 # python: se importan como modulos desde el propio ejecutable (ver _correr_hijo),
 # asi que la lista tambien le dice a PyInstaller que tiene que incluirlos.
 HIJOS = ["observador_flujo", "observador_analitica", "bizagi_cancel_case",
-         "bizagi_consultar_caso", "validaciones_api", "biometria_api"]
+         "bizagi_consultar_caso", "bizagi_consultar_json", "validaciones_api",
+         "biometria_api"]
 
 # Usuarios de prueba. Viven FUERA del repo a proposito: dentro, un git clean
 # -fdx o volver a clonar se los lleva por delante (estan en .gitignore, que es
@@ -155,6 +156,7 @@ PUERTO = 9222
 
 RE_MARCA = re.compile(r"_(\d{4})-(\d{2})-(\d{2})_(\d{2})(\d{2})(\d{2})$")
 RE_CASO = re.compile(r"ltima solicitud:\s*(\d+)")
+RE_CASO_JSON = re.compile(r"Consultando caso (\d+)")
 
 
 # --- lanzar a los hermanos -------------------------------------------------
@@ -352,6 +354,33 @@ def args_consultar(valores, emitir):
     return [valores.get("Tipo doc", "CC"), documento]
 
 
+def args_consultar_json(valores, emitir):
+    """Este flujo busca directo por numero de solicitud; no hay documento."""
+    id_caso = valores.get("Id caso", "").strip()
+    if not id_caso:
+        emitir("! Escribe el Id de caso (numero de solicitud).", "mal")
+        return None
+    return [id_caso]
+
+
+def estado_consultar_json(texto):
+    """bizagi_consultar_json.py no devuelve exit code distinto: el veredicto
+    se lee del log, igual que los demas hijos de Bizagi."""
+    m = RE_CASO_JSON.search(texto)
+    caso = m.group(1) if m else "?"
+    if "registro obtenido" in texto:
+        return "bien", "Caso %s: registro obtenido en el JSON." % caso
+    if "No se encontraron registros" in texto:
+        return "mal", "Caso %s: la consulta no devolvio registros." % caso
+    if "el login" in texto:
+        return "mal", "Fallo el login en Bizagi."
+    if "navegar a Analista operativo" in texto:
+        return "mal", "No se pudo navegar a Analista operativo."
+    if "buscar el caso" in texto:
+        return "mal", "No se pudo buscar el caso %s en Analista operativo." % caso
+    return "mal", "Termino sin un veredicto claro; revisa el log."
+
+
 def args_biometria(valores, emitir):
     """Los mismos 3 campos que antes pedia la suite de TestNG (idCaso,
     typeDocument, identification), ahora como argumentos de linea de comandos
@@ -478,6 +507,28 @@ HERRAMIENTAS = [
              "opciones": ["CC", "CE"], "valor": "CC", "ancho": 6},
             {"tipo": "texto", "solo_forma": True, "etiqueta": "Documento",
              "valor": "", "ancho": 20},
+        ],
+    },
+    {
+        "id": "bizagi_consultar_json",
+        "nombre": "Consultar JSON",
+        "script": "bizagi_consultar_json.py",
+        "boton": "Consultar",
+        # en headless (por defecto) el propio script cierra el navegador
+        # apenas imprime el JSON; sin headless queda abierto y se cierra con
+        # Detener, igual que "Consultar caso Bizagi"
+        "parada": "terminar",
+        "previo": asegurar_chromium,
+        "ayuda": "Busca directo por Id de caso en GCR_Solicitudes - Analista "
+                 "operativo (marca 'incluir todo' antes de buscar) y vuelca "
+                 "la fila de resultados como JSON en el log.",
+        "estado": estado_consultar_json,
+        "argumentos": args_consultar_json,
+        "campos": [
+            {"tipo": "check", "arg": "--headless",
+             "etiqueta": "Sin ventana del navegador", "valor": True},
+            {"tipo": "texto", "solo_forma": True, "etiqueta": "Id caso",
+             "valor": "", "ancho": 14, "requerido": True},
         ],
     },
 ]
