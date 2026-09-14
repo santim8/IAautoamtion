@@ -8,9 +8,11 @@ Doble clic en `panel.bat`, o usa el `.exe` (ver *Repartirlo como aplicación*).
 | pestaña | qué hace |
 |---|---|
 | Observador de flujos | navegas a mano en Chrome; captura pantallas, requests y websocket |
+| Analitica dataLayer | navegas a mano en Chrome; anota cada push al `dataLayer` (sin el ruido de GTM) y lo valida contra `analitica/modelo_de_datos[*].json` |
 | Suite biometría | autenticación biométrica + firma de documentos, pegando directo a los endpoints REST (sin Maven, sin navegador) |
 | Cancelar caso Bizagi | busca la última solicitud del documento y la cancela |
-| Consultar caso Bizagi | muestra la última solicitud y deja el navegador abierto |
+| Consultar caso Bizagi | con Id de caso busca directo; sin él, pide tipo y documento y muestra la última solicitud. Deja el navegador abierto |
+| Consultar JSON | busca por Id de caso en *GCR_Solicitudes - Analista operativo* y vuelca la fila como JSON en el log |
 | Validaciones API | corre los ~14 servicios de elegibilidad de crédito contra una lista de documentos, en paralelo |
 | Usuarios | libreta de usuarios de prueba |
 | Corridas | evidencia acumulada; abre reportes y los regenera |
@@ -104,6 +106,8 @@ Después de publicar hay que commitear `usuarios_compartidos.json` a mano.
 | ruta | contenido |
 |---|---|
 | `evidences/` | una carpeta por corrida del observador (no se versiona) |
+| `evidencias_analitica/` | una carpeta por corrida de la analítica (no se versiona) |
+| `analitica/modelo_de_datos[*].json` | lo que se espera de cada evento de analítica; editable, **sí se versiona** |
 | `esquemas_servicios.json` | contrato observado de cada servicio; **sí se versiona** |
 | `usuarios_compartidos.json` | catálogo de usuarios del equipo; **sí se versiona** |
 | `~/.panel_qa/usuarios_prueba.json` | tus usuarios, con sus claves en claro |
@@ -131,3 +135,14 @@ navegas.
 El checkbox **Tomar esta corrida como baseline de esquemas** viene desmarcado a
 propósito. Marcarlo funde lo observado con el baseline y puede revertir
 correcciones hechas a mano en `esquemas_servicios.json`.
+
+El checkbox **Empezar sin sesión previa (como incógnito)** viene marcado: antes
+de capturar borra cookies, caché y almacenamiento del Chrome de QA.
+
+**Reiniciar Chrome** (en el Observador y en la Analítica) cierra el Chrome de QA
+y abre uno limpio; se pierden las pestañas y la sesión. Sirve cuando Chrome deja
+de navegar aunque el panel diga que está arriba. Hay que detener la captura
+antes.
+
+Para que un evento de analítica nuevo se valide basta con agregar su entrada en
+el `modelo_de_datos` que corresponda; no hay que tocar código.
