@@ -1,11 +1,11 @@
 meta {
-  name: Validate Request
+  name: SIIF EXT [V1][VALIDACIONES]
   type: http
-  seq: 7
+  seq: 17
 }
 
 post {
-  url: {{baseUrl}}/loans/req-mgr/external/v1/product/2/request/validate-request
+  url: https://platform-test-external.colsubsidio.com/loans/eligibility/external/v1/product-validations
   body: json
   auth: none
 }
@@ -16,12 +16,11 @@ headers {
 
 body:json {
   {
+    "idCaso": "4325",
     "documento": {
       "tipo": "CO1C",
-      "numero": "1000000001"
-    },
-    "canalOrigen": "WEB",
-    "tipoSolicitud": "1"
+      "numero": "79528108"
+    }
   }
 }
 
@@ -30,12 +29,14 @@ assert {
 }
 
 script:pre-request {
+  // 1. Obtener token Apigee
   const { data: apigee } = await axios.post(
     'https://colsubsidio-test.apigee.net/oauth/client_credential/accesstoken?grant_type=client_credentials',
     'grant_type=client_credentials&client_id=cmnGMnGPVKLJwWLfWxqFCSZOR5hIjhWb&client_secret=uKCYJXAVkLY5gsWt',
     { headers: { 'content-type': 'application/x-www-form-urlencoded' } }
   );
   
+  // 2. Obtener token CIAM usando el token de Apigee
   const { data: ciam } = await axios.post(
     'https://colsubsidio-test.apigee.net/api/v3/afiliacion/validador/token/ciam',
     {
@@ -61,11 +62,13 @@ script:pre-request {
     }
   );
   
+  console.log("CIAM response:", JSON.stringify(ciam));
   req.setHeader("authorization", ciam.access_token);
 }
 
 docs {
-  Happy Path — Originación CC sin caso previo en Bizagi.
-  tipoSolicitud=1 debe habilitar la creación del caso.
+  Card Validations — verifica elegibilidad de tarjeta por documento.
+  Pre-request encadena: Apigee OAuth → CIAM token → card-validations.
+  El token CIAM no lleva prefijo Bearer.
   Expected: 200 OK
 }

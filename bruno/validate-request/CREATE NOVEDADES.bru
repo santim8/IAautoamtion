@@ -1,0 +1,51 @@
+meta {
+  name: CREATE NOVEDADES
+  type: http
+  seq: 19
+}
+
+post {
+  url: https://platform-test-internal.colsubsidio.com/loans/eligibility/internal/v1/campaigns
+  body: json
+  auth: inherit
+}
+
+headers {
+  content-type: application/json
+  x-api-key: ecn24ysGnZ4X17cU5lX4Q9gyFvyPR7fD1DkwR7I7
+}
+
+body:json {
+  {
+    "tipo_id": 2,
+    "documento": "415319",
+    "campanas": [
+      {
+        "tipo_id": 2,
+        "documento": "415319",
+        "SUBPRODUCTO": 55,
+        "PRODUCTO": "CUPO DE CREDITO",
+        "TIPO_PRODUCTO": "CUPO NORMAL",
+        "TIPO_CAMPANA": 1,
+        "CODIGO_CAMPANA": 758,
+        "VERSION": 1,
+        "FECHA_VIGENCIA": "20261228",
+        "NOMBRE_CAMPANA": "Aprobado en firme",
+        "LIBRANZA_SN": "N",
+        "MONTO": 2500000,
+        "CUOTA": 100000,
+        "PLAZO": 36,
+        "PLAN_DE_INTERES": 0,
+        "TASA": 0,
+        "CODIGO_DE_GARANTIA": 0,
+        "ESTADO_DE_CAMPANA": 1,
+        "GESTION_DOCUMENTAL": 1
+      }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: false
+  timeout: 0
+}

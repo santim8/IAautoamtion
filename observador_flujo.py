@@ -39,6 +39,7 @@ from datetime import datetime, timezone
 from playwright.sync_api import sync_playwright
 
 import esquemas as esq
+import rutas
 
 # Hosts del backend que interesan (match por substring sobre la URL).
 # Sacados de bruno/validate-request/.
@@ -47,7 +48,12 @@ HOSTS_DEFAULT = [
     "platform-test-external.colsubsidio.com",
     "platform-test-internal.colsubsidio.com",
     "dev.colsubsidio.com",
+    "d2b80yrnend1dj.cloudfront.net",
 ]
+
+# Rutas de la aplicacion, una por despliegue. Es lo que --solo-url usa por
+# defecto para reconocer la pestana del flujo.
+RUTAS_APP = ["creditos/solicitud", "loans-dev-solicitud"]
 
 # Endpoints de negocio que interesan (match por substring sobre la URL).
 # Espejo de TRACKED_ENDPOINTS del framework Java, para poder comparar 1:1.
@@ -65,6 +71,7 @@ ENDPOINTS_RASTREADOS = [
     "/loans/req-mgr/external/v1/product/2/request/offer-config",
     "/loans/req-mgr/external/v1/product/2/request/request-data",
     "/request/request-data",
+    "/request/cancel-request",
     "/request/decision-engine/start",
     "/loans/loan-util/external/modification-quota-amount",
 ]
@@ -124,9 +131,10 @@ TIPOS_SIN_CUERPO = {"image", "font", "media", "stylesheet", "script", "manifest"
 TOLERANCIA_CAMBIO_MS = 300
 
 # Contrato observado de cada servicio. Vive en el repo (no en evidences/) porque
-# es lo que se compara entre corridas y lo que se revisa en un PR.
-ESQUEMAS_DEFAULT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                "esquemas_servicios.json")
+# es lo que se compara entre corridas y lo que se revisa en un PR. Se ESCRIBE
+# con --generar-esquemas, asi que va a BASE: dentro del .exe seria una carpeta
+# temporal que se borra al cerrar.
+ESQUEMAS_DEFAULT = os.path.join(rutas.BASE, "esquemas_servicios.json")
 
 # Servicios cuya respuesta pinta una pantalla que vale la pena dejar retratada
 # en ese instante. Todos son OPCIONALES: si el flujo no pasa por esa pantalla
@@ -135,6 +143,7 @@ SHOT_RESPUESTA_DEFAULT = ",".join([
     "request/offer",                 # personalizacion de oferta
     "parametros/estado_civil",       # datos personales; a veces se omite
     "modification-quota-amount",     # modificacion del cupo en personalizacion
+    "creditos/solicitud/login",      # pantalla de login (documento)
 ])
 
 
@@ -237,6 +246,76 @@ def lanzar_chrome(puerto):
     return 0
 
 
+def origenes_app(hosts, paginas):
+    """Origenes cuyo almacenamiento hay que vaciar.
+
+    Los hosts del backend mas el de la pestana que este abierta: la sesion no
+    vive solo en la app, tambien en el proveedor de SSO que la autentica.
+    """
+    origenes = {"https://%s" % h for h in hosts if "." in h}
+    for pg in paginas:
+        try:
+            partes = (pg.url or "").split("/")
+            if len(partes) > 2 and partes[0].startswith("http"):
+                origenes.add("%s//%s" % (partes[0], partes[2]))
+        except Exception:
+            continue
+    return sorted(origenes)
+
+
+def limpiar_navegador(browser, paginas, hosts):
+    """Deja el navegador como recien abierto: sin cookies, cache ni storage.
+
+    Es el equivalente a abrir una ventana de incognito, pero sobre el Chrome que
+    ya esta conectado: crear un contexto de incognito por CDP no es algo que
+    Playwright permita sobre un navegador al que solo se engancho.
+    """
+    if not paginas:
+        return
+    pagina = paginas[0]
+    borrados = []
+    try:
+        sesion = pagina.context.new_cdp_session(pagina)
+    except Exception as e:
+        print("! No pude abrir sesion CDP para limpiar: %s" % e)
+        return
+    for comando in ("Network.clearBrowserCookies", "Network.clearBrowserCache"):
+        try:
+            sesion.send(comando)
+            borrados.append(comando.split(".")[1])
+        except Exception as e:
+            print("! %s fallo: %s" % (comando, e))
+    n = 0
+    for origen in origenes_app(hosts, paginas):
+        try:
+            sesion.send("Storage.clearDataForOrigin",
+                        {"origin": origen, "storageTypes": "all"})
+            n += 1
+        except Exception:
+            continue          # origen que Chrome no reconoce: no es un problema
+    # sessionStorage es por pestana, no por origen: Storage.clearDataForOrigin
+    # no lo toca y sobrevivia a la limpieza. Hay que vaciarlo desde la pagina.
+    vaciadas = 0
+    for pg in paginas:
+        try:
+            if not es_url_real(pg.url):
+                continue
+            pg.evaluate("() => { try { sessionStorage.clear(); } catch (e) {}"
+                        " try { localStorage.clear(); } catch (e) {} }")
+            vaciadas += 1
+        except Exception:
+            continue
+    print("Limpieza: %s, storage de %d origen(es), %d pestana(s) vaciadas."
+          % (", ".join(borrados) or "nada", n, vaciadas))
+    # sin recargar, la pagina sigue con la sesion viva en memoria
+    for pg in paginas:
+        try:
+            if es_url_real(pg.url):
+                pg.reload(wait_until="domcontentloaded", timeout=15000)
+        except Exception:
+            continue
+
+
 # --- observador ------------------------------------------------------------
 JS_HOOK_RUTA = """
 (() => {
@@ -277,7 +356,11 @@ class Observador:
         self.redactar = redactar
         self.settle_ms = settle_ms
         # --- alcance por pestana (independiente del filtro de hosts) ---
-        self.patron = patron_pestana  # None = todas las pestanas
+        # lista de rutas aceptadas; vacia = todas las pestanas
+        if isinstance(patron_pestana, str):
+            patron_pestana = [x.strip() for x in patron_pestana.split(",")
+                              if x.strip()]
+        self.patrones = list(patron_pestana or [])
         self.seguir_popups = seguir_popups
         self.lock = None             # la pestana elegida, una vez encontrada
         self.hijas = set()           # pestanas abiertas POR la elegida
@@ -288,8 +371,8 @@ class Observador:
         self.extras = []             # [(paso, pagina, cuando_ms)] pantallazos extra
         self.shots_dif = []          # [(paso, pagina, cuando_ms)] shot de paso adelantado
         self.shots_resp = []         # [(pagina, nombre, bytes)] shots por responder
+        self.shots_tarde = []        # [(pagina, nombre, cuando_ms)] esperan render
         self.disparados = set()      # (paso, patron) ya disparados, para no repetir
-        self.sockets = 0             # websockets vistos, para el resumen
         self.sin_reporte = False     # se paro pidiendo NO generar el reporte
         self.pend_req = {}           # request -> metadata, para casar con su response
         self.paso_por_pagina = {}    # pagina -> su paso actual (soporte multi-pestana)
@@ -314,9 +397,10 @@ class Observador:
     # -- filtro por origen (de que pestana viene)
     def intentar_lock(self, page, url):
         """Engancha el candado a la primera pestana cuya URL case con el patron."""
-        if self.lock is not None or not self.patron:
+        if self.lock is not None or not self.patrones:
             return False
-        if self.patron not in ruta_de(url):
+        ruta = ruta_de(url)
+        if not any(p in ruta for p in self.patrones):
             return False
         self.lock = page
         print("\n>> Pestana fijada: %s" % url)
@@ -324,7 +408,7 @@ class Observador:
         return True
 
     def pagina_permitida(self, page):
-        if not self.patron:
+        if not self.patrones:
             return True              # sin --solo-url: todas las pestanas
         if self.lock is None:
             return False             # aun no encontramos la pestana objetivo
@@ -417,7 +501,6 @@ class Observador:
             try:
                 page.screenshot(path=os.path.join(paso["dir"], "screenshot_2.png"),
                                 full_page=True)
-                paso["extra"] = True
                 print(f"[paso {paso['idx']:02d}] pantallazo extra guardado")
             except Exception as e:
                 print(f"  ! pantallazo extra del paso {paso['idx']} fallo: {e}")
@@ -480,7 +563,7 @@ class Observador:
 
     def descartar(self, request):
         """True si el request no pertenece a la pestana bajo observacion."""
-        if not self.patron:
+        if not self.patrones:
             return False
         pagina = self.pagina_de(request)
         if pagina is None:
@@ -511,7 +594,7 @@ class Observador:
 
     def on_response(self, response):
         pagina = self.pagina_de(response.request)
-        if self.patron and not self.pagina_permitida(pagina):
+        if self.patrones and not self.pagina_permitida(pagina):
             return
         # Antes del filtro de captura a proposito: hay disparadores que no son
         # endpoints rastreados (estado_civil), y en modo "endpoints" interesa()
@@ -539,14 +622,44 @@ class Observador:
                 continue
             self.disparados.add((idx, patron))
             slug = re.sub(r"[^A-Za-z0-9._-]+", "-", patron).strip("-")
+            nombre = "screenshot_on_response_%s.png" % slug
+            # Un documento acaba de llegar: la pagina todavia no pinto nada y
+            # retratarla ahora daria una hoja en blanco. Los XHR si valen en el
+            # instante, que es de lo que se trata: ver la pantalla con el dato
+            # que acaba de responder.
             try:
-                self.shots_resp.append((pagina,
-                                        "screenshot_on_response_%s.png" % slug,
+                es_documento = response.request.resource_type == "document"
+            except Exception:
+                es_documento = False
+            if es_documento:
+                self.shots_tarde.append(
+                    (pagina, nombre, time.time() * 1000 + self.settle_ms))
+                print("   [shot] %s cargo; retrato en %d ms"
+                      % (patron, self.settle_ms))
+                continue
+            try:
+                self.shots_resp.append((pagina, nombre,
                                         pagina.screenshot(full_page=True,
                                                           timeout=5000)))
                 print("   [shot] %s respondio; pantalla capturada" % patron)
             except Exception as e:
                 print("! pantallazo al responder %s fallo: %s" % (patron, e))
+
+    def tomar_shots_tarde(self, forzar=False):
+        """Retrata lo que espero a que la pagina pintara."""
+        ahora = time.time() * 1000
+        quedan = []
+        for pagina, nombre, cuando in self.shots_tarde:
+            if not forzar and ahora < cuando:
+                quedan.append((pagina, nombre, cuando))
+                continue
+            try:
+                self.shots_resp.append(
+                    (pagina, nombre, pagina.screenshot(full_page=True,
+                                                       timeout=5000)))
+            except Exception as e:
+                print("! pantallazo de %s fallo: %s" % (nombre[23:-4], e))
+        self.shots_tarde = quedan
 
     def volcar_shots(self):
         """Escribe los pantallazos ya con el paso resuelto.
@@ -633,9 +746,8 @@ class Observador:
         a un dominio distinto al del backend (API Gateway) y perderlos deja el
         reporte sin la mitad de la historia.
         """
-        if self.patron and not self.pagina_permitida(pagina):
+        if self.patrones and not self.pagina_permitida(pagina):
             return
-        self.sockets += 1
         print("   [ws] abierto %s" % ws.url)
         ws.on("framesent",
               lambda datos: self.guardar_frame(pagina, ws, "enviado", datos))
@@ -1386,8 +1498,9 @@ def main():
     ap.add_argument("--todos-los-hosts", action="store_true",
                     help="captura todo, sin filtro de dominio")
     ap.add_argument("--solo-url", default=None, metavar="PATRON",
-                    help="observa SOLO la pestana cuya URL contenga PATRON; "
-                         "ignora las demas pestanas")
+                    help="observa SOLO la pestana cuya ruta contenga PATRON; "
+                         "varias separadas por coma (las de la app: %s)"
+                         % ", ".join(RUTAS_APP))
     ap.add_argument("--seguir-popups", action="store_true",
                     help="con --solo-url, sigue tambien las pestanas que abra la observada")
     ap.add_argument("--captura", choices=["endpoints", "hosts", "todo"], default="endpoints",
@@ -1417,6 +1530,9 @@ def main():
                     help="NO redacta tokens ni cookies (cuidado con la evidencia)")
     ap.add_argument("--settle-ms", type=int, default=1200,
                     help="espera tras un cambio de pantalla antes del screenshot")
+    ap.add_argument("--limpiar", action="store_true",
+                    help="arranca sin sesion previa: borra cookies, cache y "
+                         "almacenamiento antes de capturar (como incognito)")
     ap.add_argument("--stop-file", default=None, metavar="RUTA",
                     help="corta limpiamente cuando aparezca ese archivo; equivale a "
                          "Ctrl+C, asi que el reporte se genera igual (lo usa el panel)")
@@ -1456,8 +1572,12 @@ def main():
         print("       Para evitarlo, no empieces el patron con \"/\".\n")
         args.solo_url = limpio
 
+    # sin --solo-url no se filtra nada; con el, se aceptan varias rutas para
+    # que el mismo comando sirva en los dos despliegues del front
+    patrones_pestana = ([x.strip() for x in args.solo_url.split(",") if x.strip()]
+                        if args.solo_url else [])
     obs = Observador(dir_salida, hosts, not args.sin_redactar, args.settle_ms,
-                     patron_pestana=args.solo_url, seguir_popups=args.seguir_popups,
+                     patron_pestana=patrones_pestana, seguir_popups=args.seguir_popups,
                      endpoints=endpoints, solo_endpoints=(modo == "endpoints"),
                      pantallazo_extra=extras, extra_ms=args.extra_ms,
                      screenshot_on_response=args.screenshot_on_response)
@@ -1507,6 +1627,8 @@ def observar(args, obs):
             paginas = [browser.contexts[0].new_page()]
             obs.enganchar(paginas[0])
         print("Pestanas enganchadas al inicio: %d" % len(paginas))
+        if args.limpiar:
+            limpiar_navegador(browser, paginas, obs.hosts or HOSTS_DEFAULT)
 
         activa = paginas[0]
         if args.solo_url:
@@ -1520,15 +1642,18 @@ def observar(args, obs):
                 except Exception:
                     continue
             if obs.lock is None:
-                print("Aun no veo ninguna pestana con \"%s\"." % args.solo_url)
+                print("Aun no veo ninguna pestana con %s."
+                      % " ni ".join('"%s"' % p for p in obs.patrones))
                 print("Navega a esa URL y la fijo automaticamente.")
         elif es_url_real(activa.url):
             obs.abrir_paso(activa, activa.url)
         else:
             print("Esperando la primera pantalla (la pestana esta en %s)..." % activa.url)
 
-        print("Alcance: %s" % ("SOLO la pestana con \"%s\"" % args.solo_url
-                               if args.solo_url else "todas las pestanas"))
+        print("Alcance: %s"
+              % ("SOLO la pestana con "
+                 + " o ".join('"%s"' % p for p in obs.patrones)
+                 if obs.patrones else "todas las pestanas"))
         if obs.solo_endpoints:
             print("Se guardan: solo los %d endpoints rastreados" % len(obs.endpoints))
         elif obs.hosts:
@@ -1589,6 +1714,7 @@ def observar(args, obs):
                     actual = obs.paso_por_pagina.get(pagina)
                     if not actual or actual["url"] != url_real:
                         obs.abrir_paso(pagina, url_real)
+                obs.tomar_shots_tarde()
                 obs.volcar_shots()
                 obs.tomar_extras()
                 obs.tomar_shots_diferidos()
@@ -1598,6 +1724,7 @@ def observar(args, obs):
             # Tras un Ctrl+C, Playwright ya esta cancelando sus tareas: leer los
             # bodies pendientes puede reventar. Que eso NO impida el reporte.
             try:
+                obs.tomar_shots_tarde(forzar=True)
                 obs.volcar_shots()        # no perder los del ultimo instante
                 obs.vaciar_pendientes()   # no perder la ultima pantalla
                 obs.tomar_shots_diferidos(forzar=True)

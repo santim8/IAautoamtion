@@ -24,11 +24,16 @@ except ImportError:                                  # pragma: no cover
 # Un servicio se identifica por metodo + el endpoint rastreado que caso, no por
 # la URL completa: la URL lleva ids (/campaigns/1/1032410060) que cambian en
 # cada corrida y partirian el baseline en mil claves distintas.
-def clave_servicio(reg):
+#
+# El escenario (afiliacion + tipo de oferta) va aparte, como sufijo: la forma
+# legitima de un mismo servicio cambia segun quien lo corre (ver
+# project_tipo_afiliacion_pensionado en memoria), y mezclarlas en un solo
+# baseline marca variantes correctas como "falla".
+def clave_servicio(reg, escenario=""):
     rastreados = reg.get("rastreados") or []
     if not rastreados:
         return None
-    return "%s %s" % (reg.get("metodo", "?"), rastreados[0])
+    return "%s %s%s" % (reg.get("metodo", "?"), rastreados[0], escenario)
 
 
 def _quizas_json(txt):
@@ -109,12 +114,75 @@ def fundir_esquemas(a, b):
     return out
 
 
+# --- escenario: afiliacion + tipo de oferta ---------------------------------
+# Descubierto analizando evidencias reales (ver memoria
+# project_tipo_afiliacion_pensionado): "grupo" es la unica marca especifica de
+# pensionado dentro del crudo de SAP-AFILIACIONES -- tipoAfiliacion "I" sola no
+# alcanza, la comparten pensionado e independiente.
+UMBRAL_APROBADO_EN_FIRME = 759   # igual que Campaign.getOfferType() en
+CODIGO_CAMPANA_PRUEBAS = 999     # app-cre-product-eligibility-api
+
+
+def _afiliacion_de(pasos):
+    """pensionado | dependiente | independiente | None."""
+    for paso in pasos:
+        for r in paso.get("requests", []):
+            if "affiliation-validations" not in (r.get("url") or ""):
+                continue
+            cuerpo = _quizas_json(r.get("response_body"))
+            if not isinstance(cuerpo, dict):
+                continue
+            resultado = cuerpo.get("resultadoValidacion") or {}
+            crudo = _quizas_json(resultado.get("datosSinProcesar")) or {}
+            afiliacion = (crudo.get("afiliado") or {}).get("afiliacion") or {}
+            if afiliacion.get("grupo") == "ZGRE":
+                return "pensionado"
+            tipo = (resultado.get("datosAdicionales") or {}).get("tipoAfiliacion")
+            if tipo == "D":
+                return "dependiente"
+            if tipo == "I":
+                return "independiente"
+    return None
+
+
+def _tipo_oferta_de(pasos):
+    """aprobado_en_firme | preaprobado | pruebas | None, del primer XPath
+    CODIGO_CAMPANA que devuelva /campaigns/ (mismo umbral que el backend)."""
+    for paso in pasos:
+        for r in paso.get("requests", []):
+            if "/campaigns/" not in (r.get("url") or ""):
+                continue
+            cuerpo = _quizas_json(r.get("response_body"))
+            if not isinstance(cuerpo, dict):
+                continue
+            campanas = cuerpo.get("campanas") or []
+            if not campanas or not isinstance(campanas[0], dict):
+                continue
+            codigo = campanas[0].get("CODIGO_CAMPANA")
+            if not isinstance(codigo, (int, float)):
+                continue
+            if codigo == CODIGO_CAMPANA_PRUEBAS:
+                return "pruebas"
+            return ("aprobado_en_firme" if codigo >= UMBRAL_APROBADO_EN_FIRME
+                    else "preaprobado")
+    return None
+
+
+def escenario_de_corrida(pasos):
+    """Sufijo para separar el baseline por escenario legitimamente distinto.
+    "" si no se pudo determinar nada (corridas viejas, u otros flujos que no
+    tocan afiliacion/campana), para no inventar una clave rara."""
+    partes = [p for p in (_afiliacion_de(pasos), _tipo_oferta_de(pasos)) if p]
+    return "#" + "-".join(partes) if partes else ""
+
+
 def esquemas_de_corrida(pasos):
     """Recorre la evidencia y deduce el contrato de cada servicio rastreado."""
+    escenario = escenario_de_corrida(pasos)
     acum = {}
     for paso in pasos:
         for r in paso.get("requests", []):
-            clave = clave_servicio(r)
+            clave = clave_servicio(r, escenario)
             if not clave:
                 continue
             entrada = acum.setdefault(clave, {"ejemplos": 0, "request": None,
@@ -185,10 +253,11 @@ def _validar_lado(cuerpo_txt, esquema):
 
 def validar(pasos, baseline):
     """Contrasta cada llamada capturada contra el baseline. Nunca lanza."""
+    escenario = escenario_de_corrida(pasos)
     resultados = []
     for paso in pasos:
         for r in paso.get("requests", []):
-            clave = clave_servicio(r)
+            clave = clave_servicio(r, escenario)
             if not clave:
                 continue
             esq = baseline.get(clave) or {}
