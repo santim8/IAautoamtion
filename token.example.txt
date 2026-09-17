@@ -1,0 +1,44 @@
+# Plantilla de token.txt. Copiala a token.txt (que NO se versiona) y rellena
+# los valores:
+#
+#   copy token.example.txt token.txt
+#
+# Una clave por linea, con un signo igual y el valor pegado, sin comillas.
+# OJO: no pongas comentarios a la derecha del valor; el parser se los traga
+# como si fueran parte del secreto. Dejar la clave vacia es lo correcto
+# mientras no la tengas: el script avisa exactamente cual falta.
+
+
+# --- Pestana "Validaciones API" (validaciones_api.py) ---------------------
+# Las 6 que necesita para correr los ~14 servicios de elegibilidad.
+
+# x-api-key de eligibility. La pestana "Suite biometria" reusa esta misma.
+api_key_card_validations=
+# client_id de Apigee
+apigee_client_id=
+# client_secret de Apigee
+apigee_client_secret=
+# password del login SSO
+sso_password=
+# x-api-key del endpoint de token CIAM
+ciam_token_api_key=
+# gigyaApiKey del token CIAM
+ciam_gigya_api_key=
+
+
+# --- Scripts sueltos de card-validations / validate-request ---------------
+# JWT pegado a mano desde el navegador; caducan solo (2h los de card, ~5 min
+# el de validate-request), asi que se refrescan en cada corrida.
+
+# card_validations_external_test.py
+jwt_card_validations_external=
+# card_validations_external_v2_test.py
+jwt_card_validations_external_v2=
+# validate_request_external_test.py
+jwt_validate_request_external=
+
+
+# --- Azure DevOps ---------------------------------------------------------
+# PAT para consultar work items y PRs por REST. El panel no lo usa.
+token_azure=
+project_azure=

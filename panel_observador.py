@@ -157,6 +157,9 @@ PUERTO = 9222
 RE_MARCA = re.compile(r"_(\d{4})-(\d{2})-(\d{2})_(\d{2})(\d{2})(\d{2})$")
 RE_CASO = re.compile(r"ltima solicitud:\s*(\d+)")
 RE_CASO_JSON = re.compile(r"Consultando caso (\d+)")
+# El caso que bizagi_cancel_case dice haber intentado cancelar. Lo imprime en
+# su bloque de veredicto, que es mas fiable que deducirlo de otra linea.
+RE_CASO_INTENTO = re.compile(r"Caso (?:cancelado|que se intento cancelar):\s*(\d+)")
 
 
 # --- lanzar a los hermanos -------------------------------------------------
@@ -312,9 +315,26 @@ def preparar_chrome(emitir):
 # Los veredictos se buscan por subcadenas SIN tildes: el log del hijo puede
 # llegar con la codificacion estropeada y "cancelación" no siempre casa.
 def estado_cancelacion(texto):
-    """bizagi_cancel_case no devuelve exit code distinto: el veredicto se lee."""
-    m = RE_CASO.search(texto)
+    """bizagi_cancel_case no devuelve exit code distinto: el veredicto se lee.
+
+    El script ya imprime un bloque con el veredicto en texto claro
+    ([CASO CANCELADO] / [CASO NO ENCONTRADO] / ...), asi que eso es lo primero
+    que se busca. Las lineas sueltas del log quedan como respaldo, para que un
+    ejecutable congelado con la version anterior del script siga dando un
+    veredicto en vez de un "revisa el log".
+    """
+    m = RE_CASO_INTENTO.search(texto) or RE_CASO.search(texto)
     caso = m.group(1) if m else "?"
+    if "CASO CANCELADO" in texto:
+        return "bien", "Caso %s cancelado." % caso
+    if "CASO NO ENCONTRADO" in texto:
+        return "mal", ("No se encontro el caso %s para cancelar "
+                       "(ya cancelado o en un estado que no lo permite)." % caso)
+    if "CANCELACION FALLIDA" in texto:
+        return "mal", ("Se encontro el caso %s pero la cancelacion no se "
+                       "completo; revisa el log." % caso)
+    if "SIN SOLICITUDES" in texto:
+        return "mal", "No se encontro ninguna solicitud para ese documento."
     if "n aceptada para caso" in texto:
         return "bien", "Caso %s cancelado." % caso
     if "Error al cancelar el caso" in texto:
@@ -342,14 +362,19 @@ def estado_consulta(texto):
 
 
 def args_consultar(valores, emitir):
-    """Id de caso manda: si esta lleno, busca directo (--caso) y el documento
-    sobra. Si no, exige Tipo doc + Documento, como el flujo original."""
-    id_caso = valores.get("Id caso", "").strip()
-    if id_caso:
+    """El radio "Buscar por" manda, y con el solo hay un campo que llenar: por
+    Id de caso se busca directo (--caso); por cedula se usan Tipo doc +
+    Documento. Lo que haya quedado escrito en el otro modo se ignora."""
+    modo = valores.get("Buscar por", "caso")
+    if modo == "caso":
+        id_caso = valores.get("Id caso", "").strip()
+        if not id_caso:
+            emitir("! Escribe el Id de caso, o cambia 'Buscar por' a Cedula.", "mal")
+            return None
         return ["--caso", id_caso]
     documento = valores.get("Documento", "").strip()
     if not documento:
-        emitir("! Escribe el Id de caso, o el Documento para buscar por cedula.", "mal")
+        emitir("! Escribe la cedula, o cambia 'Buscar por' a Id de caso.", "mal")
         return None
     return [valores.get("Tipo doc", "CC"), documento]
 
@@ -495,12 +520,17 @@ HERRAMIENTAS = [
         # deja el navegador abierto a proposito; se cierra con Detener
         "parada": "terminar",
         "previo": asegurar_chromium,
-        "ayuda": "Con Id de caso busca directo en el buscador superior, sin "
-                 "documento. Sin Id de caso, exige Tipo doc + Documento y "
-                 "muestra la ultima solicitud. El navegador queda abierto.",
+        "ayuda": "Se busca de UNA de las dos formas, no de las dos: por Id de "
+                 "caso va directo al buscador superior; por cedula muestra la "
+                 "ultima solicitud del documento. El navegador queda abierto.",
         "estado": estado_consulta,
         "argumentos": args_consultar,
         "campos": [
+            {"tipo": "radio", "solo_forma": True, "etiqueta": "Buscar por",
+             "opciones": [("Id de caso", "caso"), ("Cedula", "documento")],
+             "valor": "caso",
+             "habilita": {"caso": ["Id caso"],
+                          "documento": ["Tipo doc", "Documento"]}},
             {"tipo": "texto", "solo_forma": True, "etiqueta": "Id caso",
              "valor": "", "ancho": 14},
             {"tipo": "opcion", "solo_forma": True, "etiqueta": "Tipo doc",
@@ -590,6 +620,8 @@ class Herramienta(ttk.Frame):
         self.salida = []          # todo el stdout, para el veredicto final
         self.dir_corrida = None   # carpeta de evidencia de la ultima corrida
         self.vars = {}
+        self.campos_ui = {}       # etiqueta -> (label, control), para apagarlos
+        self.radios = []          # campos "radio", que mandan sobre los demas
         self._construir()
 
     # -- UI
@@ -608,9 +640,28 @@ class Herramienta(ttk.Frame):
                 var = tk.BooleanVar(value=campo["valor"])
                 ttk.Checkbutton(cfg, text=etq, variable=var).grid(
                     row=99, column=0, columnspan=8, sticky="w", pady=(8, 0))
+            elif campo["tipo"] == "radio":
+                # Un radio parte el formulario en modos excluyentes y apaga los
+                # campos del modo que no esta elegido. Es la unica forma de que
+                # se vea que hay que llenar uno U otro: con los dos activos,
+                # todo el mundo asume que los dos son obligatorios.
+                var = tk.StringVar(value=campo["valor"])
+                if col:
+                    col, fila = 0, fila + 1
+                ttk.Label(cfg, text=etq).grid(row=fila, column=col, sticky="w")
+                caja = ttk.Frame(cfg)
+                caja.grid(row=fila, column=col + 1, columnspan=7,
+                          padx=(6, 0), sticky="w")
+                for texto, valor in campo["opciones"]:
+                    ttk.Radiobutton(caja, text=texto, value=valor, variable=var,
+                                    command=self._sincronizar_modos).pack(
+                                        side="left", padx=(0, 14))
+                self.radios.append(campo)
+                col, fila = 0, fila + 1
             else:
                 var = tk.StringVar(value=campo["valor"])
-                ttk.Label(cfg, text=etq).grid(row=fila, column=col, sticky="w")
+                lbl = ttk.Label(cfg, text=etq)
+                lbl.grid(row=fila, column=col, sticky="w")
                 if campo["tipo"] == "opcion":
                     w = ttk.Combobox(cfg, textvariable=var, values=campo["opciones"],
                                      width=campo.get("ancho", 10), state="readonly")
@@ -618,10 +669,13 @@ class Herramienta(ttk.Frame):
                     w = ttk.Entry(cfg, textvariable=var, width=campo.get("ancho", 24))
                     w.bind("<Return>", lambda _e: self.ejecutar())
                 w.grid(row=fila, column=col + 1, padx=(6, 18), sticky="w")
+                self.campos_ui[etq] = (lbl, w)
                 col += 2
                 if col >= 6:
                     col, fila = 0, fila + 1
             self.vars[etq] = var
+
+        self._sincronizar_modos()
 
         botones = ttk.Frame(self, padding=(12, 10, 12, 4))
         botones.pack(fill="x")
@@ -664,6 +718,28 @@ class Herramienta(ttk.Frame):
         for tag, color in (("paso", "#7fb2ff"), ("ws", "#c9a0ff"), ("mal", "#ff8a80"),
                            ("bien", "#9be29b"), ("panel", "#ffd479")):
             self.log.tag_configure(tag, foreground=color)
+
+    def _sincronizar_modos(self):
+        """Deja activos solo los campos del modo elegido en cada radio.
+
+        Los demas quedan en gris y no se pueden escribir, asi que el
+        formulario dice por si solo cual es el dato que hace falta. El hook de
+        argumentos ignora igual lo que haya quedado escrito en el otro modo.
+        """
+        for campo in self.radios:
+            modo = self.vars[campo["etiqueta"]].get()
+            for destino, etiquetas in campo["habilita"].items():
+                activo = destino == modo
+                for etq in etiquetas:
+                    par = self.campos_ui.get(etq)
+                    if not par:
+                        continue
+                    lbl, w = par
+                    if isinstance(w, ttk.Combobox):
+                        w.configure(state="readonly" if activo else "disabled")
+                    else:
+                        w.configure(state="normal" if activo else "disabled")
+                    lbl.configure(foreground="" if activo else "#999")
 
     def _texto_parada(self):
         return {"centinela": "Detener y generar reporte",
@@ -1018,11 +1094,12 @@ def solo_unicos(docs):
 
 
 class Validaciones(ttk.Frame):
-    """Corre ApiTest.testValidationServices sobre una lista de documentos.
+    """Corre los servicios de elegibilidad sobre una lista de documentos.
 
-    Pega la lista, se reescribe el array raw del DataProvider, se compila y se
-    corre. El log de Maven son miles de lineas: aqui solo se muestran las que
-    sirven y el resto queda en un archivo aparte.
+    Pega la lista y lanza validaciones_api.py, el puerto en Python de
+    ApiTest.testValidationServices: mismos endpoints, sin Java ni Maven de por
+    medio. El hijo escupe muchas lineas; aqui solo se muestran las que sirven y
+    el resto queda en un archivo aparte.
     """
 
     def __init__(self, padre):

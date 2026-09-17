@@ -1,10 +1,71 @@
 import os
 import sys
 import logging
-from playwright.sync_api import sync_playwright, Page, Locator
+from playwright.sync_api import (
+    sync_playwright,
+    Page,
+    Locator,
+    TimeoutError as PlaywrightTimeout,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 log = logging.getLogger(__name__)
+
+# Estados del intento de cancelacion. El veredicto se imprime en texto claro
+# porque es lo unico que el usuario lee: antes, un caso que no aparecia en
+# Administracion de procesos salia como un timeout de Playwright de tres
+# lineas, y habia que saber leerlo para entender que simplemente no estaba.
+ESTADO_CANCELADO = "CANCELADO"
+ESTADO_NO_ENCONTRADO = "NO_ENCONTRADO"
+ESTADO_ERROR = "ERROR"
+ESTADO_SIN_SOLICITUD = "SIN_SOLICITUD"
+
+# Sin tildes a proposito: el panel lee estas lineas del stdout del hijo, que no
+# siempre llega bien codificado (ver panel_observador.estado_cancelacion).
+VEREDICTOS = {
+    ESTADO_CANCELADO: (
+        "CASO CANCELADO",
+        [
+            "Caso cancelado: {caso}",
+            "Se encontro en Administracion de procesos y se cancelo bien.",
+        ],
+    ),
+    ESTADO_NO_ENCONTRADO: (
+        "CASO NO ENCONTRADO",
+        [
+            "Caso que se intento cancelar: {caso}",
+            "Ese caso no aparece en Administracion de procesos, asi que no",
+            "se cancelo nada. Puede que ya este cancelado, o que este en un",
+            "estado que no permite cancelarlo.",
+        ],
+    ),
+    ESTADO_ERROR: (
+        "CANCELACION FALLIDA",
+        [
+            "Caso que se intento cancelar: {caso}",
+            "El caso si aparecio, pero la cancelacion no se completo.",
+            "Revisa el detalle del error mas arriba en el log.",
+        ],
+    ),
+    ESTADO_SIN_SOLICITUD: (
+        "SIN SOLICITUDES",
+        [
+            "El documento {doc} no tiene solicitudes en Bizagi,",
+            "asi que no hay ningun caso que cancelar.",
+        ],
+    ),
+}
+
+
+def imprimir_veredicto(estado: str, caso: str | None, documento: str) -> None:
+    titulo, lineas = VEREDICTOS[estado]
+    print("")
+    print("=== RESULTADO DE LA CANCELACION ===")
+    print("[%s]" % titulo)
+    for linea in lineas:
+        print(linea.format(caso=caso or "?", doc=documento))
+    print("===================================")
+    print("")
 
 
 def _credencial(nombre):
@@ -218,7 +279,7 @@ class BizagiAutomator:
             log.error("Error al obtener la última solicitud: %s", e)
             return None
 
-    def _navegar_a_admin_casos(self, page: Page, ultima_solicitud: str | None) -> None:
+    def _navegar_a_admin_casos(self, page: Page, ultima_solicitud: str | None) -> str:
         try:
             page.wait_for_selector("#menuListAdmin", timeout=10000)
             page.click("#menuListAdmin")
@@ -253,17 +314,37 @@ class BizagiAutomator:
                 self._wait(page,3000)
                 log.info("Búsqueda de caso %s iniciada", ultima_solicitud)
 
-                self._cancelar_caso(page, ultima_solicitud)
-            else:
-                log.warning("No hay número de solicitud para buscar en Admin")
+                return self._cancelar_caso(page, ultima_solicitud)
+
+            log.warning("No hay número de solicitud para buscar en Admin")
+            return ESTADO_SIN_SOLICITUD
 
         except Exception as e:
             log.error("Error al navegar a Administración de procesos: %s", e)
+            return ESTADO_ERROR
 
-    def _cancelar_caso(self, page: Page, id_caso: str) -> None:
+    def _cancelar_caso(self, page: Page, id_caso: str) -> str:
+        """Cancela el caso en Administración de procesos.
+
+        Retorna el estado del intento: CANCELADO, NO_ENCONTRADO o ERROR. El
+        caso que no aparece en los resultados no es una falla del script (ya
+        está cancelado, o el número no existe), así que se separa del error
+        real en vez de soltarle al usuario el timeout de Playwright.
+        """
+        checkbox_selector = f'input[type="checkbox"][name="CaseAdmin"][value="{id_caso}"]'
         try:
-            checkbox_selector = f'input[type="checkbox"][name="CaseAdmin"][value="{id_caso}"]'
             page.wait_for_selector(checkbox_selector, timeout=10000)
+        except PlaywrightTimeout:
+            log.warning(
+                "El caso %s no aparece en los resultados de Administración de procesos",
+                id_caso,
+            )
+            return ESTADO_NO_ENCONTRADO
+        except Exception as e:
+            log.error("Error al buscar el caso %s para cancelar: %s", id_caso, e)
+            return ESTADO_ERROR
+
+        try:
             page.check(checkbox_selector)
             self._wait(page,1000)
             log.info("Checkbox del caso %s marcado", id_caso)
@@ -278,8 +359,10 @@ class BizagiAutomator:
             page.click(aceptar_selector)
             self._wait(page,3000)
             log.info("Confirmación de cancelación aceptada para caso %s", id_caso)
+            return ESTADO_CANCELADO
         except Exception as e:
             log.error("Error al cancelar el caso %s: %s", id_caso, e)
+            return ESTADO_ERROR
 
     def abrir_pagina(self, headless: bool = False) -> str | None:
         """Ejecuta el flujo completo. Retorna idCaso o None. En modo headless no abre Admin ni espera Enter."""
@@ -339,7 +422,13 @@ class BizagiAutomator:
                 except Exception as e:
                     log.debug("No se pudo cerrar el diálogo de resultados: %s", e)
 
-                self._navegar_a_admin_casos(page, ultima_solicitud)
+                # Sin solicitud no hay nada que buscar en Admin: se da el
+                # veredicto aqui y no se entra al modulo para nada.
+                if ultima_solicitud:
+                    estado = self._navegar_a_admin_casos(page, ultima_solicitud)
+                else:
+                    estado = ESTADO_SIN_SOLICITUD
+                imprimir_veredicto(estado, ultima_solicitud, self.document_number)
 
                 if not headless:
                     input("Presiona Enter para cerrar el navegador...")

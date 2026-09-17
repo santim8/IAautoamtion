@@ -8,10 +8,12 @@ Doble clic en `panel.bat`.
 | pestaña | qué hace |
 |---|---|
 | Observador de flujos | navegas a mano en Chrome; captura pantallas, requests y websocket |
-| Suite biometría | corre `testng-biometry.xml` del framework Java con los datos que pongas |
+| Analitica dataLayer | navegas a mano en Chrome; anota cada push al `dataLayer` y lo valida contra `analitica/modelo_de_datos[*].json` |
+| Suite biometría | autenticación biométrica + firma de documentos, pegando directo a los endpoints REST |
 | Cancelar caso Bizagi | busca la última solicitud del documento y la cancela |
 | Consultar caso Bizagi | muestra la última solicitud y deja el navegador abierto |
-| Validaciones API | reemplaza la lista del `DataProvider` y corre `ApiTest` |
+| Consultar JSON | busca por Id de caso en *GCR_Solicitudes - Analista operativo* y vuelca la fila como JSON |
+| Validaciones API | corre los ~14 servicios de elegibilidad contra una lista de documentos, en paralelo |
 | Usuarios | libreta de usuarios de prueba |
 | Corridas | evidencia acumulada; abre reportes y los regenera |
 
@@ -37,15 +39,21 @@ setx BIZAGI_USER "tu.usuario"
 setx BIZAGI_PASSWORD "tu.clave"
 ```
 
-### Framework Java (opcional)
+### Secretos de los servicios de elegibilidad
 
-Las pestañas **Suite biometría** y **Validaciones API** necesitan el repo
-`colsubsidioFramework` y Maven en el PATH. Si no están, esas pestañas
-simplemente no aparecen y el resto del panel funciona igual.
+Las pestañas **Validaciones API** y **Suite biometría** pegan directo a los
+endpoints REST. No dependen de `colsubsidioFramework` ni de Maven: son puertos
+en Python (`validaciones_api.py` y `biometria_api.py`) que solo necesitan
+`curl`, que en Windows 10/11 ya viene instalado.
 
-Por defecto se busca en `~/IdeaProjects/colsubsidioFramework`. Si lo tienes en
-otro lado, copia `panel.config.example.json` a `panel.config.json` y ajusta la
-ruta, o define la variable `COLSUBSIDIO_FRAMEWORK`.
+Lo único que hay que poner son las claves, en un `token.txt` que no se versiona:
+
+```
+copy token.example.txt token.txt
+```
+
+`token.example.txt` lista cuál es cada una. Si falta alguna, el mensaje de
+error dice exactamente qué línea agregar.
 
 ## Dónde queda todo
 
@@ -55,7 +63,7 @@ ruta, o define la variable `COLSUBSIDIO_FRAMEWORK`.
 | `esquemas_servicios.json` | contrato observado de cada servicio; **sí se versiona** |
 | `~/.panel_qa/usuarios_prueba.json` | usuarios de prueba, con sus claves en claro |
 | `~/.panel_qa/backups/` | copia previa a cada guardado |
-| `~/.panel_qa/logs/` | log completo de Maven y los Excel exportados |
+| `~/.panel_qa/logs/` | log completo de cada corrida y los Excel exportados |
 
 Los usuarios viven fuera del repo a propósito: dentro, un `git clean -fdx` se
 los llevaría por delante.

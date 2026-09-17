@@ -15,13 +15,16 @@ Estrategia:
   4. REPORTAR : PASS/FAIL por evento + resumen. Exit code != 0 si hay fallos (util en CI).
 
 Uso:
-  python validar_eventos.py [ruta_reporte.html] [--specs DIR] [--json salida.json] [--strict]
+  python validar_eventos.py ruta_reporte.html [--specs DIR] [--json salida.json] [--strict]
 
-Sin argumentos usa el reporte por defecto y la carpeta del script como specs.
+El reporte es obligatorio: cualquier HTML con los eventos en bloques <pre>{...}</pre>
+(ExtentReports u otro). Los specs, si no se pasan, salen de la carpeta del script.
+
+observador_analitica.py importa este modulo (cargar_specs/enrutar/validar) para no
+tener dos criterios de validacion en paralelo; ese camino no pasa por main().
 """
 import re, json, html, sys, base64, glob, os, argparse
 
-DEFAULT_REPORT = r"C:/Users/santiago.correa03/IdeaProjects/colsubsidioFramework/target/Index.html"
 SENSIBLES = {"numero_documento", "email", "celular", "nit"}
 IGNORAR_EXTRA = {"utm_source", "utm_medium", "utm_campaign"}
 META = {"evento", "variante"}  # claves del spec que no son campos del payload
@@ -202,7 +205,8 @@ def validar(ev, spec, strict=False):
 # ----------------------------- 4. REPORTE --------------------------------
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("reporte", nargs="?", default=DEFAULT_REPORT)
+    ap.add_argument("reporte",
+                    help="HTML con los eventos en bloques <pre>{...}</pre>")
     ap.add_argument("--specs", default=os.path.dirname(os.path.abspath(__file__)))
     ap.add_argument("--json", default=None)
     ap.add_argument("--strict", action="store_true", help="campos extra cuentan como error")
