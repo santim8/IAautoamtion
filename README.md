@@ -29,6 +29,18 @@ python -m playwright install chromium
 
 ## Configuración
 
+Qué pide cada pestaña, para no configurar de más:
+
+| pestaña | qué necesita |
+|---|---|
+| Observador de flujos · Analítica dataLayer | nada; se engancha al Chrome de la máquina |
+| Validaciones API · Suite biometría | `token.txt` con las 6 claves de elegibilidad |
+| Cancelar caso · Consultar caso · Consultar JSON | `BIZAGI_USER` y `BIZAGI_PASSWORD` de entorno (y un Chromium que el panel baja solo la primera vez) |
+| Usuarios · Corridas | nada |
+
+Son dos mecanismos distintos y ninguno cubre al otro: `token.txt` no sirve para
+Bizagi y las variables de entorno no sirven para elegibilidad.
+
 ### Credenciales de Bizagi
 
 Los scripts de Bizagi las exigen por variable de entorno; no hay valor por
@@ -54,6 +66,10 @@ copy token.example.txt token.txt
 
 `token.example.txt` lista cuál es cada una. Si falta alguna, el mensaje de
 error dice exactamente qué línea agregar.
+
+El archivo va en la raíz del repo (al lado de `panel.bat`); si usás el `.exe`,
+al lado del `.exe`. Las claves no viajan ni en el repo ni dentro del ejecutable:
+pedíselas a quien ya tenga el panel andando.
 
 ## Dónde queda todo
 

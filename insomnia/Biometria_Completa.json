@@ -1,0 +1,68 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-09-29T22:32:17.440Z",
+  "__export_source": "insomnia.desktop.app:v8.6.1",
+  "resources": [
+    {
+      "_id": "wrk_f1daf0b428e949f8562e70a1",
+      "parentId": null,
+      "modified": 1790721137440,
+      "created": 1790721137440,
+      "name": "Biometria",
+      "description": "Biometria completa (pasos 1, 2 y 3) migrada desde Bruno.",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "env_bbda9615d7dab3c90e7e019d",
+      "parentId": "wrk_f1daf0b428e949f8562e70a1",
+      "modified": 1790721137440,
+      "created": 1790721137440,
+      "name": "Base Environment",
+      "data": {},
+      "dataPropertyOrder": null,
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1790721137440,
+      "_type": "environment"
+    },
+    {
+      "_id": "req_d8e48e3e15f6c42ae7252c41",
+      "parentId": "wrk_f1daf0b428e949f8562e70a1",
+      "modified": 1790721714656,
+      "created": 1790721137440,
+      "url": "https://platform-test-internal.colsubsidio.com/loans/identity/internal/v1/validator/authentication-result",
+      "name": "Biometria Completa [Pasos 1-3]",
+      "description": "1. Abrir la pestana Body.\n2. Cambiar el numero de caso en \"codigo\" y la cedula en \"numero\" (dejando las comillas).\n3. Clic en Send.\n\nEl resumen (BIOMETRIA OK / BIOMETRIA FALLO en paso N) queda en la consola de scripts y en la variable de entorno \"resumen\" (Insomnia no permite reemplazar el body mostrado en la pestana Response como si hace Bruno con res.setBody).\n\nOJO: el paso 3 firma los documentos del caso, no se puede deshacer.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"notificacion\": [\n    {\n      \"proceso\": {\n        \"codigo\": \"311593\"\n      },\n      \"documento\": {\n        \"numero\": \"52961647\"\n      },\n      \"version\": \"01\",\n      \"mensaje\": \"14\"\n    }\n  ]\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "content-type",
+          "value": "application/json"
+        },
+        {
+          "name": "x-api-key",
+          "value": "ecn24ysGnZ4X17cU5lX4Q9gyFvyPR7fD1DkwR7I7"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1790721137440,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": false,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "preRequestScript": "",
+      "afterResponseScript": "// PASO 1 ya se ejecuto: esta es la respuesta de authentication-result.\n// PASO 2 y PASO 3 se encadenan aqui mismo, igual que en Bruno / biometria_api.py:\n//   2) GET documents-to-sign/{caso}\n//   3) POST documents-signed/{caso} reenviando el generatedDocument (base64)\n// NOTA: el sandbox de scripts de Insomnia no expone axios ni modulos nativos de\n// Node (require('https') falla con \"no module is found for https\"). La unica\n// forma soportada de disparar peticiones adicionales desde el script es\n// insomnia.sendRequest (equivalente a pm.sendRequest de Postman).\nconst BASE = \"https://platform-test-internal.colsubsidio.com/loans/identity/internal/v1/validator\";\nconst API_KEY = \"ecn24ysGnZ4X17cU5lX4Q9gyFvyPR7fD1DkwR7I7\";\nconst ADOTECH_TRANSACTION = \"2895\";\nconst MATRICULA_ID = \"61700\";\nconst NOMBRES_DOCUMENTOS = [\"INFORME_SOL_ONLINE_CERT\", \"PAGARE_ONLINE_CERT\"];\n\nfunction httpRequest(method, url, jsonBody) {\n  const options = {\n    url: url,\n    method: method,\n    header: {\n      \"content-type\": \"application/json\",\n      \"accept\": \"application/json\",\n      \"x-api-key\": API_KEY\n    }\n  };\n  if (jsonBody !== undefined) {\n    options.body = { mode: \"raw\", raw: JSON.stringify(jsonBody) };\n  }\n  return new Promise((resolve, reject) => {\n    insomnia.sendRequest(options, (err, response) => {\n      if (err) return reject(err);\n      let data = null;\n      try { data = response.json(); } catch (e) {\n        try { data = response.text(); } catch (e2) { /* deja null */ }\n      }\n      resolve({ status: response.code, data: data });\n    });\n  });\n}\n\n// Lee el body que se envio en el Paso 1 (ahi se edita caso/cedula, igual que en Bruno).\nlet rawBody = \"\";\ntry {\n  const b = insomnia.request.body;\n  rawBody = (b && (b.text || b.raw)) || (typeof b === \"string\" ? b : \"\");\n} catch (e) { /* ignora, cae a {} */ }\nlet bodyEnviado = {};\ntry { bodyEnviado = JSON.parse(rawBody); } catch (e) { bodyEnviado = {}; }\n\nconst noti = ((bodyEnviado && bodyEnviado.notificacion) || [])[0] || {};\nconst caso = String((noti.proceso || {}).codigo || \"\");\nconst cedula = String((noti.documento || {}).numero || \"\");\n\nconst paso1Status = insomnia.response.code;\nlet paso1Body = \"\";\ntry { paso1Body = insomnia.response.body ? insomnia.response.body.toString() : \"\"; } catch (e) {}\n\nconst resumen = {\n  resultado: \"\",\n  caso: caso,\n  cedula: cedula,\n  paso1_autenticacion: \"HTTP \" + paso1Status,\n  paso2_documentos: \"no se ejecuto\",\n  paso3_firma: \"no se ejecuto\"\n};\nlet pasoFallido = null;\nlet paso2Status = null, paso2Docs = 0, paso3Status = null;\n\nasync function correr() {\n  if (paso1Status !== 200) {\n    pasoFallido = 1;\n    resumen.respuesta_paso1 = paso1Body;\n  } else {\n    const r2 = await httpRequest(\"GET\", BASE + \"/documents-to-sign/\" + caso);\n    const docs = Array.isArray(r2.data) ? r2.data : [];\n    paso2Status = r2.status;\n    paso2Docs = docs.length;\n    resumen.paso2_documentos = \"HTTP \" + r2.status + \" (\" + docs.length + \" documento(s))\";\n\n    if (r2.status !== 200 || docs.length === 0) {\n      pasoFallido = 2;\n      resumen.respuesta_paso2 = r2.data;\n    } else {\n      const firmados = docs.slice(0, 2).map((doc, i) => ({\n        documentoBase64: doc.generatedDocument || \"\",\n        nombre: NOMBRES_DOCUMENTOS[i] || doc.name || \"DOC_\" + i,\n        tipoDocumento: 1\n      }));\n      const body3 = {\n        tipoDocumento: \"4\",\n        adotechTransaction: ADOTECH_TRANSACTION,\n        matriculaId: MATRICULA_ID,\n        idProceso: caso,\n        nroDocumento: cedula,\n        documentosFirmadosResponsable: firmados\n      };\n      const r3 = await httpRequest(\"POST\", BASE + \"/documents-signed/\" + caso, body3);\n      paso3Status = r3.status;\n      resumen.paso3_firma = \"HTTP \" + r3.status;\n      resumen.respuesta_paso3 = r3.data;\n      if (r3.status !== 200) pasoFallido = 3;\n    }\n  }\n\n  resumen.resultado = pasoFallido ? \"BIOMETRIA FALLO en paso \" + pasoFallido : \"BIOMETRIA OK\";\n\n  insomnia.environment.set(\"paso1Status\", paso1Status);\n  insomnia.environment.set(\"paso2Status\", paso2Status);\n  insomnia.environment.set(\"paso2Docs\", paso2Docs);\n  insomnia.environment.set(\"paso3Status\", paso3Status);\n  insomnia.environment.set(\"resumen\", JSON.stringify(resumen));\n\n  // Insomnia no permite reemplazar el body mostrado en la pestana Response\n  // (a diferencia de res.setBody en Bruno): el resumen queda en consola y\n  // en la variable de entorno \"resumen\" para revisarlo ahi.\n  console.log(\"RESUMEN BIOMETRIA:\\n\" + JSON.stringify(resumen, null, 2));\n\n  insomnia.test(\"Paso 1/3 autenticacion biometrica -> 200\", () => {\n    insomnia.expect(paso1Status).to.equal(200);\n  });\n  insomnia.test(\"Paso 2/3 documentos a firmar -> 200 con al menos 1 documento\", () => {\n    insomnia.expect(paso2Status).to.equal(200);\n    insomnia.expect(paso2Docs).to.be.above(0);\n  });\n  insomnia.test(\"Paso 3/3 documentos firmados -> 200\", () => {\n    insomnia.expect(paso3Status).to.equal(200);\n  });\n}\n\nawait correr();\n",
+      "_type": "request"
+    }
+  ]
+}

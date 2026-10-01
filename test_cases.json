@@ -1,107 +1,227 @@
 [
   {
-    "title": "TC001 - Flags ON: códigos de Reactivación (O, V, I, W) permiten el paso con tipoSolicitud 3",
+    "title": "TC001 - Zona Gris sin campaña: el afiliado ve la pantalla \"Un asesor continuará atendiendo tu solicitud\"",
     "steps": [
-      {"action": "Precondiciones:\n- Flag Reactivación: true\n- Flag Incremento: true (cualquier valor)\n- Usuarios con códigos de Reactivación en bolsillo 31 y tarjetaAmparada: false\n  · CC 52526685 → código O (CUPO CONGELADO)\n  · CC 51760693 → código V (CUENTA DEVOLUCION VOLUNTARIA)\n  · CC 41336668 → código V (CUENTA DEVOLUCION VOLUNTARIA)\n  · CC 79528108 → código I (INACTIVO)\n  · Pendiente dato → código W", "expected": ""},
-      {"action": "Given que los usuarios anteriores inician solicitud de crédito con flag Reactivación activo", "expected": ""},
-      {"action": "When se consume POST /loans/eligibility/internal/v1/card-validations para cada usuario con tipo CO1C", "expected": ""},
-      {"action": "Then la respuesta HTTP es 200 para todos", "expected": "HTTP 200"},
-      {"action": "And el campo estado es OK para todos", "expected": "\"estado\": \"OK\""},
-      {"action": "And el campo tipoSolicitud es 3 para todos (códigos O, V, I, W)", "expected": "\"tipoSolicitud\": 3"},
-      {"action": "And el campo tarjetaAmparada es false para todos", "expected": "\"tarjetaAmparada\": false"}
+      {"action": "Precondiciones:\n- Ambiente QA: https://dev.colsubsidio.com/creditos/solicitud/cupo-de-credito/onboarding\n- Cédula autorizada (CO1C) sin campaña, sin casos en curso, que en QA obtenga resultado Zona Gris del motor (dato pendiente de entregar)\n- Usuario del portal transaccional con clave conocida\n- Contenido de la pantalla de derivación publicado en Drupal (tarea 227151)\n- Referencia visual: Figma node 32745-131878 (pantalla 7.1)", "expected": ""},
+      {"action": "Given el afiliado inicia sesión, supera las validaciones, acepta las políticas y diligencia el Paso 1 (información personal)", "expected": ""},
+      {"action": "When el flujo ejecuta el motor de decisión en el Paso 2 (personalización de la solicitud) y el motor clasifica la solicitud como Zona Gris", "expected": ""},
+      {"action": "Then el front recibe la notificación de Bizagi con paso OFFER_RESULT y el estado de Zona Gris (hoy estadoPaso MANUAL, o el que se defina)", "expected": "Notificación OFFER_RESULT con el estado de Zona Gris"},
+      {"action": "And se muestra la pantalla de derivación con título, texto, imagen del asesor y enlace", "expected": "Título: \"Un asesor continuará atendiendo tu solicitud\" / Texto: \"Recibirás atención personalizada para indicarte los pasos a seguir. Si lo prefieres, puedes comunicarte al número celular [número configurado en Drupal]\" / Enlace: \"Ir a Colsubsidio.com\""},
+      {"action": "And la pantalla no muestra botón de regresar ni continúa a la pantalla de oferta (\"¡Felicidades…!\")", "expected": "Sin botón atrás; el flujo no avanza a la oferta"},
+      {"action": "And al hacer clic en \"Ir a Colsubsidio.com\"", "expected": "Navega a https://www.colsubsidio.com"}
     ]
   },
   {
-    "title": "TC002 - Flags ON: códigos de Incremento (1, N, S) permiten el paso con tipoSolicitud 2",
+    "title": "TC002 - Zona Gris con preaprobado: la solicitud se deriva al canal asistido",
     "steps": [
-      {"action": "Precondiciones:\n- Flag Reactivación: true (cualquier valor)\n- Flag Incremento: true\n- Usuarios con códigos de Incremento en bolsillo 31 y tarjetaAmparada: false\n  · CC 80810798   → código 1 (NORMAL)\n  · CC 1140814422 → código 1, tarjeta estado 7 (CAMBIO DE CLAVE OBLIGATORIO)\n  · CC 1097397286 → código 1, tarjeta estado S (SUSPENDIDO/SOBRECUPO)\n  · CC 52966724   → código 1, tarjeta estado 0 (PENDIENTE POR ACTIVAR)\n  · CC 1023876310 → código 1 (NORMAL)\n  · Pendiente dato → código N\n  · Pendiente dato → código S", "expected": ""},
-      {"action": "Given que los usuarios anteriores inician solicitud de crédito con flag Incremento activo", "expected": ""},
-      {"action": "When se consume POST /loans/eligibility/internal/v1/card-validations para cada usuario con tipo CO1C", "expected": ""},
-      {"action": "Then la respuesta HTTP es 200 para todos", "expected": "HTTP 200"},
-      {"action": "And el campo estado es OK para todos", "expected": "\"estado\": \"OK\""},
-      {"action": "And el campo tipoSolicitud es 2 para todos (códigos 1, N, S)", "expected": "\"tipoSolicitud\": 2"},
-      {"action": "And el campo tarjetaAmparada es false para todos", "expected": "\"tarjetaAmparada\": false"}
+      {"action": "Precondiciones:\n- Ambiente QA\n- Cédula autorizada con campaña de preaprobado vigente que en QA obtenga Zona Gris (dato pendiente)\n- Fuente: HU 202180 (Caso 1.1: preaprobado que el motor manda a Zona Gris)", "expected": ""},
+      {"action": "Given el afiliado inicia sesión y en el Paso 1 visualiza el modal de preaprobado", "expected": "Modal de preaprobado visible"},
+      {"action": "When continúa el flujo y el motor de decisión clasifica la solicitud como Zona Gris", "expected": ""},
+      {"action": "Then se muestra la misma pantalla de derivación del TC001", "expected": "\"Un asesor continuará atendiendo tu solicitud\" con el celular configurado en Drupal"},
+      {"action": "And el flujo no continúa a la oferta del preaprobado", "expected": "No se muestra la pantalla de oferta"}
     ]
   },
   {
-    "title": "TC003 - Flags OFF: códigos de Reactivación e Incremento son bloqueados",
+    "title": "TC003 - Aprobado en firme: la solicitud NO se deriva (caso de control)",
     "steps": [
-      {"action": "Precondiciones:\n- Flag Reactivación: false\n- Flag Incremento: false\n- Usuarios con códigos de novedad\n  · CC 41336668 → código V (Reactivación)\n  · CC 79528108 → código I (Reactivación)\n  · CC 1140814422 → código 1 (Incremento)\n  · CC 80810798 → código 1 (Incremento)", "expected": ""},
-      {"action": "Given que los usuarios anteriores inician solicitud de crédito con ambas flags desactivadas", "expected": ""},
-      {"action": "When se consume POST /loans/eligibility/internal/v1/card-validations para cada usuario", "expected": ""},
-      {"action": "Then la respuesta HTTP es 200 para todos", "expected": "HTTP 200"},
-      {"action": "And el campo estado es VALIDATION_ERROR para todos", "expected": "\"estado\": \"VALIDATION_ERROR\""},
-      {"action": "And el campo tipoSolicitud NO está presente en ninguna respuesta", "expected": "tipoSolicitud ausente"},
-      {"action": "And el campo codigoErrorValidacion es INVALID_REQUIREMENTS para todos", "expected": "\"codigoErrorValidacion\": \"INVALID_REQUIREMENTS\""}
+      {"action": "Precondiciones:\n- Ambiente QA\n- Cédula autorizada con campaña de aprobado en firme vigente\n- Fuente: HU 180005 (la compuerta posterior al motor envía la oferta en firme siempre por \"Aprobado\")\n- Confirmar que la misma compuerta aplica al autogestionado", "expected": ""},
+      {"action": "Given el afiliado inicia sesión y en el Paso 1 visualiza el modal \"¡Hola {nombre}, tienes un aprobado!\"", "expected": ""},
+      {"action": "When continúa el flujo y se ejecuta el motor de decisión", "expected": ""},
+      {"action": "Then el flujo continúa a la pantalla de oferta del Paso 2", "expected": "Pantalla \"¡Felicidades {nombre}…!\" con el cupo de la campaña"},
+      {"action": "And no se muestra la pantalla de derivación al asesor", "expected": "No aparece \"Un asesor continuará atendiendo tu solicitud\""}
     ]
   },
   {
-    "title": "TC004 - Flags independientes: cada flag bloquea solo su tipo de novedad",
+    "title": "TC004 - Regresión: el motor aprueba (OK) y el flujo continúa a la personalización de la oferta",
     "steps": [
-      {"action": "Precondiciones:\n- Escenario A: Flag Reactivación ON, Flag Incremento OFF\n  · CC 79528108 → código I (Reactivación) debe pasar\n  · CC 1140814422 → código 1 (Incremento) debe bloquearse\n- Escenario B: Flag Reactivación OFF, Flag Incremento ON\n  · CC 1140814422 → código 1 (Incremento) debe pasar\n  · CC 79528108 → código I (Reactivación) debe bloquearse", "expected": ""},
-      {"action": "Given escenario A: Flag Reactivación ON, Flag Incremento OFF", "expected": ""},
-      {"action": "When se consume el servicio con CC 79528108 (código I)", "expected": ""},
-      {"action": "Then el estado es OK y tipoSolicitud es 3", "expected": "\"estado\": \"OK\", \"tipoSolicitud\": 3"},
-      {"action": "When se consume el servicio con CC 1140814422 (código 1)", "expected": ""},
-      {"action": "Then el estado es VALIDATION_ERROR y tipoSolicitud ausente", "expected": "\"estado\": \"VALIDATION_ERROR\", tipoSolicitud ausente"},
-      {"action": "Given escenario B: Flag Reactivación OFF, Flag Incremento ON", "expected": ""},
-      {"action": "When se consume el servicio con CC 1140814422 (código 1)", "expected": ""},
-      {"action": "Then el estado es OK y tipoSolicitud es 2", "expected": "\"estado\": \"OK\", \"tipoSolicitud\": 2"},
-      {"action": "When se consume el servicio con CC 79528108 (código I)", "expected": ""},
-      {"action": "Then el estado es VALIDATION_ERROR y tipoSolicitud ausente", "expected": "\"estado\": \"VALIDATION_ERROR\", tipoSolicitud ausente"}
+      {"action": "Precondiciones:\n- Ambiente QA\n- Cédula autorizada sin campaña que en QA obtenga resultado Aprobado", "expected": ""},
+      {"action": "Given el afiliado completa validaciones, políticas y Paso 1", "expected": ""},
+      {"action": "When el motor de decisión responde Aprobado", "expected": ""},
+      {"action": "Then el front recibe OFFER_RESULT con estadoPaso OK y muestra la pantalla de oferta", "expected": "Pantalla de oferta del Paso 2 sin cambios frente al comportamiento actual"},
+      {"action": "And no se asigna estado de derivación ni se muestra la pantalla del asesor", "expected": "Sin derivación"}
     ]
   },
   {
-    "title": "TC005 - tarjetaAmparada bloquea siempre independiente del flag y código Ascard",
+    "title": "TC005 - Regresión: el motor niega (FAIL) y se muestra la pantalla de negación",
     "steps": [
-      {"action": "Precondiciones:\n- Flag Reactivación: true\n- Flag Incremento: true\n- Usuarios con tarjetaAmparada: true (tienen tarjeta tipo 6)\n  · CC 52634111 → código I (Reactivación), tarjetaAmparada: true\n  · CC 1095915781 → código I (Reactivación), tarjetaAmparada: true\n  · CC 1013595547 → código I (Reactivación), tarjetaAmparada: true\n  · CC 20156603 → código I (Reactivación), tarjetaAmparada: true", "expected": ""},
-      {"action": "Given que los usuarios anteriores tienen tarjeta amparada tipo 6 e inician solicitud de crédito", "expected": ""},
-      {"action": "When se consume POST /loans/eligibility/internal/v1/card-validations para cada usuario con tipo CO1C", "expected": ""},
-      {"action": "Then la respuesta HTTP es 200 para todos", "expected": "HTTP 200"},
-      {"action": "And el campo estado es VALIDATION_ERROR para todos aunque las flags estén activas", "expected": "\"estado\": \"VALIDATION_ERROR\""},
-      {"action": "And el campo tarjetaAmparada es true para todos", "expected": "\"tarjetaAmparada\": true"},
-      {"action": "And el campo tipoSolicitud NO está presente en ninguna respuesta", "expected": "tipoSolicitud ausente"}
+      {"action": "Precondiciones:\n- Ambiente QA\n- Cédula autorizada que en QA obtenga resultado Negado", "expected": ""},
+      {"action": "Given el afiliado completa validaciones, políticas y Paso 1", "expected": ""},
+      {"action": "When el motor de decisión responde Negado", "expected": ""},
+      {"action": "Then el front recibe OFFER_RESULT con estadoPaso FAIL y muestra la pantalla de negación actual", "expected": "Pantalla de negación sin cambios"},
+      {"action": "And no se muestra la pantalla de derivación al asesor", "expected": "Sin derivación"}
     ]
   },
   {
-    "title": "TC006 - Códigos Ascard desconocidos/mora bloquean siempre con ambas flags ON",
+    "title": "TC006 - El afiliado derivado no puede continuar el flujo autogestionado mediante navegación",
     "steps": [
-      {"action": "Precondiciones:\n- Flag Reactivación: true\n- Flag Incremento: true\n- Usuarios con códigos fuera de los sets de novedad\n  · CC 79584194 → código R (CUENTA REFINANCIADA)\n  · CC 19184974 → código K (CUENTA CASTIGADA)\n  · CC 19246507 → código J (CUENTA EN COBRO PRE JURIDICO)\n  · CC 11259747 → código J (CUENTA EN COBRO PRE JURIDICO)\n  · CC 547911   → código B (CUENTA CANCELADA POR EL BANCO)\n  · CC 1023944601 → código Y (COBRO JURIDICO)\n  · CC 13617086 → código A (POR MORA EN SUS PRODUCTOS)", "expected": ""},
-      {"action": "Given que los usuarios anteriores inician solicitud de crédito", "expected": ""},
-      {"action": "When se consume POST /loans/eligibility/internal/v1/card-validations para cada usuario con tipo CO1C", "expected": ""},
-      {"action": "Then la respuesta HTTP es 200 para todos", "expected": "HTTP 200"},
-      {"action": "And el campo estado es VALIDATION_ERROR para todos", "expected": "\"estado\": \"VALIDATION_ERROR\""},
-      {"action": "And el campo tipoSolicitud NO está presente en ninguna respuesta", "expected": "tipoSolicitud ausente"},
-      {"action": "And el campo codigoErrorValidacion es INVALID_REQUIREMENTS para todos", "expected": "\"codigoErrorValidacion\": \"INVALID_REQUIREMENTS\""}
+      {"action": "Precondiciones:\n- Afiliado en la pantalla de derivación (resultado del TC001)\n- Nota: la carga documental autogestionada no existe en 2026; se valida que no se pueda avanzar a ningún paso siguiente", "expected": ""},
+      {"action": "Given el afiliado está en la pantalla \"Un asesor continuará atendiendo tu solicitud\"", "expected": ""},
+      {"action": "When usa el botón atrás y el botón adelante del navegador", "expected": "No regresa a pasos anteriores editables ni avanza a la oferta"},
+      {"action": "And recarga la página (F5)", "expected": "Sigue viendo la pantalla de derivación o el mensaje transversal \"Ya tienes una solicitud en curso con un asesor\""},
+      {"action": "And escribe manualmente las URLs /cupo-de-credito/personalizacion-oferta, /datos-adicionales, /biometria y /fin", "expected": "El middleware no permite continuar: termina en el mensaje transversal o en el login con requestState=CASE_IN_PROGRESS_PROMOTER"},
+      {"action": "Then en ningún caso el afiliado llega a la oferta, la biometría o el fin de la solicitud", "expected": "Flujo autogestionado bloqueado"}
     ]
   },
   {
-    "title": "TC007 - Sin tarjeta activa y tipo documento CE mapeado a CO1E",
+    "title": "TC007 - El texto y el celular de la pantalla de derivación provienen de Drupal",
     "steps": [
-      {"action": "Precondiciones:\n- Flag Reactivación: true\n- Flag Incremento: true\n- Escenario A: usuarios sin tarjeta multiservicios activa\n  · CC 80833648, CC 382429, CC 1024539415 → dataTarjeta vacío\n- Escenario B: usuario CE 382429\n  · El tipo CE debe enviarse como CO1E en el body (no como CE, genera HTTP 400)", "expected": ""},
-      {"action": "Given escenario A: usuarios sin tarjeta activa", "expected": ""},
-      {"action": "When se consume POST /loans/eligibility/internal/v1/card-validations con tipo CO1C para CC 80833648, CC 382429, CC 1024539415", "expected": ""},
-      {"action": "Then la respuesta HTTP es 200 para todos", "expected": "HTTP 200"},
-      {"action": "And el campo codigoErrorValidacion es CARD_STATUS", "expected": "\"codigoErrorValidacion\": \"CARD_STATUS\""},
-      {"action": "And el campo reglaErrorValidacion es Tarjeta multiservicios no activa", "expected": "\"reglaErrorValidacion\": \"Tarjeta multiservicios no activa\""},
-      {"action": "Given escenario B: usuario CE 382429", "expected": ""},
-      {"action": "When se consume el servicio con body {\"documento\": {\"tipo\": \"CO1E\", \"numero\": \"382429\"}}", "expected": ""},
-      {"action": "Then la respuesta HTTP es 200 (no 400 — el 400 ocurre si se envía tipo CE en lugar de CO1E)", "expected": "HTTP 200"},
-      {"action": "And el campo codigoErrorValidacion es CARD_STATUS", "expected": "\"codigoErrorValidacion\": \"CARD_STATUS\""}
+      {"action": "Precondiciones:\n- Contenido de la pantalla de derivación configurado en Drupal QA (tarea 227151)\n- Número de celular pendiente de definición por la PO (Edna Coca); se valida contra el valor configurado", "expected": ""},
+      {"action": "Given se consulta en Drupal QA el contenido configurado para la pantalla de derivación (título, texto, celular, imagen, enlace)", "expected": ""},
+      {"action": "When un afiliado es derivado a la pantalla del asesor", "expected": ""},
+      {"action": "Then la pantalla muestra exactamente el título, texto, celular y enlace configurados en Drupal", "expected": "Contenido idéntico a Drupal; ningún texto ni número quemado distinto al configurado"},
+      {"action": "And el texto no contiene el placeholder \"[canal de comunicación de preferencia]\" (eliminado en el mockup final)", "expected": "Sin placeholders visibles"}
     ]
   },
   {
-    "title": "TC008 - Regresión: tipoSolicitud presente en OK, ausente en VALIDATION_ERROR",
+    "title": "TC008 - Un cambio del texto o del celular en Drupal se refleja sin desplegar código",
     "steps": [
-      {"action": "Precondiciones:\n- Flag Reactivación: true\n- Flag Incremento: true\n- Usuarios OK: CC 52526685 (Reactivación), CC 80810798 (Incremento)\n- Usuarios VALIDATION_ERROR: CC 19184974 (K), CC 79584194 (R), CC 52634111 (tarjetaAmparada)", "expected": ""},
-      {"action": "Given que se consumen usuarios que generan estado OK y usuarios que generan VALIDATION_ERROR", "expected": ""},
-      {"action": "When se revisan todas las respuestas OK", "expected": ""},
-      {"action": "Then el campo tipoSolicitud SIEMPRE está presente en respuestas con estado OK", "expected": "tipoSolicitud presente"},
-      {"action": "And tipoSolicitud es 3 para códigos de Reactivación (O, V, I, W)", "expected": "\"tipoSolicitud\": 3"},
-      {"action": "And tipoSolicitud es 2 para códigos de Incremento (1, N, S)", "expected": "\"tipoSolicitud\": 2"},
-      {"action": "When se revisan todas las respuestas VALIDATION_ERROR", "expected": ""},
-      {"action": "Then el campo tipoSolicitud NUNCA está presente en respuestas con estado VALIDATION_ERROR", "expected": "tipoSolicitud ausente en toda respuesta VALIDATION_ERROR"},
-      {"action": "And el campo datosError siempre está presente con codigoErrorValidacion y reglaErrorValidacion", "expected": "datosError presente"}
+      {"action": "Precondiciones:\n- Acceso al administrador de Drupal QA (coordinar con David Avalos)\n- Valor original del texto y del celular registrado para revertirlo al terminar\n- Tiempo de caché aceptable definido con desarrollo", "expected": ""},
+      {"action": "Given se modifica en Drupal el texto informativo y el número celular de la pantalla de derivación y se publica", "expected": ""},
+      {"action": "When, pasado el tiempo de caché acordado, un afiliado es derivado a la pantalla del asesor", "expected": ""},
+      {"action": "Then la pantalla muestra el texto y el celular nuevos", "expected": "Cambios visibles sin despliegue de front"},
+      {"action": "And se restaura el contenido original en Drupal", "expected": "Contenido original restablecido"}
+    ]
+  },
+  {
+    "title": "TC009 - Con Drupal no disponible se muestra el texto de respaldo actualizado (no el mensaje anterior)",
+    "steps": [
+      {"action": "Precondiciones:\n- Apoyo de desarrollo para dejar el contenido de Drupal no disponible en QA\n- Hoy el respaldo del código para MANUAL dice \"Nuestro equipo analizará tu solicitud… recibirás respuesta en tu correo electrónico\"", "expected": ""},
+      {"action": "Given Drupal no responde para el contenido de la pantalla de derivación", "expected": ""},
+      {"action": "When un afiliado es derivado a la pantalla del asesor", "expected": ""},
+      {"action": "Then la pantalla muestra el contenido de respaldo sin quedar en blanco ni con errores", "expected": "Pantalla completa con contenido de respaldo"},
+      {"action": "And el contenido de respaldo corresponde al mensaje nuevo del asesor", "expected": "No aparece \"Nuestro equipo analizará tu solicitud… recibirás respuesta en tu correo electrónico\""}
+    ]
+  },
+  {
+    "title": "TC010 - Versión móvil de la pantalla de derivación y del mensaje de reingreso",
+    "steps": [
+      {"action": "Precondiciones:\n- Dispositivo móvil o emulación móvil (ancho 375 px)\n- Referencia visual: Figma node 32750-132726", "expected": ""},
+      {"action": "Given un afiliado es derivado a la pantalla del asesor desde un dispositivo móvil", "expected": ""},
+      {"action": "When se visualiza la pantalla", "expected": ""},
+      {"action": "Then textos, imagen y enlace se ven completos y alineados al mockup móvil, sin scroll horizontal", "expected": "Pantalla 7.1 móvil conforme a Figma (las imágenes son de referencia)"},
+      {"action": "And al reingresar desde el móvil, el mensaje transversal se ve conforme al mockup móvil", "expected": "Pantalla 7.2.2 móvil conforme a Figma"}
+    ]
+  },
+  {
+    "title": "TC011 - E2E reingreso tras la derivación: se muestra \"Ya tienes una solicitud en curso con un asesor\"",
+    "steps": [
+      {"action": "Precondiciones:\n- Misma cédula del TC001, ya derivada al canal asistido\n- Navegador cerrado después de la derivación", "expected": ""},
+      {"action": "Given el afiliado abre la URL del Onboarding de Cupo y pulsa \"Comenzar solicitud\"", "expected": ""},
+      {"action": "When inicia sesión en CIAM y el sistema valida el estado del caso (pantalla de carga)", "expected": ""},
+      {"action": "Then el servicio de consulta de estado del caso (/request/check) responde estado CASE_IN_PROGRESS_PROMOTER", "expected": "\"estado\": \"CASE_IN_PROGRESS_PROMOTER\""},
+      {"action": "And el front redirige a /login?requestState=CASE_IN_PROGRESS_PROMOTER y elimina la cookie userToken", "expected": "URL con requestState=CASE_IN_PROGRESS_PROMOTER; sin cookie userToken"},
+      {"action": "And se muestra el mensaje transversal", "expected": "Título: \"Ya tienes una solicitud en curso con un asesor\" / Texto: \"Si quieres retomar tu solicitud, comunícate con la Línea Audio Servicios (601) 7457900 Opción 2, para recibir orientación en los próximos pasos. Nuestro equipo estará disponible para ayudarte.\" / Botón \"Conocer canales de servicio\" / Enlace \"Ir a Colsubsidio.com\""},
+      {"action": "And los textos ya no corresponden a la versión anterior", "expected": "No aparece \"…con un promotor\" ni el botón \"Conocer líneas de atención\""}
+    ]
+  },
+  {
+    "title": "TC012 - Un caso derivado NO se retoma por el flujo digital",
+    "steps": [
+      {"action": "Precondiciones:\n- Cédula con caso derivado al canal asistido\n- Riesgo a cubrir: un caso creado en autogestionado tiene operatorCode \"01\"; si la derivación no lo cambia, /request/check respondería IN_PROGRESS y el front haría retoma digital", "expected": ""},
+      {"action": "Given el afiliado con caso derivado inicia sesión nuevamente", "expected": ""},
+      {"action": "When el sistema consulta el estado del caso en /request/check", "expected": ""},
+      {"action": "Then la respuesta NO es estado IN_PROGRESS con pasoPendiente", "expected": "Estado distinto de IN_PROGRESS (esperado CASE_IN_PROGRESS_PROMOTER)"},
+      {"action": "And el front no redirige al paso pendiente (información personal, personalización de oferta, datos adicionales o biometría)", "expected": "No hay retoma digital; se muestra el mensaje transversal del asesor"}
+    ]
+  },
+  {
+    "title": "TC013 - Reingreso desde otro navegador o dispositivo con caso derivado",
+    "steps": [
+      {"action": "Precondiciones:\n- Cédula con caso derivado al canal asistido\n- Navegador o dispositivo distinto al usado en la derivación, sin cookies previas", "expected": ""},
+      {"action": "Given el afiliado abre el Onboarding de Cupo desde el otro navegador o dispositivo", "expected": ""},
+      {"action": "When inicia sesión", "expected": ""},
+      {"action": "Then se muestra el mensaje transversal \"Ya tienes una solicitud en curso con un asesor\"", "expected": "El bloqueo depende del estado del caso en Bizagi, no de cookies del navegador anterior"}
+    ]
+  },
+  {
+    "title": "TC014 - La derivación ocurre mientras el afiliado no está en la pantalla",
+    "steps": [
+      {"action": "Precondiciones:\n- Cédula que en QA obtenga Zona Gris\n- Comportamiento esperado pendiente de confirmar con desarrollo (escenario no definido en la HU)", "expected": ""},
+      {"action": "Given el afiliado llega a la pantalla de carga del motor en el Paso 2", "expected": ""},
+      {"action": "When cierra el navegador antes de recibir el resultado y el motor responde Zona Gris", "expected": ""},
+      {"action": "Then al volver a ingresar e iniciar sesión, ve el mensaje transversal del asesor", "expected": "\"Ya tienes una solicitud en curso con un asesor\""},
+      {"action": "And no es retomado a la personalización de la oferta", "expected": "Sin retoma digital"}
+    ]
+  },
+  {
+    "title": "TC015 - Regresión: la retoma digital de un caso no derivado sigue funcionando",
+    "steps": [
+      {"action": "Precondiciones:\n- Cédula autorizada con solicitud digital en curso NO derivada, abandonada en el Paso 1 o Paso 2", "expected": ""},
+      {"action": "Given el afiliado inicia sesión nuevamente", "expected": ""},
+      {"action": "When el sistema consulta el estado del caso en /request/check", "expected": ""},
+      {"action": "Then la respuesta es estado IN_PROGRESS con el pasoPendiente del caso", "expected": "\"estado\": \"IN_PROGRESS\" + pasoPendiente"},
+      {"action": "And el front lleva al afiliado al paso pendiente con sus datos (oferta y campaña si aplica)", "expected": "Retoma igual que antes del cambio; no se muestra el mensaje del asesor"}
+    ]
+  },
+  {
+    "title": "TC016 - Regresión: un caso abierto por un asesor (no derivado) también muestra el mensaje transversal nuevo",
+    "steps": [
+      {"action": "Precondiciones:\n- Cédula con caso en curso creado por un asesor en el canal asistido (operatorCode distinto de \"01\"), no proveniente de Zona Gris", "expected": ""},
+      {"action": "Given el afiliado intenta iniciar una solicitud en el autogestionado", "expected": ""},
+      {"action": "When inicia sesión y el sistema valida el estado del caso", "expected": ""},
+      {"action": "Then se muestra el mensaje transversal con el texto nuevo", "expected": "\"Ya tienes una solicitud en curso con un asesor\" con la Línea Audio Servicios (601) 7457900 Opción 2"},
+      {"action": "And el botón \"Conocer canales de servicio\" navega a la URL definida", "expected": "URL de destino del botón (pendiente de confirmar; hoy https://www.colsubsidio.com/consultanos/centros-de-servicio)"}
+    ]
+  },
+  {
+    "title": "TC017 - Regresión condicional: la retoma de novedades (aumento/reactivación) no cambia",
+    "steps": [
+      {"action": "Precondiciones:\n- Aplica solo si la tarea 227152 modifica /request/check\n- Cédula autorizada con novedad (aumento o reactivación) en curso, no derivada\n- Flags de retoma según HU 207400", "expected": ""},
+      {"action": "Given el afiliado con la novedad en curso inicia sesión nuevamente", "expected": ""},
+      {"action": "When el sistema consulta el estado del caso", "expected": ""},
+      {"action": "Then la retoma de la novedad se comporta igual que antes del cambio", "expected": "Retoma según la matriz de flags de la HU 207400; sin mensaje del asesor"}
+    ]
+  },
+  {
+    "title": "TC018 - [Pendiente definición] El caso derivado queda en la bandeja del asistido con estado temporal y trazabilidad",
+    "steps": [
+      {"action": "Precondiciones:\n- Caso derivado por Zona Gris (TC001)\n- Acceso a Bizagi QA (bizagi_consultar_caso.py) o apoyo de Gattaca\n- Pendiente: nombre del estado temporal y actividad o cola destino (¿\"Ofrecer Zona Gris\", HU 203293?)", "expected": ""},
+      {"action": "Given se consulta en Bizagi el caso del afiliado derivado", "expected": ""},
+      {"action": "When se revisa el estado, la actividad actual y el historial del caso", "expected": ""},
+      {"action": "Then el caso está en la actividad o cola definida para el canal asistido", "expected": "Caso disponible para gestión del asesor"},
+      {"action": "And tiene el estado temporal definido, la fecha y hora del cambio de estado y el mismo idCaso original", "expected": "Estado temporal + fecha/hora + idCaso sin cambios"},
+      {"action": "And el canal de origen del caso es el autogestionado", "expected": "canalOrigen: WEB"},
+      {"action": "And existe un único caso para el afiliado, también después del reingreso del TC011", "expected": "Sin casos duplicados"}
+    ]
+  },
+  {
+    "title": "TC019 - [Pendiente definición] Las solicitudes derivadas se identifican en el reporte operativo",
+    "steps": [
+      {"action": "Precondiciones:\n- Pendiente: nombre del reporte operativo y forma de acceso\n- Al menos una solicitud derivada por Zona Gris, una finalizada, una negada y una en trámite autogestionado", "expected": ""},
+      {"action": "Given se consulta el reporte operativo del periodo de las pruebas", "expected": ""},
+      {"action": "When se filtran las solicitudes de las cédulas de prueba", "expected": ""},
+      {"action": "Then las solicitudes derivadas se muestran con el estado temporal definido", "expected": "Estado temporal visible en el reporte"},
+      {"action": "And se diferencian de las finalizadas, negadas y en trámite por el autogestionado", "expected": "Clasificación diferenciada"}
+    ]
+  },
+  {
+    "title": "TC020 - [Pendiente definición] Falla al derivar la solicitud al canal asistido",
+    "steps": [
+      {"action": "Precondiciones:\n- Apoyo de desarrollo o Gattaca para provocar la falla (la derivación ocurre dentro de Bizagi, no hay un endpoint aislado que tumbar)\n- Pendiente: qué pantalla ve el afiliado cuando la derivación falla", "expected": ""},
+      {"action": "Given el motor clasifica una solicitud como Zona Gris", "expected": ""},
+      {"action": "When ocurre una falla o timeout al registrar el estado o enrutar el caso al asistido", "expected": ""},
+      {"action": "Then el afiliado ve la pantalla de error definida y no una pantalla en blanco ni un loader infinito", "expected": "Pantalla de error definida (p. ej. EXECUTION_ERROR)"},
+      {"action": "And el caso conserva su estado y su información", "expected": "Sin pérdida de datos"},
+      {"action": "And no se crea un caso duplicado en el canal asistido", "expected": "Un único caso"}
+    ]
+  },
+  {
+    "title": "TC021 - [Pendiente definición] Reproceso de una derivación fallida",
+    "steps": [
+      {"action": "Precondiciones:\n- Solicitud con falla en la derivación (TC020)\n- Pendiente: mecanismo de reproceso (automático o manual); la HU no lo define", "expected": ""},
+      {"action": "Given el servicio del canal asistido está restablecido", "expected": ""},
+      {"action": "When se ejecuta el mecanismo de reproceso definido", "expected": ""},
+      {"action": "Then la solicitud queda en la bandeja del asistido con el estado temporal", "expected": "Derivación completada"},
+      {"action": "And existe un único caso en la cola del asesor", "expected": "Sin duplicados"}
+    ]
+  },
+  {
+    "title": "TC022 - [Pendiente alcance] Novedad (aumento o reactivación) clasificada como Zona Gris",
+    "steps": [
+      {"action": "Precondiciones:\n- Pendiente: confirmar si la HU aplica a novedades\n- Cédula autorizada con novedad (aumento o reactivación) que en QA obtenga Zona Gris", "expected": ""},
+      {"action": "Given el afiliado inicia una novedad por el autogestionado", "expected": ""},
+      {"action": "When el motor de decisión clasifica la solicitud como Zona Gris", "expected": ""},
+      {"action": "Then el comportamiento corresponde a la definición de alcance", "expected": "Si aplica: pantalla de derivación (TC001). Si no aplica: comportamiento actual sin cambios"}
     ]
   }
 ]

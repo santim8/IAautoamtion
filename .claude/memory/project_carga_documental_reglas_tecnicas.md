@@ -47,7 +47,7 @@ Además del estado por documento existe un estado **por archivo individual** (ej
 - **Selección por defecto: ninguna** — ningún radio button viene marcado.
 - **El contador de archivos solo se muestra cuando hay una selección** de frecuencia.
 - Si el usuario **cambia la frecuencia teniendo archivos cargados**, se muestra un **warning de confirmación** y **se eliminan los comprobantes ya cargados**.
-- Modal: **"¿En verdad quieres cambiar la frecuencia de pago?"** — "Al cambiar la frecuencia de pago se eliminarán los comprobantes ya cargados." · Botones **`Cancelar`** / **`Cambiar frecuencia`**.
+- Modal: **"¿En verdad quieres cambiar la frecuencia de pago?"** — "Al cambiar la frecuencia de pago se eliminarán los comprobantes ya cargados." · Botones **`Cancelar`** / **`Cambiar frecuencia`**. El mockup (nota "Documentation" de Figma, 2026-09-23) lo dibuja con ícono de advertencia, **título y cuerpo separados** (título = la pregunta; cuerpo = "Al cambiar…"), **botón cerrar (X)** arriba a la derecha, `Cancelar` como botón secundario (contorno) y `Cambiar frecuencia` como primario. Qué hace la X **no está documentado** (¿equivale a `Cancelar`?).
 - Patrón de warning transversal al flujo: **se muestra centrado y debe ser navegable con teclado**.
 
 ### Valor solicitado — rangos (PENDIENTE de definir)
@@ -58,6 +58,8 @@ Además del estado por documento existe un estado **por archivo individual** (ej
 | **Sin oferta** | El **mínimo del producto** | *Por definir* |
 
 > El "Mínimo $700.000 – Máximo aprobado" que aparece en los mockups es un valor de ejemplo, **no la regla final**. Con oferta, el mínimo es la oferta misma: no se puede pedir menos de lo ya aprobado.
+>
+> **No confundir con "Ajustar cupo"** (pantalla de oferta, *después* del análisis). Su regla —valor mayor al ofertado → `[Oferta inicial, máximo que aprobó el analista]`; igual al ofertado → `[Mínimo del producto, Oferta inicial]`— es una nota "Documentation" de Figma y está en la memoria global `project_pantalla_cupo_aprobado_paso2`. Es coherente con "con oferta, mínimo = oferta", pero **no define el máximo del Valor solicitado**, porque en la carga documental todavía no hay monto aprobado por analista.
 
 ### Listado de documentos
 

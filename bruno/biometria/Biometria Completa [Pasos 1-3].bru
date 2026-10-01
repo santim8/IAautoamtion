@@ -1,0 +1,155 @@
+meta {
+  name: Biometria Completa [Pasos 1-3]
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://platform-test-internal.colsubsidio.com/loans/identity/internal/v1/validator/authentication-result
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+  x-api-key: ecn24ysGnZ4X17cU5lX4Q9gyFvyPR7fD1DkwR7I7
+}
+
+body:json {
+  {
+    "notificacion": [
+      {
+        "proceso": {
+          "codigo": "311593"
+        },
+        "documento": {
+          "numero": "52961647"
+        },
+        "version": "01",
+        "mensaje": "14"
+      }
+    ]
+  }
+}
+
+script:post-response {
+  // Este request ES el paso 1 (autenticacion biometrica, mensaje "14" = OK).
+  // Los pasos 2 y 3 se encadenan aqui, igual que biometria_api.py:
+  //   2) GET documents-to-sign/{caso}
+  //   3) POST documents-signed/{caso} reenviando el generatedDocument (base64)
+  // Caso y cedula se leen del Body de este request: es lo unico que se edita.
+  const axios = require("axios");
+  
+  const BASE = "https://platform-test-internal.colsubsidio.com/loans/identity/internal/v1/validator";
+  const API_KEY = "ecn24ysGnZ4X17cU5lX4Q9gyFvyPR7fD1DkwR7I7";
+  // Constantes fijas del paso 3, copiadas del framework Java.
+  const ADOTECH_TRANSACTION = "2895";
+  const MATRICULA_ID = "61700";
+  const NOMBRES_DOCUMENTOS = ["INFORME_SOL_ONLINE_CERT", "PAGARE_ONLINE_CERT"];
+  // Limite explicito (no Infinity): en Safe Mode Infinity llega como null a axios.
+  const MAX_BYTES = 100 * 1024 * 1024;
+  // No lanzar excepcion en 4xx/5xx: el status se reporta en el resumen.
+  const opts = {
+    headers: { "content-type": "application/json", "accept": "application/json", "x-api-key": API_KEY },
+    validateStatus: () => true,
+    maxBodyLength: MAX_BYTES,
+    maxContentLength: MAX_BYTES
+  };
+  
+  let body = req.getBody();
+  if (typeof body === "string") {
+    try { body = JSON.parse(body); } catch (e) { body = {}; }
+  }
+  const noti = ((body && body.notificacion) || [])[0] || {};
+  const caso = String((noti.proceso || {}).codigo || "");
+  const cedula = String((noti.documento || {}).numero || "");
+  
+  const resumen = {
+    resultado: "",
+    caso: caso,
+    cedula: cedula,
+    paso1_autenticacion: "HTTP " + res.getStatus(),
+    paso2_documentos: "no se ejecuto",
+    paso3_firma: "no se ejecuto"
+  };
+  let pasoFallido = null;
+  bru.setVar("paso1Status", res.getStatus());
+  bru.setVar("paso2Status", null);
+  bru.setVar("paso2Docs", 0);
+  bru.setVar("paso3Status", null);
+  
+  if (res.getStatus() !== 200) {
+    pasoFallido = 1;
+    resumen.respuesta_paso1 = res.getBody();
+  } else {
+    const r2 = await axios.get(BASE + "/documents-to-sign/" + caso, opts);
+    const docs = Array.isArray(r2.data) ? r2.data : [];
+    bru.setVar("paso2Status", r2.status);
+    bru.setVar("paso2Docs", docs.length);
+    resumen.paso2_documentos = "HTTP " + r2.status + " (" + docs.length + " documento(s))";
+  
+    if (r2.status !== 200 || docs.length === 0) {
+      pasoFallido = 2;
+      resumen.respuesta_paso2 = r2.data;
+    } else {
+      const firmados = docs.slice(0, 2).map((doc, i) => ({
+        documentoBase64: doc.generatedDocument || "",
+        nombre: NOMBRES_DOCUMENTOS[i] || doc.name || "DOC_" + i,
+        tipoDocumento: 1
+      }));
+      const body3 = {
+        tipoDocumento: "4",
+        adotechTransaction: ADOTECH_TRANSACTION,
+        matriculaId: MATRICULA_ID,
+        idProceso: caso,
+        nroDocumento: cedula,
+        documentosFirmadosResponsable: firmados
+      };
+      const r3 = await axios.post(BASE + "/documents-signed/" + caso, body3, opts);
+      bru.setVar("paso3Status", r3.status);
+      resumen.paso3_firma = "HTTP " + r3.status;
+      resumen.respuesta_paso3 = r3.data;
+      if (r3.status !== 200) {
+        pasoFallido = 3;
+      }
+    }
+  }
+  
+  resumen.resultado = pasoFallido ? "BIOMETRIA FALLO en paso " + pasoFallido : "BIOMETRIA OK";
+  // Lo que se ve en la pestana Response es este resumen, no la respuesta cruda del paso 1.
+  res.setBody(resumen);
+}
+
+tests {
+  test("Paso 1/3 autenticacion biometrica -> 200", function () {
+    expect(bru.getVar("paso1Status")).to.equal(200);
+  });
+  
+  test("Paso 2/3 documentos a firmar -> 200 con al menos 1 documento", function () {
+    expect(bru.getVar("paso2Status")).to.equal(200);
+    expect(bru.getVar("paso2Docs")).to.be.above(0);
+  });
+  
+  test("Paso 3/3 documentos firmados -> 200", function () {
+    expect(bru.getVar("paso3Status")).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: false
+  timeout: 0
+}
+
+docs {
+  # Biometria completa (pasos 1, 2 y 3 con un solo clic)
+  
+  1. Abrir la pestaña **Body**.
+  2. Cambiar el numero de caso en `"codigo"` y la cedula en `"numero"` (dejando las comillas).
+  3. Clic en **Send** (flecha →).
+  
+  En **Response** sale el resumen: `"resultado": "BIOMETRIA OK"` o `"BIOMETRIA FALLO en paso N"` con el detalle de ese paso.
+  
+  No hace falta seleccionar ningun environment.
+  
+  **Ojo:** el paso 3 firma los documentos del caso: no se puede deshacer.
+}

@@ -3,16 +3,26 @@
 #
 #   copy token.example.txt token.txt
 #
+# Va en la raiz del repo (al lado de panel.bat). Si usas el .exe, al lado del
+# .exe.
+#
 # Una clave por linea, con un signo igual y el valor pegado, sin comillas.
-# OJO: no pongas comentarios a la derecha del valor; el parser se los traga
-# como si fueran parte del secreto. Dejar la clave vacia es lo correcto
-# mientras no la tengas: el script avisa exactamente cual falta.
+# No pongas comentarios a la derecha del valor: el parser se los traga como si
+# fueran parte del secreto. Dejar la clave vacia es lo correcto mientras no la
+# tengas; el script avisa exactamente cual falta.
+#
+# OJO: token.txt NO alcanza para todo el panel. Las pestanas de Bizagi piden
+# sus credenciales por variable de entorno, no por aqui. Ver el final.
 
 
-# --- Pestana "Validaciones API" (validaciones_api.py) ---------------------
-# Las 6 que necesita para correr los ~14 servicios de elegibilidad.
+# ==========================================================================
+# 1. Pestanas "Validaciones API" y "Suite biometria"
+# ==========================================================================
+# Las 6 que hacen falta para correr los servicios de elegibilidad. La pestana
+# va pidiendolas de a una, asi que conviene llenarlas todas de una vez en vez
+# de ir corriendo y chocando con la siguiente.
 
-# x-api-key de eligibility. La pestana "Suite biometria" reusa esta misma.
+# x-api-key de eligibility. "Suite biometria" reusa esta misma y no pide nada mas.
 api_key_card_validations=
 # client_id de Apigee
 apigee_client_id=
@@ -26,9 +36,12 @@ ciam_token_api_key=
 ciam_gigya_api_key=
 
 
-# --- Scripts sueltos de card-validations / validate-request ---------------
-# JWT pegado a mano desde el navegador; caducan solo (2h los de card, ~5 min
-# el de validate-request), asi que se refrescan en cada corrida.
+# ==========================================================================
+# 2. Scripts sueltos de consola (el panel no los usa)
+# ==========================================================================
+# JWT pegados a mano desde el navegador; caducan solo (2h los de card, ~5 min
+# el de validate-request), asi que se refrescan en cada corrida. Si no vas a
+# correr estos scripts, dejalos vacios.
 
 # card_validations_external_test.py
 jwt_card_validations_external=
@@ -38,7 +51,38 @@ jwt_card_validations_external_v2=
 jwt_validate_request_external=
 
 
-# --- Azure DevOps ---------------------------------------------------------
-# PAT para consultar work items y PRs por REST. El panel no lo usa.
+# ==========================================================================
+# 3. Azure DevOps
+# ==========================================================================
+# PAT para consultar work items y PRs por REST. Ningun script del repo lo lee;
+# esta aqui para tenerlo a mano. Opcional.
 token_azure=
 project_azure=
+
+
+# ==========================================================================
+# 4. LO QUE **NO** VA EN ESTE ARCHIVO
+# ==========================================================================
+#
+# 4.1 Pestanas "Cancelar caso Bizagi", "Consultar caso Bizagi" y
+#     "Consultar JSON": credenciales por variable de entorno. Sin ellas el
+#     script no arranca. Una sola vez en PowerShell, y despues abri una
+#     consola nueva (setx no afecta a la que ya tenes abierta):
+#
+#       setx BIZAGI_USER "tu.usuario"
+#       setx BIZAGI_PASSWORD "tu.clave"
+#
+# 4.2 create_testcases_automation.py (script suelto, no es pestana):
+#
+#       setx OPENAI_API_KEY "sk-..."     requerida solo en Modo 1
+#
+#     Y estas tres son opcionales, tienen valor por defecto:
+#       OPENAI_MODEL         gpt-4.1-mini
+#       BIZAGI_AREA_PATH     Ecosistema Digital Credito y Seguros
+#       BIZAGI_ASSIGNED_TO   vacio
+#       TC_OUTPUT_DIR        raiz del repo
+#
+# 4.3 Claves de los usuarios de prueba: van en la pestana "Usuarios", que las
+#     guarda en ~/.panel_qa/usuarios_prueba.json. El catalogo compartido del
+#     repo (usuarios_compartidos.json) viaja SIN contrasenas a proposito, asi
+#     que al clonar vas a ver los usuarios pero con la clave vacia.

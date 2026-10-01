@@ -17,8 +17,14 @@ import os
 import subprocess
 import sys
 
+import rutas
+
 BASE_INT = "https://platform-test-internal.colsubsidio.com"
-TOKEN_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "token.txt")
+# Congelado, __file__ apunta a la carpeta temporal que PyInstaller descomprime
+# y borra al salir, no a la del .exe: token.txt nunca estaria ahi (el .spec lo
+# deja fuera a proposito, para no repartir secretos dentro del ejecutable).
+# rutas.dato() resuelve al lado del .exe, y desde el repo da lo mismo que antes.
+TOKEN_PATH = rutas.dato("token.txt")
 
 # Constantes fijas del paso 3, copiadas tal cual del framework Java (no
 # derivan de idCaso/identification).
@@ -32,8 +38,14 @@ def _cargar_token_txt():
     try:
         with open(TOKEN_PATH, encoding="utf-8") as f:
             for linea in f:
+                # token.example.txt explica cada clave en comentarios, y varios
+                # llevan un "=" adentro: sin este filtro entran como claves
+                # basura. Comentar una linea con "#" tambien la apaga de verdad.
+                linea = linea.strip()
+                if not linea or linea.startswith("#"):
+                    continue
                 if "=" in linea:
-                    clave, _, valor = linea.strip().partition("=")
+                    clave, _, valor = linea.partition("=")
                     valores[clave.strip()] = valor.strip()
     except OSError:
         pass
@@ -63,10 +75,15 @@ def _curl(metodo, url, headers, body=None, timeout=30):
            "--header", "user-agent: insomnia/11.2.0"]
     for k, v in headers.items():
         cmd += ["--header", "%s: %s" % (k, v)]
+    # El body va por stdin: el paso 3 lleva los PDFs en base64 y como argumento
+    # revienta el limite de 32767 caracteres de la linea de comando de Windows
+    # (WinError 206).
+    datos = None
     if body is not None:
-        cmd += ["--data", json.dumps(body)]
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout,
-                       creationflags=_SIN_VENTANA)
+        cmd += ["--data-binary", "@-"]
+        datos = json.dumps(body)
+    r = subprocess.run(cmd, input=datos, capture_output=True, text=True,
+                       timeout=timeout, creationflags=_SIN_VENTANA)
     salida = r.stdout.strip().rsplit("\n", 1)
     crudo = salida[0] if len(salida) > 1 else ""
     status = int(salida[-1]) if salida[-1].isdigit() else None

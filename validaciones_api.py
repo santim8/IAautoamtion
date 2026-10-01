@@ -28,11 +28,17 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlencode
 
+import rutas
+
 BASE_APIGEE = "https://colsubsidio-test.apigee.net"
 BASE_INT = "https://platform-test-internal.colsubsidio.com"
 BASE_EXT = "https://platform-test-external.colsubsidio.com"
 
-TOKEN_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "token.txt")
+# Congelado, __file__ apunta a la carpeta temporal que PyInstaller descomprime
+# y borra al salir, no a la del .exe: token.txt nunca estaria ahi (el .spec lo
+# deja fuera a proposito, para no repartir secretos dentro del ejecutable).
+# rutas.dato() resuelve al lado del .exe, y desde el repo da lo mismo que antes.
+TOKEN_PATH = rutas.dato("token.txt")
 
 # Los 4 mapeos de tipo de documento del framework Java (cada servicio usa el
 # suyo). El repo solo trae usuarios CC/CE hoy, asi que alcanza con esos dos
@@ -48,8 +54,14 @@ def _cargar_token_txt():
     try:
         with open(TOKEN_PATH, encoding="utf-8") as f:
             for linea in f:
+                # token.example.txt explica cada clave en comentarios, y varios
+                # llevan un "=" adentro: sin este filtro entran como claves
+                # basura. Comentar una linea con "#" tambien la apaga de verdad.
+                linea = linea.strip()
+                if not linea or linea.startswith("#"):
+                    continue
                 if "=" in linea:
-                    clave, _, valor = linea.strip().partition("=")
+                    clave, _, valor = linea.partition("=")
                     valores[clave.strip()] = valor.strip()
     except OSError:
         pass

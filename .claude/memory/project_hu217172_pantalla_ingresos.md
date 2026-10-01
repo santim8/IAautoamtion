@@ -27,6 +27,14 @@ HU del flujo de [Gestión Documental](project_gestion_documental_zona_gris.md). 
 
 **Regla estructural:** los **cuatro** tipos de actividad (Rentas de capital · Servicios independientes · Pagos adicionales · Pensión) están disponibles como **actividad ADICIONAL para los tres perfiles**. Lo único que cambia por perfil es si se pide **`Actividad principal`** — y solo el Independiente la pide.
 
+**Resumen por flujo (formulación del equipo):**
+
+| Flujo | Actividad principal | Actividad adicional (tipo) | Origen específico |
+|---|---|---|---|
+| **Dependiente** | No se solicita | Rentas, Servicios, Pagos y Pensión | Según el tipo de actividad seleccionado |
+| **Independiente** | Rentas, Servicios | Rentas, Servicios, Pagos y Pensión | Según el tipo seleccionado, **con excepción de su elección anterior** |
+| **Pensionado** | No se solicita | Rentas, Servicios, Pagos y Pensión | Según el tipo de actividad seleccionado |
+
 ### Actividad principal
 
 | Perfil | ¿Se solicita? | Catálogo disponible |
@@ -51,6 +59,8 @@ HU del flujo de [Gestión Documental](project_gestion_documental_zona_gris.md). 
 Literal de la matriz, fila de Independiente / actividad adicional: *"Excepción de su elección anterior en **Origen Específico** (Nota: **Filtro por origen específico**)"*.
 
 Es decir: si un Independiente elige como principal `Servicios independientes → Prestación de servicios`, en la actividad adicional **vuelve a ver `Servicios independientes`**; lo único que desaparece es el origen **Prestación de servicios**, quedando disponibles los otros cuatro orígenes de ese tipo.
+
+**Ejemplo dado por el equipo (misma regla):** si el Independiente elige como principal `Servicios independientes → Ventas por Internet`, en la actividad adicional **no puede repetir esa selección** (desaparece el origen `Ventas por Internet`), **pero sí se le sigue mostrando `Servicios independientes`** como tipo. Nota literal: *"el filtro no es por tipo de actividad sino por origen específico del ingreso"*.
 
 Esto **corrige** la lectura literal de la HU (*"excluir automáticamente la opción seleccionada como Actividad principal, evitando duplicidades"*), que se venía interpretando como excluir el `Tipo de actividad` completo.
 

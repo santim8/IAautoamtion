@@ -29,6 +29,18 @@ playwright install chromium
 
 ## Configuración
 
+Qué pide cada pestaña, para no configurar de más:
+
+| pestaña | qué necesita |
+|---|---|
+| Observador de flujos · Analítica dataLayer | nada; se engancha al Chrome de la máquina |
+| Validaciones API · Suite biometría | `token.txt` con las 6 claves de elegibilidad |
+| Cancelar caso · Consultar caso · Consultar JSON | `BIZAGI_USER` y `BIZAGI_PASSWORD` de entorno (y un Chromium que el panel baja solo la primera vez) |
+| Usuarios · Corridas | nada |
+
+Son dos mecanismos distintos y ninguno cubre al otro: `token.txt` no sirve para
+Bizagi y las variables de entorno no sirven para elegibilidad.
+
 ### Credenciales de Bizagi
 
 Los scripts de Bizagi las exigen por variable de entorno; no hay valor por
@@ -55,6 +67,16 @@ ciam_gigya_api_key=<gigyaApiKey del token CIAM>
 ```
 
 Si falta alguna, el mensaje de error dice exactamente cuál agregar.
+
+**Dónde va el archivo.** Desde el repo, en la raíz (al lado de `panel.bat`).
+Con el `.exe`, al lado del `.exe`. Hay una plantilla lista para copiar:
+
+```
+copy token.example.txt token.txt
+```
+
+Las claves no viajan ni en el repo ni dentro del `.exe`: cada quien pone su
+`token.txt`. Pedíselas a quien ya tenga el panel andando.
 
 ## Repartirlo como aplicación
 
