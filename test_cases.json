@@ -1,227 +1,243 @@
 [
   {
-    "title": "TC001 - Zona Gris sin campaña: el afiliado ve la pantalla \"Un asesor continuará atendiendo tu solicitud\"",
+    "title": "TC001 - Libre Inversión: su dirección propia abre el Onboarding",
     "steps": [
-      {"action": "Precondiciones:\n- Ambiente QA: https://dev.colsubsidio.com/creditos/solicitud/cupo-de-credito/onboarding\n- Cédula autorizada (CO1C) sin campaña, sin casos en curso, que en QA obtenga resultado Zona Gris del motor (dato pendiente de entregar)\n- Usuario del portal transaccional con clave conocida\n- Contenido de la pantalla de derivación publicado en Drupal (tarea 227151)\n- Referencia visual: Figma node 32745-131878 (pantalla 7.1)", "expected": ""},
-      {"action": "Given el afiliado inicia sesión, supera las validaciones, acepta las políticas y diligencia el Paso 1 (información personal)", "expected": ""},
-      {"action": "When el flujo ejecuta el motor de decisión en el Paso 2 (personalización de la solicitud) y el motor clasifica la solicitud como Zona Gris", "expected": ""},
-      {"action": "Then el front recibe la notificación de Bizagi con paso OFFER_RESULT y el estado de Zona Gris (hoy estadoPaso MANUAL, o el que se defina)", "expected": "Notificación OFFER_RESULT con el estado de Zona Gris"},
-      {"action": "And se muestra la pantalla de derivación con título, texto, imagen del asesor y enlace", "expected": "Título: \"Un asesor continuará atendiendo tu solicitud\" / Texto: \"Recibirás atención personalizada para indicarte los pasos a seguir. Si lo prefieres, puedes comunicarte al número celular [número configurado en Drupal]\" / Enlace: \"Ir a Colsubsidio.com\""},
-      {"action": "And la pantalla no muestra botón de regresar ni continúa a la pantalla de oferta (\"¡Felicidades…!\")", "expected": "Sin botón atrás; el flujo no avanza a la oferta"},
-      {"action": "And al hacer clic en \"Ir a Colsubsidio.com\"", "expected": "Navega a https://www.colsubsidio.com"}
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Ventana de incógnito nueva (el navegador recuerda el último producto visitado)\n- HU 225423, escenario 1",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado abre en el navegador https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/libre-inversion/onboarding",
+        "expected": ""
+      },
+      {
+        "action": "When la página termina de cargar",
+        "expected": ""
+      },
+      {
+        "action": "Then se muestra la pantalla de Onboarding de la solicitud de crédito",
+        "expected": "Encabezado \"Solicitud de crédito\" y el paso 1 del Onboarding"
+      },
+      {
+        "action": "And la barra de direcciones termina en /consumo/libre-inversion/onboarding",
+        "expected": "Dirección: .../consumo/libre-inversion/onboarding"
+      },
+      {
+        "action": "And no se muestra la página \"Lo sentimos, no encontramos esta página\"",
+        "expected": "No aparece la página de producto no encontrado"
+      }
     ]
   },
   {
-    "title": "TC002 - Zona Gris con preaprobado: la solicitud se deriva al canal asistido",
+    "title": "TC002 - Libre Inversión: después de iniciar sesión el afiliado sigue en Libre Inversión",
     "steps": [
-      {"action": "Precondiciones:\n- Ambiente QA\n- Cédula autorizada con campaña de preaprobado vigente que en QA obtenga Zona Gris (dato pendiente)\n- Fuente: HU 202180 (Caso 1.1: preaprobado que el motor manda a Zona Gris)", "expected": ""},
-      {"action": "Given el afiliado inicia sesión y en el Paso 1 visualiza el modal de preaprobado", "expected": "Modal de preaprobado visible"},
-      {"action": "When continúa el flujo y el motor de decisión clasifica la solicitud como Zona Gris", "expected": ""},
-      {"action": "Then se muestra la misma pantalla de derivación del TC001", "expected": "\"Un asesor continuará atendiendo tu solicitud\" con el celular configurado en Drupal"},
-      {"action": "And el flujo no continúa a la oferta del preaprobado", "expected": "No se muestra la pantalla de oferta"}
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Ventana de incógnito nueva (el navegador recuerda el último producto visitado)\n- Cédula autorizada (CO1C) sin solicitudes en curso (confirmar con /request/check) y usuario del portal transaccional con clave conocida\n- HU 225423, escenario 2\n- Lo que muestra la pantalla de validaciones de Consumo depende del supuesto S1 (pendiente del PO)",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/libre-inversion/onboarding y avanza con \"Siguiente\" hasta el paso 3",
+        "expected": ""
+      },
+      {
+        "action": "When pulsa \"Comenzar solicitud\"",
+        "expected": "Se muestra la pantalla \"Inicia sesión\" de Colsubsidio"
+      },
+      {
+        "action": "And inicia sesión con su documento y clave",
+        "expected": ""
+      },
+      {
+        "action": "Then la barra de direcciones termina en /consumo/libre-inversion/validaciones",
+        "expected": "Dirección .../consumo/libre-inversion/validaciones (no .../cupo-de-credito/validaciones)"
+      },
+      {
+        "action": "And se registra la pantalla que se muestra en esa dirección",
+        "expected": "Según el supuesto S1: \"Lo sentimos, no encontramos esta página\" hasta que la HU 225425 entregue la pantalla de validaciones de Consumo"
+      }
     ]
   },
   {
-    "title": "TC003 - Aprobado en firme: la solicitud NO se deriva (caso de control)",
+    "title": "TC003 - Paso interno sin sesión: vuelve al Onboarding del mismo producto (Libre Inversión y Cupo)",
     "steps": [
-      {"action": "Precondiciones:\n- Ambiente QA\n- Cédula autorizada con campaña de aprobado en firme vigente\n- Fuente: HU 180005 (la compuerta posterior al motor envía la oferta en firme siempre por \"Aprobado\")\n- Confirmar que la misma compuerta aplica al autogestionado", "expected": ""},
-      {"action": "Given el afiliado inicia sesión y en el Paso 1 visualiza el modal \"¡Hola {nombre}, tienes un aprobado!\"", "expected": ""},
-      {"action": "When continúa el flujo y se ejecuta el motor de decisión", "expected": ""},
-      {"action": "Then el flujo continúa a la pantalla de oferta del Paso 2", "expected": "Pantalla \"¡Felicidades {nombre}…!\" con el cupo de la campaña"},
-      {"action": "And no se muestra la pantalla de derivación al asesor", "expected": "No aparece \"Un asesor continuará atendiendo tu solicitud\""}
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Ventana de incógnito nueva (el navegador recuerda el último producto visitado)\n- Sin sesión iniciada\n- HU 225423, escenario 3",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado no ha iniciado sesión",
+        "expected": ""
+      },
+      {
+        "action": "When abre directamente https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/libre-inversion/validaciones",
+        "expected": ""
+      },
+      {
+        "action": "Then el sistema lo lleva al Onboarding de Libre Inversión",
+        "expected": "La dirección cambia a .../consumo/libre-inversion/onboarding y se ve el Onboarding (no el de Cupo de Crédito)"
+      },
+      {
+        "action": "And repite con /politicas, /informacion-personal, /personalizacion-oferta, /datos-adicionales, /biometria y /fin bajo /consumo/libre-inversion/",
+        "expected": "En cada uno vuelve a .../consumo/libre-inversion/onboarding"
+      },
+      {
+        "action": "And en la misma pestaña abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/cupo-de-credito/validaciones",
+        "expected": "La dirección cambia a .../cupo-de-credito/onboarding y se ve el Onboarding de Cupo (no el de Libre Inversión)"
+      },
+      {
+        "action": "And repite con /cupo-de-credito/politicas y /cupo-de-credito/informacion-personal",
+        "expected": "En cada uno vuelve a .../cupo-de-credito/onboarding"
+      }
     ]
   },
   {
-    "title": "TC004 - Regresión: el motor aprueba (OK) y el flujo continúa a la personalización de la oferta",
+    "title": "TC004 - Producto inexistente: se muestra la página de producto no encontrado",
     "steps": [
-      {"action": "Precondiciones:\n- Ambiente QA\n- Cédula autorizada sin campaña que en QA obtenga resultado Aprobado", "expected": ""},
-      {"action": "Given el afiliado completa validaciones, políticas y Paso 1", "expected": ""},
-      {"action": "When el motor de decisión responde Aprobado", "expected": ""},
-      {"action": "Then el front recibe OFFER_RESULT con estadoPaso OK y muestra la pantalla de oferta", "expected": "Pantalla de oferta del Paso 2 sin cambios frente al comportamiento actual"},
-      {"action": "And no se asigna estado de derivación ni se muestra la pantalla del asesor", "expected": "Sin derivación"}
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Ventana de incógnito nueva (el navegador recuerda el último producto visitado)\n- HU 225423, escenario 4",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/producto-falso/onboarding",
+        "expected": ""
+      },
+      {
+        "action": "When la página carga",
+        "expected": ""
+      },
+      {
+        "action": "Then se muestra la página de producto no encontrado",
+        "expected": "Título: \"Lo sentimos, no encontramos esta página\" / Texto: \"La dirección que buscas no existe o cambió de lugar.\" / \"Cód. error 404\" / Botón \"Ir a Colsubsidio.com\""
+      },
+      {
+        "action": "And pulsa \"Ir a Colsubsidio.com\"",
+        "expected": "Se abre https://www.colsubsidio.com/creditos en la misma pestaña"
+      }
     ]
   },
   {
-    "title": "TC005 - Regresión: el motor niega (FAIL) y se muestra la pantalla de negación",
+    "title": "TC005 - Libre Inversión mal escrita o producto no habilitado: se muestra la página de producto no encontrado",
     "steps": [
-      {"action": "Precondiciones:\n- Ambiente QA\n- Cédula autorizada que en QA obtenga resultado Negado", "expected": ""},
-      {"action": "Given el afiliado completa validaciones, políticas y Paso 1", "expected": ""},
-      {"action": "When el motor de decisión responde Negado", "expected": ""},
-      {"action": "Then el front recibe OFFER_RESULT con estadoPaso FAIL y muestra la pantalla de negación actual", "expected": "Pantalla de negación sin cambios"},
-      {"action": "And no se muestra la pantalla de derivación al asesor", "expected": "Sin derivación"}
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Ventana de incógnito nueva (el navegador recuerda el último producto visitado)\n- HU 225423, escenario 4",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/Libre-Inversion/onboarding (con mayúsculas)",
+        "expected": "Título: \"Lo sentimos, no encontramos esta página\" / Texto: \"La dirección que buscas no existe o cambió de lugar.\" / \"Cód. error 404\" / Botón \"Ir a Colsubsidio.com\""
+      },
+      {
+        "action": "When abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/libre_inversion/onboarding (con guion bajo)",
+        "expected": "Título: \"Lo sentimos, no encontramos esta página\" / Texto: \"La dirección que buscas no existe o cambió de lugar.\" / \"Cód. error 404\" / Botón \"Ir a Colsubsidio.com\""
+      },
+      {
+        "action": "And abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/vehiculo/onboarding (producto fuera del alcance)",
+        "expected": "Título: \"Lo sentimos, no encontramos esta página\" / Texto: \"La dirección que buscas no existe o cambió de lugar.\" / \"Cód. error 404\" / Botón \"Ir a Colsubsidio.com\""
+      },
+      {
+        "action": "Then en ninguna de las tres direcciones se muestra el Onboarding",
+        "expected": "Ninguna carga el Onboarding"
+      }
     ]
   },
   {
-    "title": "TC006 - El afiliado derivado no puede continuar el flujo autogestionado mediante navegación",
+    "title": "TC006 - Cambio de Libre Inversión a Cupo: después del login el afiliado queda en Cupo de Crédito",
     "steps": [
-      {"action": "Precondiciones:\n- Afiliado en la pantalla de derivación (resultado del TC001)\n- Nota: la carga documental autogestionada no existe en 2026; se valida que no se pueda avanzar a ningún paso siguiente", "expected": ""},
-      {"action": "Given el afiliado está en la pantalla \"Un asesor continuará atendiendo tu solicitud\"", "expected": ""},
-      {"action": "When usa el botón atrás y el botón adelante del navegador", "expected": "No regresa a pasos anteriores editables ni avanza a la oferta"},
-      {"action": "And recarga la página (F5)", "expected": "Sigue viendo la pantalla de derivación o el mensaje transversal \"Ya tienes una solicitud en curso con un asesor\""},
-      {"action": "And escribe manualmente las URLs /cupo-de-credito/personalizacion-oferta, /datos-adicionales, /biometria y /fin", "expected": "El middleware no permite continuar: termina en el mensaje transversal o en el login con requestState=CASE_IN_PROGRESS_PROMOTER"},
-      {"action": "Then en ningún caso el afiliado llega a la oferta, la biometría o el fin de la solicitud", "expected": "Flujo autogestionado bloqueado"}
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Una sola ventana de incógnito para todo el caso\n- Cédula autorizada (CO1C) sin solicitudes en curso (confirmar con /request/check) y usuario del portal transaccional con clave conocida\n- HU 225423, escenario 5 (equivale a TC006 de la suite 229925)",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/libre-inversion/onboarding",
+        "expected": ""
+      },
+      {
+        "action": "And en la misma pestaña abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/cupo-de-credito/onboarding",
+        "expected": "Se muestra el Onboarding de Cupo (\"Tu Cupo de Crédito en minutos, con disponibilidad inmediata.\")"
+      },
+      {
+        "action": "When avanza hasta el paso 3, pulsa \"Comenzar solicitud\" e inicia sesión",
+        "expected": ""
+      },
+      {
+        "action": "Then la barra de direcciones termina en /cupo-de-credito/validaciones",
+        "expected": "Dirección .../cupo-de-credito/validaciones y el flujo de Cupo continúa como siempre"
+      }
     ]
   },
   {
-    "title": "TC007 - El texto y el celular de la pantalla de derivación provienen de Drupal",
+    "title": "TC007 - Cambio de Cupo a Libre Inversión: después del login el afiliado queda en Libre Inversión",
     "steps": [
-      {"action": "Precondiciones:\n- Contenido de la pantalla de derivación configurado en Drupal QA (tarea 227151)\n- Número de celular pendiente de definición por la PO (Edna Coca); se valida contra el valor configurado", "expected": ""},
-      {"action": "Given se consulta en Drupal QA el contenido configurado para la pantalla de derivación (título, texto, celular, imagen, enlace)", "expected": ""},
-      {"action": "When un afiliado es derivado a la pantalla del asesor", "expected": ""},
-      {"action": "Then la pantalla muestra exactamente el título, texto, celular y enlace configurados en Drupal", "expected": "Contenido idéntico a Drupal; ningún texto ni número quemado distinto al configurado"},
-      {"action": "And el texto no contiene el placeholder \"[canal de comunicación de preferencia]\" (eliminado en el mockup final)", "expected": "Sin placeholders visibles"}
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Una sola ventana de incógnito para todo el caso\n- Cédula autorizada (CO1C) sin solicitudes en curso (confirmar con /request/check) y usuario del portal transaccional con clave conocida\n- HU 225423, escenario 5",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/cupo-de-credito/onboarding",
+        "expected": ""
+      },
+      {
+        "action": "And en la misma pestaña abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/libre-inversion/onboarding",
+        "expected": "Se muestra el Onboarding de Libre Inversión"
+      },
+      {
+        "action": "When avanza hasta el paso 3, pulsa \"Comenzar solicitud\" e inicia sesión",
+        "expected": ""
+      },
+      {
+        "action": "Then la barra de direcciones termina en /consumo/libre-inversion/validaciones",
+        "expected": "Dirección .../consumo/libre-inversion/validaciones (no .../cupo-de-credito/validaciones)"
+      }
     ]
   },
   {
-    "title": "TC008 - Un cambio del texto o del celular en Drupal se refleja sin desplegar código",
+    "title": "TC008 - Regresión: solicitud de Cupo de Crédito de principio a fin sin cambios",
     "steps": [
-      {"action": "Precondiciones:\n- Acceso al administrador de Drupal QA (coordinar con David Avalos)\n- Valor original del texto y del celular registrado para revertirlo al terminar\n- Tiempo de caché aceptable definido con desarrollo", "expected": ""},
-      {"action": "Given se modifica en Drupal el texto informativo y el número celular de la pantalla de derivación y se publica", "expected": ""},
-      {"action": "When, pasado el tiempo de caché acordado, un afiliado es derivado a la pantalla del asesor", "expected": ""},
-      {"action": "Then la pantalla muestra el texto y el celular nuevos", "expected": "Cambios visibles sin despliegue de front"},
-      {"action": "And se restaura el contenido original en Drupal", "expected": "Contenido original restablecido"}
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Ventana de incógnito nueva (el navegador recuerda el último producto visitado)\n- Cédula autorizada (CO1C) sin solicitudes en curso que pueda completar una solicitud de Cupo (resultado aprobado del motor)\n- Biometría disponible en el ambiente\n- HU 225423, escenario 6 (el cambio tocó 13 archivos compartidos con Cupo: encabezado, barra de pasos, inicio de sesión, políticas y conexión en tiempo real)",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/cupo-de-credito/onboarding",
+        "expected": "Se muestra el Onboarding de Cupo"
+      },
+      {
+        "action": "When completa la solicitud: Onboarding, inicio de sesión, validaciones, políticas, información personal, personalización de oferta, datos adicionales y biometría",
+        "expected": ""
+      },
+      {
+        "action": "Then todas las direcciones del flujo empiezan por /cupo-de-credito/",
+        "expected": "Ninguna dirección contiene /consumo/"
+      },
+      {
+        "action": "And la barra de pasos del encabezado aparece en información personal, personalización de oferta, datos adicionales y biometría",
+        "expected": "Barra de pasos visible en esos 4 pasos y con el paso correcto marcado"
+      },
+      {
+        "action": "And la solicitud termina en la pantalla final de Cupo",
+        "expected": "Dirección .../cupo-de-credito/fin con el mensaje final de siempre"
+      }
     ]
   },
   {
-    "title": "TC009 - Con Drupal no disponible se muestra el texto de respaldo actualizado (no el mensaje anterior)",
+    "title": "TC009 - Afiliado con solicitud de Cupo en curso que entra por Libre Inversión (comportamiento por definir)",
     "steps": [
-      {"action": "Precondiciones:\n- Apoyo de desarrollo para dejar el contenido de Drupal no disponible en QA\n- Hoy el respaldo del código para MANUAL dice \"Nuestro equipo analizará tu solicitud… recibirás respuesta en tu correo electrónico\"", "expected": ""},
-      {"action": "Given Drupal no responde para el contenido de la pantalla de derivación", "expected": ""},
-      {"action": "When un afiliado es derivado a la pantalla del asesor", "expected": ""},
-      {"action": "Then la pantalla muestra el contenido de respaldo sin quedar en blanco ni con errores", "expected": "Pantalla completa con contenido de respaldo"},
-      {"action": "And el contenido de respaldo corresponde al mensaje nuevo del asesor", "expected": "No aparece \"Nuestro equipo analizará tu solicitud… recibirás respuesta en tu correo electrónico\""}
-    ]
-  },
-  {
-    "title": "TC010 - Versión móvil de la pantalla de derivación y del mensaje de reingreso",
-    "steps": [
-      {"action": "Precondiciones:\n- Dispositivo móvil o emulación móvil (ancho 375 px)\n- Referencia visual: Figma node 32750-132726", "expected": ""},
-      {"action": "Given un afiliado es derivado a la pantalla del asesor desde un dispositivo móvil", "expected": ""},
-      {"action": "When se visualiza la pantalla", "expected": ""},
-      {"action": "Then textos, imagen y enlace se ven completos y alineados al mockup móvil, sin scroll horizontal", "expected": "Pantalla 7.1 móvil conforme a Figma (las imágenes son de referencia)"},
-      {"action": "And al reingresar desde el móvil, el mensaje transversal se ve conforme al mockup móvil", "expected": "Pantalla 7.2.2 móvil conforme a Figma"}
-    ]
-  },
-  {
-    "title": "TC011 - E2E reingreso tras la derivación: se muestra \"Ya tienes una solicitud en curso con un asesor\"",
-    "steps": [
-      {"action": "Precondiciones:\n- Misma cédula del TC001, ya derivada al canal asistido\n- Navegador cerrado después de la derivación", "expected": ""},
-      {"action": "Given el afiliado abre la URL del Onboarding de Cupo y pulsa \"Comenzar solicitud\"", "expected": ""},
-      {"action": "When inicia sesión en CIAM y el sistema valida el estado del caso (pantalla de carga)", "expected": ""},
-      {"action": "Then el servicio de consulta de estado del caso (/request/check) responde estado CASE_IN_PROGRESS_PROMOTER", "expected": "\"estado\": \"CASE_IN_PROGRESS_PROMOTER\""},
-      {"action": "And el front redirige a /login?requestState=CASE_IN_PROGRESS_PROMOTER y elimina la cookie userToken", "expected": "URL con requestState=CASE_IN_PROGRESS_PROMOTER; sin cookie userToken"},
-      {"action": "And se muestra el mensaje transversal", "expected": "Título: \"Ya tienes una solicitud en curso con un asesor\" / Texto: \"Si quieres retomar tu solicitud, comunícate con la Línea Audio Servicios (601) 7457900 Opción 2, para recibir orientación en los próximos pasos. Nuestro equipo estará disponible para ayudarte.\" / Botón \"Conocer canales de servicio\" / Enlace \"Ir a Colsubsidio.com\""},
-      {"action": "And los textos ya no corresponden a la versión anterior", "expected": "No aparece \"…con un promotor\" ni el botón \"Conocer líneas de atención\""}
-    ]
-  },
-  {
-    "title": "TC012 - Un caso derivado NO se retoma por el flujo digital",
-    "steps": [
-      {"action": "Precondiciones:\n- Cédula con caso derivado al canal asistido\n- Riesgo a cubrir: un caso creado en autogestionado tiene operatorCode \"01\"; si la derivación no lo cambia, /request/check respondería IN_PROGRESS y el front haría retoma digital", "expected": ""},
-      {"action": "Given el afiliado con caso derivado inicia sesión nuevamente", "expected": ""},
-      {"action": "When el sistema consulta el estado del caso en /request/check", "expected": ""},
-      {"action": "Then la respuesta NO es estado IN_PROGRESS con pasoPendiente", "expected": "Estado distinto de IN_PROGRESS (esperado CASE_IN_PROGRESS_PROMOTER)"},
-      {"action": "And el front no redirige al paso pendiente (información personal, personalización de oferta, datos adicionales o biometría)", "expected": "No hay retoma digital; se muestra el mensaje transversal del asesor"}
-    ]
-  },
-  {
-    "title": "TC013 - Reingreso desde otro navegador o dispositivo con caso derivado",
-    "steps": [
-      {"action": "Precondiciones:\n- Cédula con caso derivado al canal asistido\n- Navegador o dispositivo distinto al usado en la derivación, sin cookies previas", "expected": ""},
-      {"action": "Given el afiliado abre el Onboarding de Cupo desde el otro navegador o dispositivo", "expected": ""},
-      {"action": "When inicia sesión", "expected": ""},
-      {"action": "Then se muestra el mensaje transversal \"Ya tienes una solicitud en curso con un asesor\"", "expected": "El bloqueo depende del estado del caso en Bizagi, no de cookies del navegador anterior"}
-    ]
-  },
-  {
-    "title": "TC014 - La derivación ocurre mientras el afiliado no está en la pantalla",
-    "steps": [
-      {"action": "Precondiciones:\n- Cédula que en QA obtenga Zona Gris\n- Comportamiento esperado pendiente de confirmar con desarrollo (escenario no definido en la HU)", "expected": ""},
-      {"action": "Given el afiliado llega a la pantalla de carga del motor en el Paso 2", "expected": ""},
-      {"action": "When cierra el navegador antes de recibir el resultado y el motor responde Zona Gris", "expected": ""},
-      {"action": "Then al volver a ingresar e iniciar sesión, ve el mensaje transversal del asesor", "expected": "\"Ya tienes una solicitud en curso con un asesor\""},
-      {"action": "And no es retomado a la personalización de la oferta", "expected": "Sin retoma digital"}
-    ]
-  },
-  {
-    "title": "TC015 - Regresión: la retoma digital de un caso no derivado sigue funcionando",
-    "steps": [
-      {"action": "Precondiciones:\n- Cédula autorizada con solicitud digital en curso NO derivada, abandonada en el Paso 1 o Paso 2", "expected": ""},
-      {"action": "Given el afiliado inicia sesión nuevamente", "expected": ""},
-      {"action": "When el sistema consulta el estado del caso en /request/check", "expected": ""},
-      {"action": "Then la respuesta es estado IN_PROGRESS con el pasoPendiente del caso", "expected": "\"estado\": \"IN_PROGRESS\" + pasoPendiente"},
-      {"action": "And el front lleva al afiliado al paso pendiente con sus datos (oferta y campaña si aplica)", "expected": "Retoma igual que antes del cambio; no se muestra el mensaje del asesor"}
-    ]
-  },
-  {
-    "title": "TC016 - Regresión: un caso abierto por un asesor (no derivado) también muestra el mensaje transversal nuevo",
-    "steps": [
-      {"action": "Precondiciones:\n- Cédula con caso en curso creado por un asesor en el canal asistido (operatorCode distinto de \"01\"), no proveniente de Zona Gris", "expected": ""},
-      {"action": "Given el afiliado intenta iniciar una solicitud en el autogestionado", "expected": ""},
-      {"action": "When inicia sesión y el sistema valida el estado del caso", "expected": ""},
-      {"action": "Then se muestra el mensaje transversal con el texto nuevo", "expected": "\"Ya tienes una solicitud en curso con un asesor\" con la Línea Audio Servicios (601) 7457900 Opción 2"},
-      {"action": "And el botón \"Conocer canales de servicio\" navega a la URL definida", "expected": "URL de destino del botón (pendiente de confirmar; hoy https://www.colsubsidio.com/consultanos/centros-de-servicio)"}
-    ]
-  },
-  {
-    "title": "TC017 - Regresión condicional: la retoma de novedades (aumento/reactivación) no cambia",
-    "steps": [
-      {"action": "Precondiciones:\n- Aplica solo si la tarea 227152 modifica /request/check\n- Cédula autorizada con novedad (aumento o reactivación) en curso, no derivada\n- Flags de retoma según HU 207400", "expected": ""},
-      {"action": "Given el afiliado con la novedad en curso inicia sesión nuevamente", "expected": ""},
-      {"action": "When el sistema consulta el estado del caso", "expected": ""},
-      {"action": "Then la retoma de la novedad se comporta igual que antes del cambio", "expected": "Retoma según la matriz de flags de la HU 207400; sin mensaje del asesor"}
-    ]
-  },
-  {
-    "title": "TC018 - [Pendiente definición] El caso derivado queda en la bandeja del asistido con estado temporal y trazabilidad",
-    "steps": [
-      {"action": "Precondiciones:\n- Caso derivado por Zona Gris (TC001)\n- Acceso a Bizagi QA (bizagi_consultar_caso.py) o apoyo de Gattaca\n- Pendiente: nombre del estado temporal y actividad o cola destino (¿\"Ofrecer Zona Gris\", HU 203293?)", "expected": ""},
-      {"action": "Given se consulta en Bizagi el caso del afiliado derivado", "expected": ""},
-      {"action": "When se revisa el estado, la actividad actual y el historial del caso", "expected": ""},
-      {"action": "Then el caso está en la actividad o cola definida para el canal asistido", "expected": "Caso disponible para gestión del asesor"},
-      {"action": "And tiene el estado temporal definido, la fecha y hora del cambio de estado y el mismo idCaso original", "expected": "Estado temporal + fecha/hora + idCaso sin cambios"},
-      {"action": "And el canal de origen del caso es el autogestionado", "expected": "canalOrigen: WEB"},
-      {"action": "And existe un único caso para el afiliado, también después del reingreso del TC011", "expected": "Sin casos duplicados"}
-    ]
-  },
-  {
-    "title": "TC019 - [Pendiente definición] Las solicitudes derivadas se identifican en el reporte operativo",
-    "steps": [
-      {"action": "Precondiciones:\n- Pendiente: nombre del reporte operativo y forma de acceso\n- Al menos una solicitud derivada por Zona Gris, una finalizada, una negada y una en trámite autogestionado", "expected": ""},
-      {"action": "Given se consulta el reporte operativo del periodo de las pruebas", "expected": ""},
-      {"action": "When se filtran las solicitudes de las cédulas de prueba", "expected": ""},
-      {"action": "Then las solicitudes derivadas se muestran con el estado temporal definido", "expected": "Estado temporal visible en el reporte"},
-      {"action": "And se diferencian de las finalizadas, negadas y en trámite por el autogestionado", "expected": "Clasificación diferenciada"}
-    ]
-  },
-  {
-    "title": "TC020 - [Pendiente definición] Falla al derivar la solicitud al canal asistido",
-    "steps": [
-      {"action": "Precondiciones:\n- Apoyo de desarrollo o Gattaca para provocar la falla (la derivación ocurre dentro de Bizagi, no hay un endpoint aislado que tumbar)\n- Pendiente: qué pantalla ve el afiliado cuando la derivación falla", "expected": ""},
-      {"action": "Given el motor clasifica una solicitud como Zona Gris", "expected": ""},
-      {"action": "When ocurre una falla o timeout al registrar el estado o enrutar el caso al asistido", "expected": ""},
-      {"action": "Then el afiliado ve la pantalla de error definida y no una pantalla en blanco ni un loader infinito", "expected": "Pantalla de error definida (p. ej. EXECUTION_ERROR)"},
-      {"action": "And el caso conserva su estado y su información", "expected": "Sin pérdida de datos"},
-      {"action": "And no se crea un caso duplicado en el canal asistido", "expected": "Un único caso"}
-    ]
-  },
-  {
-    "title": "TC021 - [Pendiente definición] Reproceso de una derivación fallida",
-    "steps": [
-      {"action": "Precondiciones:\n- Solicitud con falla en la derivación (TC020)\n- Pendiente: mecanismo de reproceso (automático o manual); la HU no lo define", "expected": ""},
-      {"action": "Given el servicio del canal asistido está restablecido", "expected": ""},
-      {"action": "When se ejecuta el mecanismo de reproceso definido", "expected": ""},
-      {"action": "Then la solicitud queda en la bandeja del asistido con el estado temporal", "expected": "Derivación completada"},
-      {"action": "And existe un único caso en la cola del asesor", "expected": "Sin duplicados"}
-    ]
-  },
-  {
-    "title": "TC022 - [Pendiente alcance] Novedad (aumento o reactivación) clasificada como Zona Gris",
-    "steps": [
-      {"action": "Precondiciones:\n- Pendiente: confirmar si la HU aplica a novedades\n- Cédula autorizada con novedad (aumento o reactivación) que en QA obtenga Zona Gris", "expected": ""},
-      {"action": "Given el afiliado inicia una novedad por el autogestionado", "expected": ""},
-      {"action": "When el motor de decisión clasifica la solicitud como Zona Gris", "expected": ""},
-      {"action": "Then el comportamiento corresponde a la definición de alcance", "expected": "Si aplica: pantalla de derivación (TC001). Si no aplica: comportamiento actual sin cambios"}
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Ventana de incógnito nueva (el navegador recuerda el último producto visitado)\n- Cédula autorizada (CO1C) con una solicitud de Cupo en curso (estado IN_PROGRESS en /request/check)\n- HU 225423, supuesto S3: el comportamiento esperado está pendiente de definir con el PO",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/libre-inversion/onboarding y avanza hasta el paso 3",
+        "expected": ""
+      },
+      {
+        "action": "When pulsa \"Comenzar solicitud\" e inicia sesión",
+        "expected": ""
+      },
+      {
+        "action": "Then se registran la dirección y la pantalla que se muestran",
+        "expected": "Por definir (S3). Según el código, el sistema retomaría el caso de Cupo en una dirección /consumo/libre-inversion/... que todavía no existe. Reportar lo observado al PO."
+      }
     ]
   }
 ]

@@ -78,11 +78,31 @@ pedíselas a quien ya tenga el panel andando.
 | `evidences/` | una carpeta por corrida del observador (no se versiona) |
 | `esquemas_servicios.json` | contrato observado de cada servicio; **sí se versiona** |
 | `~/.panel_qa/usuarios_prueba.json` | usuarios de prueba, con sus claves en claro |
+| `colsubsidio_flow/data/cedulas.json` | cédulas de los tests UI por data provider, sin claves; **sí se versiona** |
 | `~/.panel_qa/backups/` | copia previa a cada guardado |
 | `~/.panel_qa/logs/` | log completo de cada corrida y los Excel exportados |
 
 Los usuarios viven fuera del repo a propósito: dentro, un `git clean -fdx` se
 los llevaría por delante.
+
+## Tests UI (`colsubsidio_flow`)
+
+Puerto a Playwright de la capa UI de colsubsidioFramework: los page objects de
+login, onboarding y solicitud, el data provider y los tests de login. La tabla
+Java → Python está en `colsubsidio_flow/__init__.py`.
+
+```
+python -m colsubsidio_flow tests                       # qué tests hay
+python -m colsubsidio_flow cedulas listar              # cédulas por data provider
+python -m colsubsidio_flow cedulas agregar consumo_225423 CC:123 --nota "..."
+python -m colsubsidio_flow consumo-225423              # corre todas las del data provider
+python -m colsubsidio_flow login-credito-light --documento CC:123 --capturas evidences/light
+```
+
+La clave de cada cédula se toma de `~/.panel_qa/usuarios_prueba.json` (la
+pestaña Usuarios del panel), o de `COLS_CLAVE`, o se pide por consola.
+`--hasta-login` recorre hasta el formulario de login sin pedir clave.
+Sin `--capturas` no se guarda ningún pantallazo.
 
 ## Notas de uso
 

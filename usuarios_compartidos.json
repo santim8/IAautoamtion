@@ -70,5 +70,29 @@
     "descripcion": "REACTIVACION",
     "status": "Con falla",
     "falla": "Falla motor"
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1000000001",
+    "clave": "",
+    "descripcion": "NOVEDADES",
+    "status": "",
+    "falla": ""
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1000000004",
+    "clave": "",
+    "descripcion": "aprovado",
+    "status": "",
+    "falla": ""
+  },
+  {
+    "tipo": "CC",
+    "usuario": "79978859",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": ""
   }
 ]

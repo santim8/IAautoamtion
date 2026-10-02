@@ -243,6 +243,42 @@ def token_sso(tipo, numero):
     return token
 
 
+# Grupo SAP de afiliacion (afiliado.afiliacion.grupo) -> nombre de negocio.
+GRUPOS_AFILIACION = {
+    "ZGRA": "Facultativo",
+    "ZGRE": "Pensionado",
+    "ZGRP": "Dependiente",
+    "ZGRI": "Independiente",
+}
+
+
+def _grupo_de_afiliado(afiliado):
+    afiliacion = afiliado.get("afiliacion") if isinstance(afiliado, dict) else None
+    grupo = afiliacion.get("grupo") if isinstance(afiliacion, dict) else None
+    return str(grupo).strip().upper() if grupo else None
+
+
+def _grupo_de_validacion(cuerpo):
+    """affiliation-validations trae el afiliado de SAP como texto JSON en
+    resultadoValidacion.datosSinProcesar; ahi vive afiliacion.grupo."""
+    resultado = cuerpo.get("resultadoValidacion") if isinstance(cuerpo, dict) else None
+    crudo = resultado.get("datosSinProcesar") if isinstance(resultado, dict) else None
+    if not crudo:
+        return None
+    try:
+        sap = json.loads(crudo) if isinstance(crudo, str) else crudo
+    except json.JSONDecodeError:
+        return None
+    return _grupo_de_afiliado(sap.get("afiliado") if isinstance(sap, dict) else None)
+
+
+def _texto_grupo(grupo):
+    if not grupo:
+        return "Sin dato"
+    nombre = GRUPOS_AFILIACION.get(grupo)
+    return "%s (%s)" % (nombre, grupo) if nombre else "Otro (%s)" % grupo
+
+
 # --- los servicios, uno por uno -----------------------------------------
 def _emitir(numero, servicio, estado_completo):
     print("[EXCEL_UPDATE] Thread:%d %s - %s - %s"
@@ -268,6 +304,7 @@ def validar_documento(tipo, numero):
         body={"idCaso": "564789", "documento": {"tipo": doc_servicios, "numero": numero}})
     estado, detalle = _interpretar_validacion(status, cuerpo)
     _emitir(numero, "Validation Bizagi", "%s - %s" % (estado, detalle))
+    grupo = _grupo_de_validacion(cuerpo)
 
     # 3) Validator Rights -> Card Number / Card Status / Salary
     status, cuerpo = _curl(
@@ -279,6 +316,10 @@ def validar_documento(tipo, numero):
     datos = cuerpo.get("data") if isinstance(cuerpo, dict) else None
     primero = datos[0] if isinstance(datos, list) and datos else {}
     afiliado = primero.get("afiliado") if isinstance(primero, dict) else None
+    # respaldo: si affiliation-validations no trajo el grupo, el validador
+    # de derechos devuelve el mismo afiliado de SAP
+    grupo = grupo or _grupo_de_afiliado(afiliado)
+    _emitir(numero, "Grupo Afiliacion", _texto_grupo(grupo))
     if isinstance(afiliado, dict):
         tarjeta = afiliado.get("tarjetaMultiservicios") or {}
         numero_tarjeta = tarjeta.get("numeroTarjeta")
