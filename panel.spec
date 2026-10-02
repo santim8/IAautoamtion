@@ -35,7 +35,7 @@ datas = [
     ("usuarios_compartidos.json", "."),
 ]
 binaries = []
-hiddenimports = HIJOS + ["esquemas", "rutas"]
+hiddenimports = HIJOS + ["esquemas", "rutas", "sonda_check"]
 
 # playwright trae su driver de node como dato del paquete; sin collect_all el
 # .exe arranca y falla al abrir el navegador

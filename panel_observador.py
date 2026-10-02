@@ -87,7 +87,8 @@ SERVICIOS_OCULTOS = {"sso credentials", "habeas data records", "validate request
 # ExcelReportManager.java, para que la tabla del panel se lea igual que el Excel
 # del framework en vez de por orden de llegada al log.
 SERVICIOS_CATALOGO = [
-    "SSO Credentials", "Validation Bizagi", "Validator Rights", "Card Number",
+    "SSO Credentials", "Validation Bizagi", "Grupo Afiliacion",
+    "Validator Rights", "Card Number",
     "Card Status", "Salary", "Card Validation", "Card Validation Error",
     "Novedad Estado", "Card Validation Error V2", "Restrictive List",
     "Siif Validation", "Validate Request", "Preapproved", "Habeas Data Records",
@@ -95,7 +96,7 @@ SERVICIOS_CATALOGO = [
 # Columnas que se muestran siempre, traigan o no linea en el log: Card
 # Validation Error solo se reporta cuando falla, y que venga vacia tambien dice
 # algo. Agrega aqui cualquier otra que quieras ver fija.
-SERVICIOS_FIJOS = ["Card Validation Error"]
+SERVICIOS_FIJOS = ["Grupo Afiliacion", "Card Validation Error"]
 
 
 def _orden_servicio(nombre):
@@ -315,6 +316,17 @@ def preparar_chrome(emitir):
 # Los veredictos se buscan por subcadenas SIN tildes: el log del hijo puede
 # llegar con la codificacion estropeada y "cancelación" no siempre casa.
 def estado_cancelacion(texto):
+    """Segun el modo corrido: veredicto de Bizagi o del servicio cancel-request."""
+    if "CANCEL-REQUEST PLATAFORMA" not in texto:
+        return _estado_cancelacion_bizagi(texto)
+    m = re.search(r"idCaso: (\S+) -> HTTP ([^\r\n]+)", texto)
+    caso, http = (m.group(1), m.group(2).strip()) if m else ("?", "?")
+    if "REQUEST NO CANCELADO" in texto:
+        return "mal", "cancel-request no cancelo el caso %s (HTTP %s)." % (caso, http)
+    return "bien", "Caso %s cancelado por cancel-request." % caso
+
+
+def _estado_cancelacion_bizagi(texto):
     """bizagi_cancel_case no devuelve exit code distinto: el veredicto se lee.
 
     El script ya imprime un bloque con el veredicto en texto claro
@@ -359,6 +371,31 @@ def estado_consulta(texto):
     if "No se pudo buscar el caso" in texto:
         return "mal", "No se pudo buscar el caso en el buscador superior."
     return "mal", "No se encontro ninguna solicitud para ese documento."
+
+
+def args_cancelar(valores, emitir):
+    """Un modo o el otro, nunca los dos: por Bizagi se busca la ultima
+    solicitud del documento; por servicio se manda el Id caso directo."""
+    if valores.get("Cancelar por", "bizagi") == "request":
+        id_caso = valores.get("Id caso", "").strip()
+        if not id_caso:
+            emitir("! Escribe el Id de caso, o cambia 'Cancelar por' a Bizagi.", "mal")
+            return None
+        return ["--request", id_caso]
+    documento = valores.get("Documento", "").strip()
+    if not documento:
+        emitir("! Escribe el documento, o cambia 'Cancelar por' a servicio.", "mal")
+        return None
+    return [valores.get("Tipo doc", "CC"), documento]
+
+
+def confirmar_cancelar(valores):
+    if valores.get("Cancelar por") == "request":
+        return ("Se va a cancelar el caso %s con el servicio cancel-request."
+                "\n\nSeguir?" % valores.get("Id caso", "").strip())
+    return ("Se va a cancelar la ultima solicitud del documento %s %s en "
+            "Bizagi.\n\nSeguir?" % (valores.get("Tipo doc", ""),
+                                    valores.get("Documento", "").strip()))
 
 
 def args_consultar(valores, emitir):
@@ -447,8 +484,14 @@ HERRAMIENTAS = [
              "valor": "login-credito", "ancho": 26},
             {"tipo": "texto", "arg": "--solo-url", "etiqueta": "Solo URL que contenga",
              "valor": RUTAS_APP, "ancho": 42},
+            {"tipo": "texto", "arg": "--documento", "etiqueta": "Documento (opcional)",
+             "valor": "", "ancho": 16},
             {"tipo": "check", "arg": "--limpiar",
              "etiqueta": "Empezar sin sesion previa (como incognito)",
+             "valor": True},
+            # el front lo llama desde su servidor: sin esto no sale en la evidencia
+            {"tipo": "check", "arg": "--request-check",
+             "etiqueta": "Consultar /request/check al inicio y en información personal (usa token.txt)",
              "valor": True},
             {"tipo": "check", "arg": "--generar-esquemas",
              "etiqueta": "Tomar esta corrida como baseline de esquemas",
@@ -499,17 +542,29 @@ HERRAMIENTAS = [
         "boton": "Cancelar caso",
         "parada": None,
         "previo": asegurar_chromium,
-        "ayuda": "Busca la ultima solicitud del documento y la cancela en Bizagi.",
-        "confirmar": ("Se va a cancelar la ultima solicitud del documento "
-                      "{Tipo doc} {Documento} en Bizagi.\n\nSeguir?"),
+        "ayuda": "Una de las dos formas, no las dos: por Bizagi busca la ultima "
+                 "solicitud del documento y la cancela en Administracion de "
+                 "procesos; por servicio llama POST cancel-request con el Id caso.",
+        "confirmar": confirmar_cancelar,
         "estado": estado_cancelacion,
+        "argumentos": args_cancelar,
         "campos": [
+            {"tipo": "radio", "solo_forma": True, "etiqueta": "Cancelar por",
+             "opciones": [("Bizagi (por documento)", "bizagi"),
+                          ("Servicio cancel-request (por Id caso)", "request")],
+             "valor": "bizagi",
+             "habilita": {"bizagi": ["Sin ventana del navegador", "Tipo doc",
+                                     "Documento"],
+                          "request": ["Id caso"]}},
+            # el modo servicio la ignora: --request corre antes que el navegador
             {"tipo": "check", "arg": "--headless",
              "etiqueta": "Sin ventana del navegador", "valor": True},
-            {"tipo": "opcion", "arg": None, "etiqueta": "Tipo doc",
+            {"tipo": "opcion", "solo_forma": True, "etiqueta": "Tipo doc",
              "opciones": ["CC", "CE"], "valor": "CC", "ancho": 6},
-            {"tipo": "texto", "arg": None, "etiqueta": "Documento",
-             "valor": "", "ancho": 20, "requerido": True},
+            {"tipo": "texto", "solo_forma": True, "etiqueta": "Documento",
+             "valor": "", "ancho": 20},
+            {"tipo": "texto", "solo_forma": True, "etiqueta": "Id caso",
+             "valor": "", "ancho": 14},
         ],
     },
     {
@@ -634,12 +689,16 @@ class Herramienta(ttk.Frame):
 
         col = 0
         fila = 1
+        fila_check = 99     # los checks van abajo, uno por fila: en la misma celda se tapan
         for campo in self.spec["campos"]:
             etq = campo["etiqueta"]
             if campo["tipo"] == "check":
                 var = tk.BooleanVar(value=campo["valor"])
-                ttk.Checkbutton(cfg, text=etq, variable=var).grid(
-                    row=99, column=0, columnspan=8, sticky="w", pady=(8, 0))
+                chk = ttk.Checkbutton(cfg, text=etq, variable=var)
+                chk.grid(row=fila_check, column=0, columnspan=8, sticky="w",
+                         pady=(8 if fila_check == 99 else 2, 0))
+                self.campos_ui[etq] = (None, chk)   # para que un radio lo apague
+                fila_check += 1
             elif campo["tipo"] == "radio":
                 # Un radio parte el formulario en modos excluyentes y apaga los
                 # campos del modo que no esta elegido. Es la unica forma de que
@@ -739,7 +798,8 @@ class Herramienta(ttk.Frame):
                         w.configure(state="readonly" if activo else "disabled")
                     else:
                         w.configure(state="normal" if activo else "disabled")
-                    lbl.configure(foreground="" if activo else "#999")
+                    if lbl is not None:
+                        lbl.configure(foreground="" if activo else "#999")
 
     def _texto_parada(self):
         return {"centinela": "Detener y generar reporte",
@@ -843,7 +903,10 @@ class Herramienta(ttk.Frame):
             messagebox.showinfo("Falta un dato", "Escribe %s." % falta)
             return
         aviso = self.spec.get("confirmar")
-        if aviso:
+        if callable(aviso):
+            if not messagebox.askyesno(self.spec["nombre"], aviso(self.valores())):
+                return
+        elif aviso:
             texto = aviso
             for etq, var in self.vars.items():
                 texto = texto.replace("{%s}" % etq, str(var.get()))

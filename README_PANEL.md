@@ -33,7 +33,7 @@ Qué pide cada pestaña, para no configurar de más:
 
 | pestaña | qué necesita |
 |---|---|
-| Observador de flujos · Analítica dataLayer | nada; se engancha al Chrome de la máquina |
+| Observador de flujos · Analítica dataLayer | nada; se engancha al Chrome de la máquina. La consulta a `/request/check` del observador usa `token.txt` si lo hay; sin él, avisa y captura igual |
 | Validaciones API · Suite biometría | `token.txt` con las 6 claves de elegibilidad |
 | Cancelar caso · Consultar caso · Consultar JSON | `BIZAGI_USER` y `BIZAGI_PASSWORD` de entorno (y un Chromium que el panel baja solo la primera vez) |
 | Usuarios · Corridas | nada |
@@ -160,6 +160,19 @@ correcciones hechas a mano en `esquemas_servicios.json`.
 
 El checkbox **Empezar sin sesión previa (como incógnito)** viene marcado: antes
 de capturar borra cookies, caché y almacenamiento del Chrome de QA.
+
+El checkbox **Consultar /request/check al inicio y en información personal**
+viene marcado. Ese endpoint (el que decide la retoma) lo llama el servidor del
+front, no el navegador, así que el observador nunca lo ve por su cuenta. Con el
+checkbox, el propio observador lo consulta solo dos veces por corrida: al
+detectar el documento en el tráfico (o desde la primera pantalla si diste el
+campo **Documento**, por ejemplo `CC:52961647`), cuando todavía no hay caso, y al
+llegar a `informacion-personal`, cuando el caso ya se creó. Recargar esa
+pantalla no repite la consulta, y al cerrar no se consulta de nuevo. El reporte
+trae una tabla con `estado`, `pasoPendiente` e `idCaso` por consulta, y lo
+mismo queda en `request_check.json`. Esas consultas van marcadas como `SONDA`
+y no cuentan como fallos: un 404 significa que el documento no tiene caso
+abierto.
 
 **Reiniciar Chrome** (en el Observador y en la Analítica) cierra el Chrome de QA
 y abre uno limpio; se pierden las pestañas y la sesión. Sirve cuando Chrome deja

@@ -25,6 +25,11 @@ Uso:
 
 Por defecto solo captura los hosts del backend (ver HOSTS_DEFAULT) y redacta
 credenciales. --todos-los-hosts y --sin-redactar desactivan cada cosa.
+
+--request-check consulta ademas /request/check dos veces (ver
+sonda_check.py): al detectar el documento y al llegar a informacion personal,
+cuando el caso ya esta creado: ese endpoint lo llama el servidor del front, no el navegador,
+asi que sin la sonda nunca aparece en la evidencia.
 """
 import argparse
 import json
@@ -40,6 +45,7 @@ from playwright.sync_api import sync_playwright
 
 import esquemas as esq
 import rutas
+import sonda_check
 
 # Hosts del backend que interesan (match por substring sobre la URL).
 # Sacados de bruno/validate-request/.
@@ -130,6 +136,19 @@ TIPOS_SIN_CUERPO = {"image", "font", "media", "stylesheet", "script", "manifest"
 # margen ese trafico queda archivado en la pantalla anterior.
 TOLERANCIA_CAMBIO_MS = 300
 
+# Un request que el navegador corta (CORS, red caida) llega por dos vias: el
+# requestfailed de Playwright y, por la sesion CDP propia, el status que el
+# servidor si respondio. Se espera este margen antes de registrarlo para que
+# las dos hayan hablado.
+ESPERA_FALLO_MS = 400
+# Requests que la sesion CDP recuerda mientras se sabe si fallan o no.
+MAX_CDP_RED = 500
+# Lo que CDP vio terminar y Playwright no reporto en este margen se registra
+# desde CDP (ver drenar_huerfanos). Holgado: Playwright lee el body en el loop.
+ESPERA_HUERFANO_S = 2.0
+# Lo que quedo sin respuesta al cerrar el observador.
+SIN_RESPUESTA = "sin respuesta"
+
 # Contrato observado de cada servicio. Vive en el repo (no en evidences/) porque
 # es lo que se compara entre corridas y lo que se revisa en un PR. Se ESCRIBE
 # con --generar-esquemas, asi que va a BASE: dentro del .exe seria una carpeta
@@ -214,6 +233,25 @@ def ruta_de(url):
     ignorada, con la corrida entera vacia.
     """
     return (url or "").split("#")[0].split("?")[0]
+
+
+def cabeceras_request(request, completas=True):
+    """Cabeceras del request; las completas solo con el request ya terminado.
+
+    completas=False no toca Playwright (las provisionales ya estan cargadas):
+    es lo que se puede usar al cerrar o desde el hilo vigilante.
+    """
+    if request is None:
+        return {}
+    if completas:
+        try:
+            return request.all_headers()
+        except Exception:
+            pass
+    try:
+        return dict(request.headers)
+    except Exception:
+        return {}
 
 
 def es_url_real(url):
@@ -337,8 +375,9 @@ class Observador:
                  patron_pestana=None, seguir_popups=False,
                  endpoints=None, solo_endpoints=False,
                  pantallazo_extra=None, extra_ms=3000,
-                 screenshot_on_response=None):
+                 screenshot_on_response=None, sonda=None):
         self.dir = dir_salida
+        self.sonda = sonda           # SondaCheck o None: /request/check por pantalla
         self.hosts = hosts           # [] = capturar todo
         self.endpoints = endpoints or []   # endpoints de negocio a marcar
         self.endpoints_rx = [(e, patron_endpoint(e)) for e in self.endpoints]
@@ -375,6 +414,11 @@ class Observador:
         self.disparados = set()      # (paso, patron) ya disparados, para no repetir
         self.sin_reporte = False     # se paro pidiendo NO generar el reporte
         self.pend_req = {}           # request -> metadata, para casar con su response
+        self.cola_fallos = []        # [(request, cuando_ms)] cortados por el navegador
+        self.cdp_red = {}            # requestId CDP -> {url, metodo, status, headers, error}
+        # (metodo, url) que Playwright SI emitio como 'request'. Lo que CDP vio
+        # y no esta aqui es un huerfano: se registra desde CDP (drenar_huerfanos)
+        self.pw_vistos = {}
         self.paso_por_pagina = {}    # pagina -> su paso actual (soporte multi-pestana)
         self.ids_pagina = {}         # pagina -> numero de pestana, para el reporte
         self.pagina_actual = None
@@ -385,6 +429,20 @@ class Observador:
         return [e for e, rx in self.endpoints_rx if rx.search(url)]
 
     # -- filtro por destino (a que host va el request)
+    def api_fuera_catalogo(self, url, tipo):
+        """fetch/xhr a los hosts de la app que no esta en el catalogo.
+
+        En modo endpoints solo se guarda el catalogo; pero si el front cambia
+        la ruta de un servicio (otra version, un BFF propio en cloudfront) su
+        fallo desaparecia sin rastro. Estos se siguen y se guardan SOLO si
+        fallan (status >= 400, CORS o red cortada).
+        """
+        if not self.solo_endpoints or (tipo or "").lower() not in ("fetch", "xhr"):
+            return False
+        if not url.startswith("http"):
+            return False
+        return not self.hosts or any(h in url for h in self.hosts)
+
     def interesa(self, url):
         if not url.startswith("http"):
             return False
@@ -488,6 +546,12 @@ class Observador:
         if any(pat in url for pat in self.pantallazo_extra):
             self.extras.append((paso, page, time.time() * 1000 + self.extra_ms))
             print(f"         -> pantallazo extra en {self.extra_ms} ms")
+        if self.sonda and sonda_check.PANTALLA_CASO in url:
+            # aqui el caso ya existe: es la segunda y ultima consulta
+            self.sonda.pedir(paso, "informacion personal", una_vez=True)
+        elif self.sonda and not self.sonda.motivos:
+            # con --documento no hay "documento detectado": el inicio va aqui
+            self.sonda.pedir(paso, "inicio", una_vez=True)
         return paso
 
     def tomar_extras(self, forzar=False):
@@ -574,8 +638,15 @@ class Observador:
         return not self.pagina_permitida(pagina)
 
     def on_request(self, request):
+        fuera = False
         if not self.interesa(request.url):
-            return
+            if not self.api_fuera_catalogo(request.url, request.resource_type):
+                return
+            fuera = True
+        # antes de descartar: lo que Playwright tira por ser de otra pestana
+        # tampoco debe volver a entrar como huerfano de CDP
+        clave = (request.method, request.url)
+        self.pw_vistos[clave] = self.pw_vistos.get(clave, 0) + 1
         if self.descartar(request):
             return
         try:
@@ -588,9 +659,15 @@ class Observador:
             "metodo": request.method,
             "url": request.url,
             "tipo": request.resource_type,
-            "request_headers": request.all_headers(),
+            # all_headers() aqui bloqueaba el handler hasta que el request
+            # terminaba: lo que nunca respondia no llegaba a registrarse, y un
+            # fallo CORS se avisaba antes de quedar en pend_req. Se piden al
+            # registrar, desde el loop (ver registro).
+            "request_headers": None,
             "request_body": post,
         }
+        if fuera:
+            self.pend_req[request]["fuera_catalogo"] = True
 
     def on_response(self, response):
         pagina = self.pagina_de(response.request)
@@ -601,7 +678,12 @@ class Observador:
         # los descartaria y el pantallazo no se tomaria nunca.
         self.mirar_disparadores(response, pagina)
         if not self.interesa(response.url):
-            return
+            meta = self.pend_req.get(response.request)
+            if meta is None or not meta.get("fuera_catalogo"):
+                return
+            if response.status < 400:
+                self.pend_req.pop(response.request, None)   # fuera del catalogo y OK
+                return
         self.cola_resp.append(response)
 
     def mirar_disparadores(self, response, pagina):
@@ -684,14 +766,14 @@ class Observador:
 
     def drenar_respuestas(self):
         """Lee los bodies en el loop principal, no dentro del handler."""
-        if not self.cola_resp:
-            return
-        pendientes, self.cola_resp = self.cola_resp, []
-        for response in pendientes:
+        # de a una: si un Ctrl+C corta a mitad, lo que falta sigue en la cola
+        # y rescatar_en_vuelo lo registra con su status
+        while self.cola_resp:
+            response = self.cola_resp.pop(0)
             meta = self.pend_req.pop(response.request, None) or {
                 "ts": ahora_iso(), "t0": time.time(), "metodo": response.request.method,
                 "url": response.url, "tipo": response.request.resource_type,
-                "request_headers": {}, "request_body": None,
+                "request_headers": None, "request_body": None,
             }
             cuerpo, nota = None, None
             # un endpoint rastreado siempre conserva su cuerpo, sea del tipo que sea
@@ -713,30 +795,327 @@ class Observador:
             except Exception:
                 resp_headers = {}
 
-            reg = {
-                "ts": meta["ts"],
-                "metodo": meta["metodo"],
-                "url": meta["url"],
-                "tipo": meta["tipo"],
-                "status": response.status,
-                "duracion_ms": round((time.time() - meta["t0"]) * 1000),
-                "request_headers": meta["request_headers"],
-                "request_body": meta["request_body"],
-                "response_headers": resp_headers,
-                "response_body": cuerpo,
-            }
-            if nota:
-                reg["nota"] = nota
-            rastreados = self.casar_endpoints(meta["url"])
-            if rastreados:
-                reg["rastreados"] = rastreados
-            if self.redactar:
-                reg["request_headers"] = redactar_headers(reg["request_headers"])
-                reg["response_headers"] = redactar_headers(reg["response_headers"])
-                reg["request_body"] = redactar_body(reg["request_body"])
-                reg["response_body"] = redactar_body(reg["response_body"])
-            self.guardar(reg, self.pagina_de(response.request),
-                         t0_ms=meta["t0"] * 1000)
+            reg = self.registro(meta, response.status, resp_headers, cuerpo, nota,
+                                request=response.request)
+            # se lee antes de redactar, sobre el body crudo
+            doc_nuevo = bool(self.sonda) and self.sonda.aprender(meta["request_body"])
+            paso = self.guardar(reg, self.pagina_de(response.request),
+                                t0_ms=meta["t0"] * 1000)
+            if doc_nuevo:
+                # la pantalla donde aparecio el documento no alcanzo a consultarse
+                self.sonda.pedir(paso, "documento detectado", forzar=True)
+
+    def registro(self, meta, status, resp_headers, cuerpo, nota=None, fin=None,
+                 request=None, al_cerrar=False):
+        """La linea de evidencia de un request, ya marcada y redactada."""
+        req_headers = meta["request_headers"]
+        if req_headers is None:
+            req_headers = cabeceras_request(request, completas=not al_cerrar)
+        reg = {
+            "ts": meta["ts"],
+            "metodo": meta["metodo"],
+            "url": meta["url"],
+            "tipo": meta["tipo"],
+            "status": status,
+            "duracion_ms": round(((fin or time.time()) - meta["t0"]) * 1000),
+            "request_headers": req_headers,
+            "request_body": meta["request_body"],
+            "response_headers": resp_headers,
+            "response_body": cuerpo,
+        }
+        if nota:
+            reg["nota"] = nota
+        if meta.get("fuera_catalogo"):
+            reg["fuera_catalogo"] = True
+            reg["nota"] = ("Fuera del catalogo de endpoints rastreados: se guarda "
+                           "porque fallo. " + (nota or "")).strip()
+        rastreados = self.casar_endpoints(meta["url"])
+        if rastreados:
+            reg["rastreados"] = rastreados
+        if self.redactar:
+            reg["request_headers"] = redactar_headers(reg["request_headers"])
+            reg["response_headers"] = redactar_headers(reg["response_headers"])
+            reg["request_body"] = redactar_body(reg["request_body"])
+            reg["response_body"] = redactar_body(reg["response_body"])
+        return reg
+
+    # -- requests que nunca llegan a tener Response
+    def on_request_failed(self, request):
+        """El navegador corto el request: CORS, red caida, abortado.
+
+        Playwright no emite 'response' para estos, asi que sin este handler
+        desaparecian sin rastro. El caso tipico: un 404/500 que CloudFront
+        contesta con su pagina de error HTML, sin Access-Control-Allow-Origin.
+        El servidor SI respondio, pero Chrome no deja que el front la lea.
+        """
+        if request in self.pend_req:
+            self.cola_fallos.append((request, time.time() * 1000))
+
+    def enganchar_cdp(self, page):
+        """Sesion CDP propia para saber que status tenia lo que se bloqueo.
+
+        Un request bloqueado por CORS no tiene Response en Playwright, pero
+        Chrome informa el status y las cabeceras reales en
+        Network.responseReceivedExtraInfo: es lo que DevTools pinta como
+        "404 Not Found" en una fila marcada "CORS error".
+        """
+        try:
+            cdp = page.context.new_cdp_session(page)
+            cdp.on("Network.requestWillBeSent",
+                   lambda ev, _p=page, _s=cdp: self.cdp_request(ev, _p, _s))
+            cdp.on("Network.responseReceived", self.cdp_respuesta)
+            cdp.on("Network.responseReceivedExtraInfo", self.cdp_extra)
+            cdp.on("Network.loadingFinished", self.cdp_fin)
+            cdp.on("Network.loadingFailed", self.cdp_fallo)
+            cdp.send("Network.enable")
+        except Exception:
+            pass   # sin CDP el fallo se registra igual, solo que sin status
+
+    def cdp_request(self, ev, page=None, sesion=None):
+        req = ev.get("request") or {}
+        fuera = False
+        if not self.interesa(req.get("url", "")):
+            if not self.api_fuera_catalogo(req.get("url", ""), ev.get("type")):
+                return
+            fuera = True
+        self.cdp_red[ev.get("requestId")] = {
+            "fuera_catalogo": fuera,
+            "url": req["url"], "metodo": req.get("method"),
+            # lo que hace falta para registrarlo solo, si Playwright no lo ve
+            "pagina": page, "sesion": sesion, "ts": ahora_iso(), "t0": time.time(),
+            "tipo": (ev.get("type") or "").lower() or None,
+            "req_headers": dict(req.get("headers") or {}),
+            "post": req.get("postData"),
+        }
+        while len(self.cdp_red) > MAX_CDP_RED:
+            self.cdp_red.pop(next(iter(self.cdp_red)))
+
+    def cdp_respuesta(self, ev):
+        info = self.cdp_red.get(ev.get("requestId"))
+        resp = ev.get("response") or {}
+        if info is not None:
+            info.setdefault("status", resp.get("status"))
+            info.setdefault("headers", {k.lower(): v for k, v
+                                        in (resp.get("headers") or {}).items()})
+
+    def cdp_extra(self, ev):
+        info = self.cdp_red.get(ev.get("requestId"))
+        if info is not None:
+            info["status"] = ev.get("statusCode")
+            info["headers"] = {k.lower(): v for k, v in (ev.get("headers") or {}).items()}
+
+    def cdp_fin(self, ev):
+        info = self.cdp_red.get(ev.get("requestId"))
+        if info is not None:
+            info["fin"] = time.time()
+
+    def cdp_fallo(self, ev):
+        info = self.cdp_red.get(ev.get("requestId"))
+        if info is not None:
+            info["error"] = ev.get("errorText") or "fallo"
+            info["cors"] = (ev.get("corsErrorStatus") or {}).get("corsError")
+            info["fin"] = time.time()
+
+    def _consumir_visto(self, info):
+        """True si Playwright ya emitio este request (y lo descuenta)."""
+        clave = (info.get("metodo"), info["url"])
+        n = self.pw_vistos.get(clave, 0)
+        if n <= 0:
+            return False
+        if n == 1:
+            self.pw_vistos.pop(clave)
+        else:
+            self.pw_vistos[clave] = n - 1
+        return True
+
+    def info_cdp(self, metodo, url):
+        """Lo que CDP vio del fallo de este metodo+URL (el mas viejo; se consume)."""
+        for rid, info in self.cdp_red.items():
+            if info["url"] == url and info.get("metodo") == metodo and "error" in info:
+                self._consumir_visto(info)
+                return self.cdp_red.pop(rid)
+        return {}
+
+    def drenar_huerfanos(self, forzar=False, al_cerrar=False):
+        """Registra lo que Chrome vio y Playwright nunca reporto.
+
+        Un POST con JSON lleva preflight OPTIONS; si el preflight falla (500 o
+        sin Access-Control-Allow-Origin), Chrome corta el POST y DevTools lo
+        pinta como "CORS error", pero Playwright puede no emitir ni 'request'
+        ni 'requestfailed' para el: el request-data que fallaba desaparecia de
+        la evidencia. La sesion CDP si lo ve, asi que se registra desde ahi.
+        """
+        ahora = time.time()
+        for rid, info in list(self.cdp_red.items()):
+            fin = info.get("fin")
+            if fin is None and not forzar:
+                continue                      # sigue en vuelo
+            if fin is not None and not forzar and ahora - fin < ESPERA_HUERFANO_S:
+                continue                      # da tiempo a que Playwright hable
+            self.cdp_red.pop(rid, None)
+            if self._consumir_visto(info):
+                continue                      # Playwright ya lo registro
+            pagina = info.get("pagina")
+            if self.patrones and not self.pagina_permitida(pagina):
+                continue
+            status = info.get("status") or 0
+            error = info.get("error")
+            # Playwright nunca ve los preflight, y lo de fuera del catalogo
+            # solo se guarda si fallo
+            if (info.get("metodo") == "OPTIONS" or info.get("tipo") == "preflight"
+                    or info.get("fuera_catalogo")) and not error and status < 400:
+                continue
+            headers = info.get("headers") or {}
+            cuerpo = None
+            if fin is not None and not error and not al_cerrar and info.get("sesion"):
+                try:
+                    r = info["sesion"].send("Network.getResponseBody", {"requestId": rid})
+                    cuerpo = r.get("body")
+                except Exception:
+                    pass
+            partes = ["Playwright no reporto este request; se registro desde la "
+                      "sesion CDP de Chrome."]
+            if info.get("metodo") == "OPTIONS":
+                partes.append("Es el preflight CORS del request real: con este "
+                              "status Chrome no llega a enviarlo.")
+            if info.get("cors"):
+                partes.append("Chrome lo bloqueo por CORS (%s): el servidor respondio "
+                              "%s sin un Access-Control-Allow-Origin valido."
+                              % (info["cors"], status or "?"))
+            elif error:
+                partes.append("El navegador corto el request (%s)%s."
+                              % (error, ", status %s" % status if status else ""))
+            elif fin is None:
+                partes.append("Seguia en vuelo cuando se cerro el observador.")
+            pistas = ["%s: %s" % (k, headers[k]) for k in ("x-cache", "content-type")
+                      if headers.get(k)]
+            if pistas:
+                partes.append(" | ".join(pistas))
+            meta = {"ts": info["ts"], "t0": info["t0"], "metodo": info.get("metodo"),
+                    "url": info["url"], "tipo": info.get("tipo") or "fetch",
+                    "request_headers": info.get("req_headers") or {},
+                    "request_body": info.get("post"),
+                    "fuera_catalogo": info.get("fuera_catalogo")}
+            reg = self.registro(meta, status, headers, cuerpo, " ".join(partes),
+                                fin=fin, al_cerrar=al_cerrar)
+            reg["origen"] = "cdp"
+            if error or fin is None:
+                reg["fallo"] = error or SIN_RESPUESTA
+            if info.get("cors"):
+                reg["cors"] = info["cors"]
+            self.guardar(reg, pagina, t0_ms=info["t0"] * 1000, al_cerrar=al_cerrar)
+            print("   [x] %s %s -> %s %s (visto solo por CDP)"
+                  % (meta["metodo"], meta["url"], status or "-",
+                     "bloqueado por CORS" if info.get("cors") else (error or "")))
+
+    def drenar_fallos(self, forzar=False, al_cerrar=False):
+        """Registra los requests que el navegador corto, con el status real si
+        el servidor alcanzo a responder."""
+        ahora = time.time() * 1000
+        quedan = []
+        for request, cuando in self.cola_fallos:
+            if not forzar and ahora - cuando < ESPERA_FALLO_MS:
+                quedan.append((request, cuando))
+                continue
+            meta = self.pend_req.pop(request, None)
+            if meta is None:
+                continue
+            info = self.info_cdp(meta["metodo"], meta["url"])
+            status = info.get("status") or 0
+            headers = info.get("headers") or {}
+            error = request.failure or info.get("error") or "fallo"
+            if info.get("cors"):
+                nota = ("Chrome bloqueo la respuesta por CORS (%s): el servidor "
+                        "respondio %s sin Access-Control-Allow-Origin valido, asi "
+                        "que el front nunca la pudo leer." % (info["cors"], status or "?"))
+            elif status:
+                nota = "El servidor respondio %s, pero el navegador corto el request (%s)." % (status, error)
+            else:
+                nota = "El navegador corto el request sin respuesta del servidor (%s)." % error
+            pistas = ["%s: %s" % (k, headers[k]) for k in ("x-cache", "content-type")
+                      if headers.get(k)]
+            if pistas:
+                nota += " " + " | ".join(pistas)
+            reg = self.registro(meta, status, headers, None, nota, fin=cuando / 1000,
+                                request=request, al_cerrar=al_cerrar)
+            reg["fallo"] = error
+            if info.get("cors"):
+                reg["cors"] = info["cors"]
+            self.guardar(reg, self.pagina_de(request), t0_ms=meta["t0"] * 1000,
+                         al_cerrar=al_cerrar)
+            print("   [x] %s %s -> %s %s" % (meta["metodo"], meta["url"], status or "-",
+                                            "bloqueado por CORS" if info.get("cors") else error))
+        self.cola_fallos = quedan
+
+    def esperar_en_vuelo(self, pagina, segundos):
+        """Al parar, da tiempo a que respondan los requests que siguen en vuelo.
+
+        Un request-data que tarda 12 s y se para la captura a los 5 quedaba
+        fuera de la evidencia, aunque luego DevTools mostrara su 500.
+        """
+        limite = time.time() + segundos
+        if self.pend_req and segundos > 0:
+            print("Esperando %d request(s) en vuelo (max %d s):"
+                  % (len(self.pend_req), segundos))
+            for m in self.pend_req.values():
+                print("   %s %s" % (m["metodo"], ruta_de(m["url"])))
+        while (self.pend_req or self.huerfanos_en_vuelo()) and time.time() < limite:
+            pagina.wait_for_timeout(200)
+            self.drenar_respuestas()
+            self.drenar_fallos()
+            self.drenar_huerfanos()
+        self.drenar_huerfanos(forzar=True)
+
+    def huerfanos_en_vuelo(self):
+        """Requests que solo CDP vio salir y que todavia no terminan."""
+        return [i for i in self.cdp_red.values()
+                if i.get("fin") is None and not i.get("fuera_catalogo")
+                and not self.pw_vistos.get((i.get("metodo"), i["url"]))
+                and i.get("metodo") != "OPTIONS"]
+
+    def rescatar_en_vuelo(self):
+        """Lo que no se pudo leer al cerrar igual queda en la evidencia, marcado.
+
+        No toca Playwright (solo atributos ya cargados en Python): tambien lo
+        llama el hilo vigilante cuando el loop se colgo.
+        """
+        pendientes, self.cola_resp = self.cola_resp, []
+        for response in pendientes:
+            meta = self.pend_req.pop(response.request, None)
+            if meta is None:
+                continue
+            reg = self.registro(meta, response.status, {}, None,
+                                "Respondio, pero el observador cerro antes de leer el cuerpo.",
+                                request=response.request, al_cerrar=True)
+            self.guardar(reg, self.pagina_de(response.request), al_cerrar=True)
+        self.drenar_fallos(forzar=True, al_cerrar=True)
+        self.drenar_huerfanos(forzar=True, al_cerrar=True)
+        for request, meta in list(self.pend_req.items()):
+            self.pend_req.pop(request, None)
+            reg = self.registro(meta, 0, {}, None,
+                                "Seguia en vuelo cuando se cerro el observador: no se "
+                                "alcanzo a ver su respuesta.",
+                                request=request, al_cerrar=True)
+            reg["fallo"] = SIN_RESPUESTA
+            self.guardar(reg, self.pagina_de(request), al_cerrar=True)
+            print("   [x] %s %s -> sin respuesta al cerrar" % (meta["metodo"], meta["url"]))
+
+    def volcar_sonda(self):
+        """Escribe lo que respondio /request/check en el paso que lo pidio.
+
+        Desde el loop, igual que el resto de la evidencia: el hilo de la sonda
+        solo hace la llamada HTTP.
+        """
+        if not self.sonda:
+            return
+        for paso, reg in self.sonda.recoger():
+            paso["requests"].append(reg)
+            with open(os.path.join(paso["dir"], "requests.jsonl"), "a",
+                      encoding="utf-8") as f:
+                f.write(json.dumps(reg, ensure_ascii=False) + "\n")
+            print("[paso %02d] /request/check (%s) -> %s  %s  [%d ms]"
+                  % (paso["idx"], reg["motivo"], reg["status"],
+                     sonda_check.linea(reg["check"]), reg["duracion_ms"]))
 
     def enganchar_socket(self, pagina, ws):
         """Los frames del socket son evidencia de primera: llevan el avance del
@@ -788,11 +1167,13 @@ class Observador:
             pass
         print("   [ws %s] %s" % (flecha, resumen or texto[:120]))
 
-    def guardar(self, reg, pagina=None, t0_ms=None):
+    def guardar(self, reg, pagina=None, t0_ms=None, al_cerrar=False):
         # Si la ruta de esta pestana ya cambio y el paso nuevo sigue esperando el
         # settle, el request es de la pantalla NUEVA: el settle existe para que la
         # pantalla pinte antes del screenshot, no para agrupar el trafico.
-        if pagina is not None and pagina in self.pendientes:
+        # al_cerrar=True no abre pasos: eso toca Playwright, y al cerrar puede
+        # estar colgado (o hablarse desde el hilo vigilante).
+        if not al_cerrar and pagina is not None and pagina in self.pendientes:
             _url, t_cambio = self.pendientes[pagina]
             if t0_ms is None or t0_ms >= t_cambio - TOLERANCIA_CAMBIO_MS:
                 self.adelantar_paso(pagina)
@@ -804,7 +1185,7 @@ class Observador:
             # llego trafico antes de la primera pantalla: abrimos paso al vuelo
             # para no perderlo (se corre desde el loop principal, es seguro)
             pag = pagina or self.pagina_actual
-            if pag is None:
+            if pag is None or al_cerrar:
                 return None
             try:
                 paso = self.abrir_paso(pag, pag.url)
@@ -834,6 +1215,8 @@ class Observador:
         page.on("request", self.on_request)
         page.on("request", lambda req, _p=page: self.detectar_recarga(_p, req))
         page.on("response", self.on_response)
+        page.on("requestfailed", self.on_request_failed)
+        self.enganchar_cdp(page)
         page.on("framenavigated",
                 lambda fr: self.marcar_cambio(page, fr.url) if fr == page.main_frame else None)
         page.on("close", lambda _p=page: self.pendientes.pop(_p, None))
@@ -899,6 +1282,8 @@ def escribir_har(obs, ruta):
                     "mimeType": r["request_headers"].get("content-type", ""),
                     "text": r["request_body"],
                 }
+            if r.get("fallo"):
+                entrada["_error"] = r["fallo"]   # el mismo campo que usa el HAR de Chrome
             entradas.append(entrada)
     har = {"log": {"version": "1.2",
                    "creator": {"name": "observador_flujo.py", "version": "1.0"},
@@ -969,8 +1354,7 @@ def _bloque_endpoints(cob, esc):
     faltan = [c for c in cob.values() if not c["veces"]]
     filas = []
     for c in vistos:
-        malos = [s for s in c["statuses"] if s >= 400]
-        cls = "malo" if malos else "bueno"
+        cls = "malo" if endpoint_con_error(c) else "bueno"
         # una version distinta a la declarada no es un fallo, pero hay que verla
         esperado = c.get("version_declarada")
         movida = bool(esperado and c.get("versiones") and esperado not in c["versiones"])
@@ -981,7 +1365,9 @@ def _bloque_endpoints(cob, esc):
             '<td class="ver' + (' movida' if movida else '') + '">'
             + esc(nota_version(c)) + '</td>'
             '<td class="p">paso ' + esc(", ".join(str(p) for p in c["pasos"])) + '</td>'
-            '<td class="st">' + esc(", ".join(str(s) for s in c["statuses"])) + '</td>'
+            '<td class="st">' + esc(", ".join(str(s) for s in c["statuses"]))
+            + ((' &middot; ' + esc(c["fallos"]) + ' bloqueado(s)/sin respuesta')
+               if c.get("fallos") else '') + '</td>'
             '</tr>')
     for c in faltan:
         filas.append(
@@ -1013,7 +1399,75 @@ CSS_ENDPOINTS = """
          padding:1px 5px; border-radius:3px; letter-spacing:.4px; }
   .req.track { border-left-width:5px; }
   .req.track summary { background:color-mix(in srgb, var(--acc) 7%, transparent); }
+  .tag.sonda { background:var(--mut); }
+  .tag.fallo { background:var(--err); }
+  .req.sonda { border-left:3px dashed var(--mut); }
+  .req.sonda .s { color:var(--mut); }
+  .nota-sonda { color:var(--mut); font-size:12px; }
+  .idx-ep tr.cambio td { font-weight:700; }
+  .idx-ep tr.cambio .e { color:var(--acc); }
 """
+
+
+def es_fallo(r):
+    """Status >= 400, o el navegador lo corto (CORS, red) / quedo sin respuesta."""
+    return (r["status"] >= 400 or bool(r.get("fallo"))) and not r.get("sonda")
+
+
+def etiqueta_fallo(r):
+    """Marca corta para un request que el front nunca pudo leer."""
+    fallo = r.get("fallo")
+    if not fallo:
+        return ""
+    if r.get("cors"):
+        return "CORS"
+    if fallo == SIN_RESPUESTA:
+        return "SIN RESPUESTA"
+    if "ABORTED" in fallo.upper():
+        return "ABORTADO"
+    return "FALLO RED"
+
+
+def endpoint_con_error(c):
+    return any(not s or s >= 400 for s in c["statuses"]) or bool(c.get("fallos"))
+
+
+def linea_check(pasos):
+    """Las respuestas de /request/check en orden: la historia del caso."""
+    filas = []
+    for paso in pasos:
+        for r in paso["requests"]:
+            if r.get("sonda") != "request/check":
+                continue
+            filas.append(dict(r.get("check") or {}, paso=paso["idx"],
+                              pantalla=paso["url"], motivo=r.get("motivo"),
+                              status=r["status"], ts=r["ts"]))
+    return sorted(filas, key=lambda f: f["ts"])
+
+
+def _bloque_check(filas, esc):
+    """Lo que habria respondido la retoma en cada pantalla. Se resaltan las
+    filas donde cambio el estado o el paso pendiente, que es lo que se busca."""
+    if not filas:
+        return ""
+    trs, previa = [], None
+    for f in filas:
+        clave = (f.get("estado"), f.get("pasoPendiente"), f.get("idCaso"))
+        cls = "cambio" if previa is not None and clave != previa else ""
+        previa = clave
+        trs.append(
+            '<tr class="' + cls + '">'
+            '<td class="p">paso ' + esc("%02d" % f["paso"]) + '</td>'
+            '<td class="p">' + esc(f["ts"][11:19]) + '</td>'
+            '<td class="p">' + esc(f.get("motivo")) + '</td>'
+            '<td class="st">' + esc(f["status"]) + '</td>'
+            '<td class="e">' + esc(f.get("estado", "")) + '</td>'
+            '<td class="e">' + esc(f.get("pasoPendiente", "")) + '</td>'
+            '<td class="p">' + esc(("caso %s" % f["idCaso"]) if f.get("idCaso") else "")
+            + '</td></tr>')
+    return ('<section class="idx-ep"><h3>/request/check durante el flujo '
+            '<small>lo que responderia la retoma en cada pantalla</small></h3>'
+            '<table>' + "".join(trs) + '</table></section>')
 
 def _rango_disparador(nombre):
     """Ordena los pantallazos por el orden en que se declaro cada disparador.
@@ -1081,24 +1535,35 @@ def escribir_reporte(obs, flujo, ruta):
                       "requests.jsonl de este paso]" % (len(txt_fmt) - MAX_BODY_HTML))
         return _h.escape(txt_fmt)
 
-    total = sum(len(p["requests"]) for p in obs.pasos)
-    fallos = sum(1 for p in obs.pasos for r in p["requests"] if r["status"] >= 400)
+    # la sonda no es trafico del front: ni se cuenta como capturado ni su 404
+    # (sin caso abierto) como fallo
+    total = sum(1 for p in obs.pasos for r in p["requests"] if not r.get("sonda"))
+    fallos = sum(1 for p in obs.pasos for r in p["requests"] if es_fallo(r))
+    n_sonda = len(linea_check(obs.pasos))
     multi = len({p.get("pestana", 0) for p in obs.pasos}) > 1
 
     secciones = []
     for paso in obs.pasos:
         reqs = []
         for r in paso["requests"]:
-            clase = "err" if r["status"] >= 400 else "ok"
+            clase = "err" if es_fallo(r) else "ok"
             nota = ("<p class='nota'>" + esc(r["nota"]) + "</p>") if r.get("nota") else ""
             tag = '<span class="tag">API</span>' if r.get("rastreados") else ''
             if r.get("rastreados"):
                 clase += " track"
+            if r.get("fallo"):
+                tag += '<span class="tag fallo">' + esc(etiqueta_fallo(r)) + '</span>'
+            if r.get("sonda"):
+                clase = "sonda"
+                tag = '<span class="tag sonda">SONDA</span>'
+                nota = ("<p class='nota-sonda'>" + esc(sonda_check.linea(r.get("check") or {}))
+                        + " &middot; consultado por el observador (" + esc(r.get("motivo"))
+                        + "); el front lo llama desde su servidor, no desde el navegador.</p>")
             reqs.append(
                 '<details class="req ' + clase + '">'
                 '<summary>' + tag +
                 '<span class="m">' + esc(r["metodo"]) + '</span>'
-                '<span class="s">' + esc(r["status"]) + '</span>'
+                '<span class="s">' + (esc(r["status"]) if r["status"] else "&mdash;") + '</span>'
                 '<span class="u">' + esc(r["url"]) + '</span>'
                 '<span class="d">' + esc(r["duracion_ms"]) + ' ms</span>'
                 '</summary>'
@@ -1154,11 +1619,14 @@ def escribir_reporte(obs, flujo, ruta):
         '<header><h1>Evidencia de flujo &mdash; ' + esc(flujo) + '</h1>'
         '<p class="resumen">' + esc(len(obs.pasos)) + ' pasos &middot; '
         + esc(total) + ' requests capturados &middot; '
-        + esc(fallos) + ' con status &ge; 400 &middot; generado ' + esc(ahora_iso()) + '</p>'
+        + esc(fallos) + ' con error (status &ge; 400, CORS o sin respuesta) &middot; '
+        + ((esc(n_sonda) + ' consultas a /request/check &middot; ') if n_sonda else '')
+        + 'generado ' + esc(ahora_iso()) + '</p>'
         '</header>'
         + esq.bloque_html(getattr(obs, "validacion", []),
                           getattr(obs, "ruta_esquemas", None), esc)
         + _bloque_endpoints(cobertura_endpoints(obs.pasos, obs.endpoints), esc)
+        + _bloque_check(linea_check(obs.pasos), esc)
         + "".join(secciones) + '</body></html>'
     )
     with open(ruta, "w", encoding="utf-8") as f:
@@ -1182,7 +1650,7 @@ def cobertura_endpoints(pasos, endpoints):
     incluyendo los que NUNCA se vieron (que suele ser el hallazgo interesante).
     """
     cob = {e: {"endpoint": e, "veces": 0, "pasos": [], "statuses": [], "urls": [],
-               "version_declarada": version_declarada(e), "versiones": []}
+               "version_declarada": version_declarada(e), "versiones": [], "fallos": 0}
            for e in endpoints}
     for paso in pasos:
         for r in paso["requests"]:
@@ -1195,6 +1663,8 @@ def cobertura_endpoints(pasos, endpoints):
                     c["pasos"].append(paso["idx"])
                 if r["status"] not in c["statuses"]:
                     c["statuses"].append(r["status"])
+                if r.get("fallo"):
+                    c["fallos"] += 1
                 if len(c["urls"]) < 5 and r["url"] not in c["urls"]:
                     c["urls"].append(r["url"])
                 v = version_de(r["url"])
@@ -1221,8 +1691,10 @@ def imprimir_cobertura(cob):
         return
     print("\n--- endpoints rastreados ---")
     for c in sorted(vistos, key=lambda x: -x["veces"]):
-        malos = [s for s in c["statuses"] if s >= 400]
+        malos = [s for s in c["statuses"] if not s or s >= 400]
         marca = "  <-- %s" % malos if malos else ""
+        if c.get("fallos"):
+            marca += "  <-- %d bloqueado(s)/sin respuesta" % c["fallos"]
         ver = nota_version(c)
         print("  %2dx  pasos %-12s %-58s %s%s"
               % (c["veces"], ",".join(str(p) for p in c["pasos"]), c["endpoint"],
@@ -1253,15 +1725,28 @@ def _cerrar(obs, flujo, ruta_esquemas=None, generar=False):
         obs.volcar_shots()
     except (AttributeError, OSError):
         pass
+    try:
+        obs.rescatar_en_vuelo()  # idem con los requests que no alcanzaron a leerse
+    except (AttributeError, OSError):
+        pass
+    try:
+        obs.volcar_sonda()       # idem con lo que alcanzo a responder /request/check
+    except (AttributeError, OSError):
+        pass
     resumen = {
         "flujo": flujo,
         "generado": ahora_iso(),
         "pasos": [{"idx": p["idx"], "url": p["url"], "titulo": p["titulo"], "ts": p["ts"],
                    "pestana": p.get("pestana", 0), "requests": len(p["requests"]),
                    "websocket": len(p.get("sockets") or []),
-                   "fallos": sum(1 for r in p["requests"] if r["status"] >= 400)}
+                   "fallos": sum(1 for r in p["requests"] if es_fallo(r))}
                   for p in obs.pasos],
     }
+    checks = linea_check(obs.pasos)
+    if checks:
+        resumen["request_check"] = checks
+        with open(os.path.join(obs.dir, "request_check.json"), "w", encoding="utf-8") as f:
+            json.dump(checks, f, ensure_ascii=False, indent=2)
     cob = cobertura_endpoints(obs.pasos, obs.endpoints)
     resumen["endpoints"] = cob
     with open(os.path.join(obs.dir, "resumen.json"), "w", encoding="utf-8") as f:
@@ -1276,13 +1761,15 @@ def _cerrar(obs, flujo, ruta_esquemas=None, generar=False):
         for r in paso["requests"]:
             if not r.get("rastreados"):
                 continue
+            llamada = {"method": r["metodo"], "status": r["status"],
+                       "duracion_ms": r["duracion_ms"]}
+            if r.get("fallo"):
+                llamada["fallo"] = r["fallo"]
+                if r.get("cors"):
+                    llamada["cors"] = r["cors"]
             servicios.append({
                 "url": r["url"],
-                "request": {
-                    "method": r["metodo"],
-                    "status": r["status"],
-                    "duracion_ms": r["duracion_ms"],
-                },
+                "request": llamada,
                 "payload": _quizas_json(r.get("request_body")),
                 "contexto": {
                     "paso": paso["idx"],
@@ -1330,9 +1817,14 @@ def _cerrar(obs, flujo, ruta_esquemas=None, generar=False):
     escribir_har(obs, os.path.join(obs.dir, "captura.har"))
     escribir_reporte(obs, flujo, os.path.join(obs.dir, "reporte.html"))
 
-    total = sum(len(p["requests"]) for p in obs.pasos)
+    total = sum(1 for p in obs.pasos for r in p["requests"] if not r.get("sonda"))
     fallos = sum(s["fallos"] for s in resumen["pasos"])
-    print("\n%d pasos, %d requests, %d con status >= 400" % (len(obs.pasos), total, fallos))
+    print("\n%d pasos, %d requests, %d con error (status >= 400, CORS o sin respuesta)"
+          % (len(obs.pasos), total, fallos))
+    if checks:
+        print("\n--- /request/check ---")
+        for c in checks:
+            print("  paso %02d  %-20s %s" % (c["paso"], c["motivo"], sonda_check.linea(c)))
     n_ws = sum(len(p.get("sockets") or []) for p in obs.pasos)
     if n_ws:
         malos = [fr for fr in frames if '"stepStatus":"FAIL"' in fr["payload"].replace(" ", "")]
@@ -1538,8 +2030,21 @@ def main():
                          "Ctrl+C, asi que el reporte se genera igual (lo usa el panel)")
     ap.add_argument("--duracion", type=int, default=0,
                     help="corta solo tras N segundos (0 = hasta Ctrl+C)")
+    ap.add_argument("--espera-en-vuelo", type=int, default=30, metavar="SEG",
+                    help="al parar, espera hasta SEG segundos a los requests que "
+                         "siguen sin respuesta (el API Gateway corta a los 29 s); "
+                         "0 = no esperar (default: %(default)s)")
     ap.add_argument("--lanzar-chrome", action="store_true",
                     help="abre Chrome con el puerto de depuracion y sale")
+    ap.add_argument("--request-check", action="store_true",
+                    help="consulta /request/check al detectar el documento y al llegar "
+                         "a informacion personal "
+                         "(lo llama el servidor del front, el navegador no lo ve). "
+                         "Necesita token.txt")
+    ap.add_argument("--documento", default=None, metavar="TIPO:NUMERO",
+                    help="documento para /request/check (CC:123, CO1C:123). Sin el, "
+                         "se toma del primer request que lo traiga. Implica "
+                         "--request-check")
     args = ap.parse_args()
 
     if args.lanzar_chrome:
@@ -1552,6 +2057,17 @@ def main():
         return rehacer_reporte(args.rehacer_reporte, endpoints,
                                ruta_esquemas=args.esquemas,
                                generar=args.generar_esquemas)
+
+    sonda = None
+    if args.request_check or args.documento:
+        try:
+            doc = sonda_check.parse_documento(args.documento) if args.documento else None
+        except ValueError as e:
+            print("! %s" % e)
+            return 2
+        sonda = sonda_check.SondaCheck(doc)
+        if not sonda.arrancar():
+            sonda = None          # sin token.txt: se captura igual, sin la sonda
 
     modo = "todo" if args.todos_los_hosts else args.captura
     if args.solo_endpoints:
@@ -1580,7 +2096,8 @@ def main():
                      patron_pestana=patrones_pestana, seguir_popups=args.seguir_popups,
                      endpoints=endpoints, solo_endpoints=(modo == "endpoints"),
                      pantallazo_extra=extras, extra_ms=args.extra_ms,
-                     screenshot_on_response=args.screenshot_on_response)
+                     screenshot_on_response=args.screenshot_on_response,
+                     sonda=sonda)
 
     # el reporte se genera al final, pase lo que pase con Playwright
     conectado = True
@@ -1663,6 +2180,10 @@ def observar(args, obs):
         if obs.pantallazo_extra:
             print("Pantallazo extra en: %s" % ", ".join(obs.pantallazo_extra))
         print("Redaccion de credenciales: %s" % ("ON" if obs.redactar else "OFF"))
+        if obs.sonda:
+            print("/request/check: al inicio y en informacion personal, con %s"
+                  % ("%s %s" % obs.sonda.doc if obs.sonda.doc
+                     else "el documento que aparezca en el trafico"))
         print("Escuchando. Navega normal. Ctrl+C para cerrar y generar el reporte.\n")
 
         limite = (time.time() + args.duracion) if args.duracion else None
@@ -1701,6 +2222,9 @@ def observar(args, obs):
                     activa = vivas[0]
                     continue
                 obs.drenar_respuestas()
+                obs.drenar_fallos()
+                obs.drenar_huerfanos()
+                obs.volcar_sonda()
                 ahora = time.time() * 1000
                 # cada pestana con un cambio ya "asentado" abre su propio paso
                 for pagina, (url, t0) in list(obs.pendientes.items()):
@@ -1733,10 +2257,24 @@ def observar(args, obs):
                 pass
             try:
                 obs.drenar_respuestas()
+                obs.esperar_en_vuelo(activa, args.espera_en_vuelo)
             except BaseException:
                 pend = len(obs.cola_resp)
                 if pend:
                     print("(%d respuesta(s) pendientes no se pudieron leer)" % pend)
+            # lo que siga sin leer o sin respuesta queda marcado, no desaparece
+            try:
+                obs.rescatar_en_vuelo()
+            except BaseException:
+                pass
+            # no toca Playwright: solo HTTP y disco. No hay consulta final:
+            # solo se espera lo que siga en vuelo y se guarda lo que respondio.
+            try:
+                if obs.sonda and not obs.sin_reporte:
+                    obs.sonda.cerrar(obs.paso_actual())
+                obs.volcar_sonda()
+            except BaseException:
+                pass
     return True
 
 

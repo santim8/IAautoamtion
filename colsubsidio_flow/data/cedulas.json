@@ -1,0 +1,217 @@
+{
+  "_leeme": "Cedulas por data provider (como DataProviderUtil.java). SIN claves: las claves se leen de ~/.panel_qa/usuarios_prueba.json (panel, pestana Usuarios), o de COLS_CLAVE, o se piden por consola. Editar a mano o con: python -m colsubsidio_flow cedulas --help",
+  "fill_data_api": [
+    {
+      "tipo": "CE",
+      "numero": "673434"
+    },
+    {
+      "tipo": "CE",
+      "numero": "446444"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1004921429"
+    },
+    {
+      "tipo": "CC",
+      "numero": "79562819"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1003635154"
+    },
+    {
+      "tipo": "CE",
+      "numero": "642890"
+    },
+    {
+      "tipo": "CE",
+      "numero": "648203"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1075662894"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1030533215"
+    },
+    {
+      "tipo": "CC",
+      "numero": "52335676"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1003844571"
+    },
+    {
+      "tipo": "CC",
+      "numero": "91156652"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1000502751"
+    },
+    {
+      "tipo": "CE",
+      "numero": "384185"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1000861034"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1003155197"
+    },
+    {
+      "tipo": "CC",
+      "numero": "80205256"
+    },
+    {
+      "tipo": "CC",
+      "numero": "80163761"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1048847599"
+    },
+    {
+      "tipo": "CE",
+      "numero": "382429"
+    },
+    {
+      "tipo": "CC",
+      "numero": "79584194"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1140814422"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1095915781"
+    },
+    {
+      "tipo": "CC",
+      "numero": "52966724"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1003908455"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1037618937"
+    },
+    {
+      "tipo": "CC",
+      "numero": "79528108"
+    },
+    {
+      "tipo": "CC",
+      "numero": "51760693"
+    },
+    {
+      "tipo": "CC",
+      "numero": "13617086"
+    },
+    {
+      "tipo": "CC",
+      "numero": "80426317"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1000031801"
+    },
+    {
+      "tipo": "CC",
+      "numero": "52705624"
+    },
+    {
+      "tipo": "CC",
+      "numero": "52160953"
+    },
+    {
+      "tipo": "CC",
+      "numero": "35533633"
+    },
+    {
+      "tipo": "CC",
+      "numero": "80007426"
+    },
+    {
+      "tipo": "CC",
+      "numero": "39537179"
+    },
+    {
+      "tipo": "CC",
+      "numero": "79978859"
+    },
+    {
+      "tipo": "CE",
+      "numero": "604626"
+    },
+    {
+      "tipo": "CC",
+      "numero": "12539777"
+    },
+    {
+      "tipo": "CC",
+      "numero": "80764109"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1078366073"
+    },
+    {
+      "tipo": "CC",
+      "numero": "52167144"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1032410060"
+    },
+    {
+      "tipo": "CC",
+      "numero": "52961647"
+    },
+    {
+      "tipo": "CC",
+      "numero": "74188681"
+    },
+    {
+      "tipo": "CC",
+      "numero": "79386136"
+    },
+    {
+      "tipo": "CC",
+      "numero": "80057089"
+    }
+  ],
+  "login_credito": [
+    {
+      "tipo": "CC",
+      "numero": "35533633",
+      "nota": "usuario de loginCreditoData en Java"
+    }
+  ],
+  "consumo_225423": [
+    {
+      "tipo": "CC",
+      "numero": "79978859",
+      "nota": "sin caso en /request/check (1/10)"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1000000001",
+      "nota": "caso de Cupo IN_PROGRESS/REQUEST_DATA (caso 314502, 1/10)"
+    },
+    {
+      "tipo": "CC",
+      "numero": "74188681",
+      "nota": "CASE_IN_PROGRESS_PROMOTER (caso 287133, 1/10)"
+    }
+  ]
+}

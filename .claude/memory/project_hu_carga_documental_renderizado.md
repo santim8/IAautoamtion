@@ -61,3 +61,7 @@ Defectos (siguen vigentes):
 Huecos (re-acotados): render de **estados** (Por adjuntar solo; faltan Adjuntado / Carga en proceso) y de **errores** (formato, contraseña, peso, genérico) — ambos con tarea FE en 217173 · parámetro 217858 · lista vacía o falla del endpoint de la matriz · documento opcional · título/ayuda largos desde Bizagi · frecuencia: sentido inverso, misma opción, solo se borran los de nómina, límite alcanzado · modal por teclado · CASE_REVIEW: duplicado, otro idCaso, ya en pantalla, timeout, **mismo usuario en 2 pestañas** (DynamoDB guarda varias `connectionId` por `userId`) · escritorio vs móvil · límites [Restringido] de Drupal. **Fuera de alcance de 217173** (no cubrir aquí): `Por corregir`/`Validado` (223810, 2027) y `Enviar documentos` deshabilitado (217175/217180).
 
 Preguntas abiertas nuevas: 1.6-1.7 y 3.6-3.13 en [project_gestion_documental_preguntas_abiertas.md](project_gestion_documental_preguntas_abiertas.md); 6.7 sobre Figma.
+
+## Relación con 227148 (revisado 2026-10-02)
+
+217173 sigue en New, **sin sprint** y con tag 2027; sus tareas FE/BE/DR están en To Do. En 2026 la salida de Zona Gris la cubre la HU temporal 227148 (derivación a asistido, Sprint 035), que usa `OFFER_RESULT` + **`CASE_FOR_REVIEW`**, nombre casi igual al evento **`CASE_REVIEW`** de esta HU. Preguntar si son el mismo estado: si lo son, cuando llegue 217173 el FE necesita un interruptor (¿parámetro global 217858?) para decidir entre la pantalla de derivación y la carga documental. Mientras tanto, 217173 solo se puede probar con mocks o estado sembrado.

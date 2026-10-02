@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import logging
@@ -7,6 +8,8 @@ from playwright.sync_api import (
     Locator,
     TimeoutError as PlaywrightTimeout,
 )
+
+import validaciones_api as api
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 log = logging.getLogger(__name__)
@@ -66,6 +69,35 @@ def imprimir_veredicto(estado: str, caso: str | None, documento: str) -> None:
         print(linea.format(caso=caso or "?", doc=documento))
     print("===================================")
     print("")
+
+
+# Alternativa a Bizagi (--request <idCaso>): cancela por idCaso directo en la
+# plataforma de credito (req-mgr), sin navegador. Va con el token CIAM de la
+# identidad dummy, igual que el resto de servicios externos.
+URL_CANCEL_REQUEST = (api.BASE_EXT +
+                      "/loans/req-mgr/external/v1/product/2/request/cancel-request")
+
+
+def cancelar_request(id_caso: str) -> bool:
+    """POST cancel-request con el idCaso. Va por curl (validaciones_api._curl)
+    porque el WAF de AWS bloquea requests/urllib con 403."""
+    try:
+        status, cuerpo = api._curl("POST", URL_CANCEL_REQUEST,
+                                   headers={"Authorization": api.token_ciam()},
+                                   body={"idCaso": str(id_caso)})
+    except RuntimeError as e:          # token.txt sin las claves CIAM
+        status, cuerpo = None, str(e)
+    ok = status is not None and 200 <= status < 300
+    print("")
+    print("=== CANCEL-REQUEST PLATAFORMA ===")
+    print("[%s]" % ("REQUEST CANCELADO" if ok else "REQUEST NO CANCELADO"))
+    print("idCaso: %s -> HTTP %s" % (id_caso, status if status is not None else "sin respuesta"))
+    if cuerpo not in ({}, ""):
+        texto = cuerpo if isinstance(cuerpo, str) else json.dumps(cuerpo, ensure_ascii=False)
+        print("Respuesta: %s" % texto[:500])
+    print("=================================")
+    print("")
+    return ok
 
 
 def _credencial(nombre):
@@ -442,11 +474,21 @@ class BizagiAutomator:
 
 
 def main() -> None:
+    # Modo servicio: cancela por idCaso via API y no abre Bizagi.
+    if "--request" in sys.argv[1:]:
+        i = sys.argv.index("--request")
+        if i + 1 >= len(sys.argv):
+            print("Uso: python bizagi_cancel_case.py --request <idCaso>")
+            return
+        cancelar_request(sys.argv[i + 1])
+        return
+
     args = [a for a in sys.argv[1:] if a != "--headless"]
     headless = "--headless" in sys.argv[1:]
 
     if len(args) < 1:
         print("Uso: python bizagi_cancel_case.py [--headless] [CE] <número_documento>")
+        print("     python bizagi_cancel_case.py --request <idCaso>")
         print("Ejemplo: python bizagi_cancel_case.py 648202")
         print("Ejemplo: python bizagi_cancel_case.py CE 648202")
         print("Ejemplo: python bizagi_cancel_case.py --headless CE 648202")
