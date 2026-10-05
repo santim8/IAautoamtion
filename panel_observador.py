@@ -153,6 +153,9 @@ SIN_REPORTE = "sin-reporte"
 # Rutas de la aplicacion: el front se sirve desde dos despliegues y el
 # observador tiene que reconocer la pestana en cualquiera de los dos.
 RUTAS_APP = "creditos/solicitud,loans-dev-solicitud"
+# El observador fija la pestana recien cuando llega al login: lo de antes
+# (onboarding) no entra a la evidencia, y desde ahi sigue esa pestana entera.
+RUTAS_LOGIN = "creditos/solicitud/login,loans-dev-solicitud/login"
 PUERTO = 9222
 
 RE_MARCA = re.compile(r"_(\d{4})-(\d{2})-(\d{2})_(\d{2})(\d{2})(\d{2})$")
@@ -482,8 +485,8 @@ HERRAMIENTAS = [
         "campos": [
             {"tipo": "texto", "arg": "--flujo", "etiqueta": "Flujo",
              "valor": "login-credito", "ancho": 26},
-            {"tipo": "texto", "arg": "--solo-url", "etiqueta": "Solo URL que contenga",
-             "valor": RUTAS_APP, "ancho": 42},
+            {"tipo": "texto", "arg": "--solo-url", "etiqueta": "Empezar en la URL que contenga",
+             "valor": RUTAS_LOGIN, "ancho": 42},
             {"tipo": "texto", "arg": "--documento", "etiqueta": "Documento (opcional)",
              "valor": "", "ancho": 16},
             {"tipo": "check", "arg": "--limpiar",
@@ -491,7 +494,7 @@ HERRAMIENTAS = [
              "valor": True},
             # el front lo llama desde su servidor: sin esto no sale en la evidencia
             {"tipo": "check", "arg": "--request-check",
-             "etiqueta": "Consultar /request/check al inicio y en información personal (usa token.txt)",
+             "etiqueta": "Consultar /request/check en el login, al detectar el documento y en información personal (usa token.txt)",
              "valor": True},
             {"tipo": "check", "arg": "--generar-esquemas",
              "etiqueta": "Tomar esta corrida como baseline de esquemas",

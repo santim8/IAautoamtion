@@ -26,10 +26,16 @@ Uso:
 Por defecto solo captura los hosts del backend (ver HOSTS_DEFAULT) y redacta
 credenciales. --todos-los-hosts y --sin-redactar desactivan cada cosa.
 
---request-check consulta ademas /request/check dos veces (ver
-sonda_check.py): al detectar el documento y al llegar a informacion personal,
-cuando el caso ya esta creado: ese endpoint lo llama el servidor del front, no el navegador,
-asi que sin la sonda nunca aparece en la evidencia.
+--request-check consulta ademas /request/check (ver sonda_check.py): apenas
+responde el login de Gigya (con el documento que trae), al detectar el documento
+en validaciones y al llegar a informacion personal, cuando el caso ya esta
+creado: ese endpoint lo llama el servidor del front, no el navegador, asi que
+sin la sonda nunca aparece en la evidencia.
+
+Los requests que el front nunca pudo leer tambien quedan, marcados: los que
+Chrome bloquea por CORS (con el status real que respondio el servidor), los
+cortados por la red y los que seguian en vuelo al parar. Al parar se espera
+hasta --espera-en-vuelo segundos a que estos ultimos respondan.
 """
 import argparse
 import json
@@ -40,6 +46,7 @@ import sys
 import threading
 import time
 from datetime import datetime, timezone
+from urllib.parse import urlsplit
 
 from playwright.sync_api import sync_playwright
 
@@ -62,6 +69,10 @@ HOSTS_DEFAULT = [
 RUTAS_APP = ["creditos/solicitud", "loans-dev-solicitud"]
 
 # Endpoints de negocio que interesan (match por substring sobre la URL).
+# Login de Gigya (CIAM). Su respuesta trae el documento del afiliado, con el
+# que --request-check consulta la retoma apenas se loguea.
+LOGIN_GIGYA = "/accounts.login"
+
 # Espejo de TRACKED_ENDPOINTS del framework Java, para poder comparar 1:1.
 ENDPOINTS_RASTREADOS = [
     "/decision-engine",
@@ -80,7 +91,18 @@ ENDPOINTS_RASTREADOS = [
     "/request/cancel-request",
     "/request/decision-engine/start",
     "/loans/loan-util/external/modification-quota-amount",
+    LOGIN_GIGYA,     # fuera del espejo Java, ver ENDPOINTS_SIN_PAYLOAD
 ]
+
+# Endpoints cuyo payload NUNCA se guarda, ni con --sin-redactar: el login de
+# Gigya manda loginID y password en form-urlencoded, que la redaccion por clave
+# JSON no alcanza. Se queda la respuesta (redactada como cualquier otra).
+ENDPOINTS_SIN_PAYLOAD = [LOGIN_GIGYA]
+
+# Endpoints tras los que el front recarga la pagina apenas responden. Al
+# recargar, Chrome descarta el cuerpo de la respuesta y leido desde el loop
+# llegaba tarde ("body no disponible"): se lee dentro del handler.
+ENDPOINTS_CUERPO_INMEDIATO = [LOGIN_GIGYA]
 
 # La version del path es un comodin: los servicios pasan de v1 a v2 segun se
 # activen las novedades, y con la version fija ese trafico dejaria de
@@ -110,13 +132,28 @@ def casan(endpoints, url):
     return [e for e in endpoints if patron_endpoint(e).search(url)]
 
 
+def va_a_hosts(url, hosts):
+    """El request va a uno de esos hosts. Se mira solo el host: los beacons de
+    Google y Gigya llevan la URL de la app en la query (url=, pageURL=) y con
+    un match sobre la URL entera pasaban por trafico del backend."""
+    try:
+        host = urlsplit(url).netloc
+    except ValueError:
+        return False
+    return any(h in host for h in hosts)
+
+
+def sin_payload(url):
+    return bool(casan(ENDPOINTS_SIN_PAYLOAD, url or ""))
+
+
 # --- redaccion -------------------------------------------------------------
 HEADERS_SENSIBLES = {
     "authorization", "cookie", "set-cookie", "x-api-key", "apikey",
     "x-auth-token", "proxy-authorization",
 }
 CLAVES_SENSIBLES = re.compile(
-    r"(token|password|passwd|secret|authorization|cookie|clientsecret|client_secret)",
+    r"(token|password|passwd|secret|authorization|cookie|clientsecret|client_secret|signature|uidsig)",
     re.I,
 )
 RE_BEARER = re.compile(r"(Bearer\s+)[A-Za-z0-9\-_\.=]{20,}", re.I)
@@ -163,7 +200,18 @@ SHOT_RESPUESTA_DEFAULT = ",".join([
     "parametros/estado_civil",       # datos personales; a veces se omite
     "modification-quota-amount",     # modificacion del cupo en personalizacion
     "creditos/solicitud/login",      # pantalla de login (documento)
+    "accounts.login",                # login de Gigya (CIAM)
 ])
+
+# Disparadores tras los que la app recarga la pagina (patron -> metodo que
+# dispara): despues del login de Gigya el front recarga /login, y retratarla
+# dentro del handler colgaba el screenshot hasta el timeout. Se retratan desde
+# el loop cuando la pantalla se asienta, reintentando sin limite de tiempo (ver
+# tomar_shots_tarde). Solo cuenta la respuesta del POST: es la del login.
+SHOT_TRAS_RECARGA = {"accounts.login": "POST"}
+# Tope del intervalo entre reintentos de un pantallazo que no sale: cada
+# intento fallido bloquea el loop hasta el timeout del screenshot.
+MAX_REINTENTO_SHOT_MS = 10_000
 
 
 def redactar_texto(txt):
@@ -406,11 +454,12 @@ class Observador:
         self.sin_pestana = 0         # requests sin frame (service worker), para avisar
         self.pasos = []              # [{idx, url, slug, dir, ts, pestana, requests: [...]}]
         self.cola_resp = []          # respuestas pendientes de leer body
+        self.cuerpos = {}            # response -> body ya leido en el handler
         self.pendientes = {}         # pagina -> (url, timestamp_ms) cambio en espera
         self.extras = []             # [(paso, pagina, cuando_ms)] pantallazos extra
         self.shots_dif = []          # [(paso, pagina, cuando_ms)] shot de paso adelantado
         self.shots_resp = []         # [(pagina, nombre, bytes)] shots por responder
-        self.shots_tarde = []        # [(pagina, nombre, cuando_ms)] esperan render
+        self.shots_tarde = []        # [(pagina, nombre, cuando_ms, intentos)] esperan render
         self.disparados = set()      # (paso, patron) ya disparados, para no repetir
         self.sin_reporte = False     # se paro pidiendo NO generar el reporte
         self.pend_req = {}           # request -> metadata, para casar con su response
@@ -441,7 +490,7 @@ class Observador:
             return False
         if not url.startswith("http"):
             return False
-        return not self.hosts or any(h in url for h in self.hosts)
+        return not self.hosts or va_a_hosts(url, self.hosts)
 
     def interesa(self, url):
         if not url.startswith("http"):
@@ -450,7 +499,7 @@ class Observador:
             return bool(self.casar_endpoints(url))
         if not self.hosts:
             return True
-        return any(h in url for h in self.hosts)
+        return va_a_hosts(url, self.hosts)
 
     # -- filtro por origen (de que pestana viene)
     def intentar_lock(self, page, url):
@@ -649,8 +698,9 @@ class Observador:
         self.pw_vistos[clave] = self.pw_vistos.get(clave, 0) + 1
         if self.descartar(request):
             return
+        omitir = sin_payload(request.url)
         try:
-            post = request.post_data
+            post = None if omitir else request.post_data
         except Exception:
             post = None
         self.pend_req[request] = {
@@ -684,6 +734,11 @@ class Observador:
             if response.status < 400:
                 self.pend_req.pop(response.request, None)   # fuera del catalogo y OK
                 return
+        if casan(ENDPOINTS_CUERPO_INMEDIATO, response.url):
+            try:
+                self.cuerpos[response] = response.body()
+            except Exception:
+                pass             # drenar_respuestas lo intenta otra vez y lo anota
         self.cola_resp.append(response)
 
     def mirar_disparadores(self, response, pagina):
@@ -700,6 +755,9 @@ class Observador:
         for patron in self.screenshot_on_response:
             if patron not in response.url:
                 continue
+            metodo = SHOT_TRAS_RECARGA.get(patron)
+            if metodo and response.request.method != metodo:
+                continue
             if (idx, patron) in self.disparados:
                 continue
             self.disparados.add((idx, patron))
@@ -713,11 +771,12 @@ class Observador:
                 es_documento = response.request.resource_type == "document"
             except Exception:
                 es_documento = False
-            if es_documento:
+            if es_documento or metodo:
                 self.shots_tarde.append(
-                    (pagina, nombre, time.time() * 1000 + self.settle_ms))
-                print("   [shot] %s cargo; retrato en %d ms"
-                      % (patron, self.settle_ms))
+                    (pagina, nombre, time.time() * 1000 + self.settle_ms, 0))
+                print("   [shot] %s %s; retrato cuando la pantalla se asiente"
+                      % (patron, "cargo" if es_documento
+                         else "respondio al " + metodo))
                 continue
             try:
                 self.shots_resp.append((pagina, nombre,
@@ -725,22 +784,45 @@ class Observador:
                                                           timeout=5000)))
                 print("   [shot] %s respondio; pantalla capturada" % patron)
             except Exception as e:
-                print("! pantallazo al responder %s fallo: %s" % (patron, e))
+                # no se pierde: lo reintenta el loop (ver tomar_shots_tarde)
+                self.shots_tarde.append(
+                    (pagina, nombre, time.time() * 1000 + self.settle_ms, 1))
+                print("! pantallazo al responder %s fallo (%s); reintento cuando "
+                      "la pantalla se asiente" % (patron, type(e).__name__))
 
     def tomar_shots_tarde(self, forzar=False):
-        """Retrata lo que espero a que la pagina pintara."""
+        """Retrata lo que espero a que la pagina pintara.
+
+        Mientras la pestana tenga un cambio sin asentar (recarga, ruta nueva) se
+        sigue esperando: un screenshot a mitad de navegacion se cuelga hasta el
+        timeout. Si aun asi falla, se reintenta sin limite de tiempo hasta que
+        salga o se cierre la pestana; al parar (forzar) va un ultimo intento.
+        """
         ahora = time.time() * 1000
         quedan = []
-        for pagina, nombre, cuando in self.shots_tarde:
-            if not forzar and ahora < cuando:
-                quedan.append((pagina, nombre, cuando))
+        for pagina, nombre, cuando, intentos in self.shots_tarde:
+            if not forzar and (ahora < cuando or pagina in self.pendientes):
+                quedan.append((pagina, nombre, cuando, intentos))
                 continue
+            etiqueta = nombre[23:-4]
             try:
                 self.shots_resp.append(
                     (pagina, nombre, pagina.screenshot(full_page=True,
                                                        timeout=5000)))
+                if intentos:
+                    print("   [shot] %s capturado al intento %d"
+                          % (etiqueta, intentos + 1))
             except Exception as e:
-                print("! pantallazo de %s fallo: %s" % (nombre[23:-4], e))
+                if forzar or pagina.is_closed():
+                    print("! pantallazo de %s fallo: %s" % (etiqueta, e))
+                    continue
+                intentos += 1
+                if intentos == 1:
+                    print("   [shot] %s: la pantalla sigue cargando; reintento"
+                          % etiqueta)
+                espera = min(self.settle_ms * intentos, MAX_REINTENTO_SHOT_MS)
+                quedan.append((pagina, nombre, time.time() * 1000 + espera,
+                               intentos))
         self.shots_tarde = quedan
 
     def volcar_shots(self):
@@ -782,7 +864,9 @@ class Observador:
                 nota = "cuerpo omitido (%s)" % meta["tipo"]
             else:
                 try:
-                    raw = response.body()
+                    raw = self.cuerpos.pop(response, None)
+                    if raw is None:
+                        raw = response.body()
                     if len(raw) > MAX_BODY:
                         cuerpo = raw[:MAX_BODY].decode("utf-8", "replace")
                         nota = f"truncado en {MAX_BODY} bytes (real: {len(raw)})"
@@ -799,8 +883,13 @@ class Observador:
                                 request=response.request)
             # se lee antes de redactar, sobre el body crudo
             doc_nuevo = bool(self.sonda) and self.sonda.aprender(meta["request_body"])
+            doc_login = (bool(self.sonda) and bool(casan([LOGIN_GIGYA], meta["url"]))
+                         and self.sonda.aprender_login(cuerpo))
             paso = self.guardar(reg, self.pagina_de(response.request),
                                 t0_ms=meta["t0"] * 1000)
+            if doc_login:
+                # apenas se loguea: si no hay solicitud que retomar responde 404
+                self.sonda.pedir(paso, "login", forzar=True)
             if doc_nuevo:
                 # la pantalla donde aparecio el documento no alcanzo a consultarse
                 self.sonda.pedir(paso, "documento detectado", forzar=True)
@@ -823,6 +912,8 @@ class Observador:
             "response_headers": resp_headers,
             "response_body": cuerpo,
         }
+        if sin_payload(meta["url"]):
+            nota = ("payload omitido: lleva credenciales. " + (nota or "")).strip()
         if nota:
             reg["nota"] = nota
         if meta.get("fuera_catalogo"):
@@ -885,7 +976,7 @@ class Observador:
             "pagina": page, "sesion": sesion, "ts": ahora_iso(), "t0": time.time(),
             "tipo": (ev.get("type") or "").lower() or None,
             "req_headers": dict(req.get("headers") or {}),
-            "post": req.get("postData"),
+            "post": None if sin_payload(req["url"]) else req.get("postData"),
         }
         while len(self.cdp_red) > MAX_CDP_RED:
             self.cdp_red.pop(next(iter(self.cdp_red)))
@@ -1084,7 +1175,10 @@ class Observador:
             meta = self.pend_req.pop(response.request, None)
             if meta is None:
                 continue
-            reg = self.registro(meta, response.status, {}, None,
+            raw = self.cuerpos.pop(response, None)
+            reg = self.registro(meta, response.status, {},
+                                raw[:MAX_BODY].decode("utf-8", "replace") if raw else None,
+                                None if raw else
                                 "Respondio, pero el observador cerro antes de leer el cuerpo.",
                                 request=response.request, al_cerrar=True)
             self.guardar(reg, self.pagina_de(response.request), al_cerrar=True)
@@ -1365,7 +1459,7 @@ def _bloque_endpoints(cob, esc):
             '<td class="ver' + (' movida' if movida else '') + '">'
             + esc(nota_version(c)) + '</td>'
             '<td class="p">paso ' + esc(", ".join(str(p) for p in c["pasos"])) + '</td>'
-            '<td class="st">' + esc(", ".join(str(s) for s in c["statuses"]))
+            '<td class="st">' + esc(", ".join(str(s) if s else "-" for s in c["statuses"]))
             + ((' &middot; ' + esc(c["fallos"]) + ' bloqueado(s)/sin respuesta')
                if c.get("fallos") else '') + '</td>'
             '</tr>')
@@ -1559,6 +1653,9 @@ def escribir_reporte(obs, flujo, ruta):
                 nota = ("<p class='nota-sonda'>" + esc(sonda_check.linea(r.get("check") or {}))
                         + " &middot; consultado por el observador (" + esc(r.get("motivo"))
                         + "); el front lo llama desde su servidor, no desde el navegador.</p>")
+            cuerpo_resp = esc_cuerpo(r["response_body"])
+            if r.get("sonda") and r["response_body"] is None:
+                cuerpo_resp = "null"   # un 404 sin caso: no hay cuerpo que mostrar
             reqs.append(
                 '<details class="req ' + clase + '">'
                 '<summary>' + tag +
@@ -1569,7 +1666,7 @@ def escribir_reporte(obs, flujo, ruta):
                 '</summary>'
                 '<div class="det">'
                 '<h5>Request body</h5><pre>' + esc_cuerpo(r["request_body"]) + '</pre>'
-                '<h5>Response body</h5><pre>' + esc_cuerpo(r["response_body"]) + '</pre>'
+                '<h5>Response body</h5><pre>' + cuerpo_resp + '</pre>'
                 + nota +
                 '</div></details>'
             )
@@ -1869,6 +1966,7 @@ class ObsDesdeDisco:
                             r = json.loads(ln)
                         except json.JSONDecodeError:
                             continue   # linea a medias por un cierre abrupto
+                        sonda_check.sin_caso_vigente(r)   # evidencia de antes del cambio
                         # re-marcar contra la lista de endpoints vigente
                         marcados = casan(endpoints, r.get("url", ""))
                         if marcados:
@@ -1902,8 +2000,21 @@ def rehacer_reporte(dir_evidencia, endpoints, ruta_esquemas=None, generar=False)
     if not obs.pasos:
         print("No encontre carpetas de paso (NN_algo) en %s" % dir_evidencia)
         return 1
-    # la URL del paso sale del documento principal si lo hay; si no, del slug
+    # la URL del paso sale del resumen de la corrida (la pantalla real); si no
+    # lo hay, del documento principal, y si tampoco, del slug. Sin el resumen
+    # quedaba la URL del primer request, que capturando endpoints es una API.
+    try:
+        with open(os.path.join(dir_evidencia, "resumen.json"), encoding="utf-8") as f:
+            previos = {p["idx"]: p for p in json.load(f).get("pasos", [])}
+    except (OSError, ValueError, KeyError, TypeError):
+        previos = {}
     for paso in obs.pasos:
+        previo = previos.get(paso["idx"]) or {}
+        if previo.get("url"):
+            for k in ("url", "titulo", "ts", "pestana"):
+                if previo.get(k) not in (None, ""):
+                    paso[k] = previo[k]
+            continue
         doc = next((r for r in paso["requests"] if r.get("tipo") == "document"), None)
         if doc:
             paso["url"] = doc["url"]
@@ -2037,8 +2148,8 @@ def main():
     ap.add_argument("--lanzar-chrome", action="store_true",
                     help="abre Chrome con el puerto de depuracion y sale")
     ap.add_argument("--request-check", action="store_true",
-                    help="consulta /request/check al detectar el documento y al llegar "
-                         "a informacion personal "
+                    help="consulta /request/check al responder el login, al detectar "
+                         "el documento y al llegar a informacion personal "
                          "(lo llama el servidor del front, el navegador no lo ve). "
                          "Necesita token.txt")
     ap.add_argument("--documento", default=None, metavar="TIPO:NUMERO",
@@ -2258,6 +2369,10 @@ def observar(args, obs):
             try:
                 obs.drenar_respuestas()
                 obs.esperar_en_vuelo(activa, args.espera_en_vuelo)
+                # lo que respondio mientras se esperaba (el login, p. ej.)
+                # tambien deja su pantallazo
+                obs.tomar_shots_tarde(forzar=True)
+                obs.volcar_shots()
             except BaseException:
                 pend = len(obs.cola_resp)
                 if pend:
