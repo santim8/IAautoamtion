@@ -4,9 +4,9 @@
 El front no llama a /request/check desde el navegador: lo llama su middleware
 de Next.js (onCheckRequestStatus) en el servidor, cuando se pide una pagina.
 Por eso el observador, que escucha a Chrome por CDP, nunca lo ve. Esta sonda
-lo pregunta ella misma dos veces por corrida, y deja en la evidencia lo que
-responderia la retoma si el afiliado saliera y volviera a entrar en ese punto
-(estado, pasoPendiente, idCaso).
+lo pregunta ella misma en tres momentos de la corrida, y deja en la evidencia lo
+que responderia la retoma si el afiliado saliera y volviera a entrar en ese
+punto (estado, pasoPendiente, idCaso).
 
 Usa el token CIAM de validaciones_api.py, que sale de la identidad dummy fija,
 igual que en la coleccion Bruno: el servicio toma el documento del body, no del
@@ -27,10 +27,17 @@ from datetime import datetime, timezone
 URL = ("https://platform-test-external.colsubsidio.com"
        "/loans/req-mgr/external/v1/product/2/request/check")
 
-# Solo dos consultas por corrida: al detectar el documento (antes de que exista
-# el caso, normalmente 404) y al llegar a esta pantalla, cuando el caso ya se
-# creo (VALIDATION OK por el socket) y la retoma lo debe ver.
+# Tres consultas por corrida: al loguearse (el documento sale de la respuesta
+# del login de Gigya; 404 si no hay nada que retomar), al detectar el documento
+# en el trafico de validaciones (antes de que exista el caso, normalmente 404) y
+# al llegar a esta pantalla, cuando el caso ya se creo (VALIDATION OK por el
+# socket) y la retoma lo debe ver.
 PANTALLA_CASO = "informacion-personal"
+
+# Lo que significa un 404 de /request/check: el documento no tiene solicitud
+# abierta. El gateway lo contesta con su pagina HTML de "Pagina no encontrada",
+# que en la evidencia solo confunde: no se guarda (ver sin_caso_vigente).
+SIN_CASO = "SIN CASO VIGENTE"
 
 # Solo esos dos tipos existen en los servicios de credito.
 TIPOS = {"CC": "CO1C", "CE": "CO1E", "CO1C": "CO1C", "CO1E": "CO1E"}
@@ -67,17 +74,44 @@ def documento_de(cuerpo_txt):
     return (tipo, numero) if tipo and numero.isdigit() else None
 
 
+def documento_de_login(cuerpo_txt):
+    """El documento del afiliado en la respuesta de accounts.login de Gigya
+    (data.tpIdentificacion / data.numeroDocumento). None si no lo trae, p. ej.
+    un login fallido (errorCode distinto de 0)."""
+    try:
+        d = json.loads(cuerpo_txt)
+    except (TypeError, ValueError):
+        return None
+    data = d.get("data") if isinstance(d, dict) else None
+    if not isinstance(data, dict):
+        return None
+    tipo = TIPOS.get(str(data.get("tpIdentificacion", "")).strip().upper())
+    numero = str(data.get("numeroDocumento", "")).strip()
+    return (tipo, numero) if tipo and numero.isdigit() else None
+
+
 def resumir(status, cuerpo):
     """Lo que se mira de un vistazo: estado, paso pendiente, caso y novedad."""
     if status == 404:
         # Llega como la pagina HTML de 404 del gateway, sin JSON. Lo visto en
         # QA: un documento sin caso abierto en Bizagi responde asi.
-        return {"estado": "SIN_CASO (404)"}
+        return {"estado": SIN_CASO}
     caso = cuerpo.get("consultarCaso") if isinstance(cuerpo, dict) else None
     if not isinstance(caso, dict):
         return {"estado": "HTTP %s" % status if status else "SIN_RESPUESTA"}
     return {k: caso.get(k) for k in ("estado", "pasoPendiente", "idCaso", "noveltyType")
             if caso.get(k) not in (None, "")}
+
+
+def sin_caso_vigente(reg):
+    """Deja un 404 de la sonda como "sin caso vigente", sin la pagina HTML del
+    gateway. Tambien se aplica al regenerar evidencia vieja. Devuelve reg."""
+    if reg.get("sonda") == "request/check" and reg.get("status") == 404:
+        reg["response_body"] = None
+        reg["check"] = {"estado": SIN_CASO}
+        reg["nota"] = ("Sin caso vigente: el documento no tiene una solicitud "
+                       "abierta que retomar.")
+    return reg
 
 
 def linea(check):
@@ -93,6 +127,7 @@ def linea(check):
 class SondaCheck:
     def __init__(self, documento=None):
         self.doc = documento        # (tipo, numero); si es None se toma del trafico
+        self.del_login = False      # self.doc salio del login y el flujo aun no lo mando
         self.activa = True
         self.va = None              # validaciones_api, importado al arrancar
         self.pedidos = set()        # pasos ya consultados
@@ -117,12 +152,26 @@ class SondaCheck:
         return True
 
     def aprender(self, cuerpo_txt):
-        """True si este body trae un documento distinto al que se venia usando."""
+        """True si este body trae un documento distinto al que se venia usando,
+        o el mismo que dio el login: que validaciones lo mande es otro momento
+        del flujo y se consulta igual."""
         doc = documento_de(cuerpo_txt)
-        if doc is None or doc == self.doc:
+        if doc is None or (doc == self.doc and not self.del_login):
             return False
+        if doc != self.doc:
+            print(">> Documento del flujo: %s %s (lo uso para /request/check)" % doc)
         self.doc = doc
-        print(">> Documento del flujo: %s %s (lo uso para /request/check)" % doc)
+        self.del_login = False
+        return True
+
+    def aprender_login(self, cuerpo_txt):
+        """True si la respuesta del login de Gigya trae el documento del afiliado."""
+        doc = documento_de_login(cuerpo_txt)
+        if doc is None:
+            return False
+        print(">> Documento del login: %s %s (lo uso para /request/check)" % doc)
+        self.doc = doc
+        self.del_login = True
         return True
 
     def pedir(self, paso, motivo, forzar=False, una_vez=False):
@@ -146,8 +195,9 @@ class SondaCheck:
         return listos
 
     def cerrar(self, paso, espera=30):
-        """Espera lo que siga en vuelo (con tope). No consulta de nuevo: solo
-        hay dos consultas por corrida, al inicio y en informacion personal."""
+        """Espera lo que siga en vuelo (con tope). No consulta de nuevo: las
+        consultas van en el login, al detectar el documento y en informacion
+        personal."""
         if not self.activa or self.doc is None:
             return
         with self.lock:
@@ -192,7 +242,7 @@ class SondaCheck:
                 body=body, timeout=30)
         except RuntimeError as e:
             status, cuerpo = None, str(e)
-        return {
+        return sin_caso_vigente({
             "ts": ts,
             "metodo": "POST",
             "url": URL,
@@ -209,4 +259,4 @@ class SondaCheck:
             "sonda": "request/check",
             "motivo": motivo,
             "check": resumir(status, cuerpo),
-        }
+        })

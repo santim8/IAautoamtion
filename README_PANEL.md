@@ -154,6 +154,14 @@ Si una corrida quedara sin `reporte.html`, en **Corridas** la seleccionas y le
 das **Revalidar**: se reconstruye desde los `.jsonl`, que se escriben mientras
 navegas.
 
+El campo **Empezar en la URL que contenga** trae las dos rutas de login
+(`creditos/solicitud/login` y `loans-dev-solicitud/login`): el observador no
+captura nada hasta que una pestaña llega al login, y desde ahí sigue esa pestaña
+en todo el flujo. Lo de antes (onboarding) no entra a la evidencia. Si el flujo
+no pasa por el login (por ejemplo, con sesión ya iniciada y sin **Empezar sin
+sesión previa**), la captura queda esperando; para observar desde el inicio,
+pon `creditos/solicitud,loans-dev-solicitud`.
+
 El checkbox **Tomar esta corrida como baseline de esquemas** viene desmarcado a
 propósito. Marcarlo funde lo observado con el baseline y puede revertir
 correcciones hechas a mano en `esquemas_servicios.json`.
@@ -161,13 +169,16 @@ correcciones hechas a mano en `esquemas_servicios.json`.
 El checkbox **Empezar sin sesión previa (como incógnito)** viene marcado: antes
 de capturar borra cookies, caché y almacenamiento del Chrome de QA.
 
-El checkbox **Consultar /request/check al inicio y en información personal**
-viene marcado. Ese endpoint (el que decide la retoma) lo llama el servidor del
-front, no el navegador, así que el observador nunca lo ve por su cuenta. Con el
-checkbox, el propio observador lo consulta solo dos veces por corrida: al
-detectar el documento en el tráfico (o desde la primera pantalla si diste el
-campo **Documento**, por ejemplo `CC:52961647`), cuando todavía no hay caso, y al
-llegar a `informacion-personal`, cuando el caso ya se creó. Recargar esa
+El checkbox **Consultar /request/check en el login, al detectar el documento y
+en información personal** viene marcado. Ese endpoint (el que decide la retoma)
+lo llama el servidor del front, no el navegador, así que el observador nunca lo
+ve por su cuenta. Con el checkbox, el propio observador lo consulta en tres
+momentos de la corrida: apenas responde el login de Gigya (`accounts.login`),
+con el documento que trae su respuesta (`data.tpIdentificacion` y
+`data.numeroDocumento`), para ver si hay una solicitud que retomar; al detectar
+el documento en el tráfico de validaciones (o desde la primera pantalla si diste
+el campo **Documento**, por ejemplo `CC:52961647`), cuando todavía no hay caso,
+y al llegar a `informacion-personal`, cuando el caso ya se creó. Recargar esa
 pantalla no repite la consulta, y al cerrar no se consulta de nuevo. El reporte
 trae una tabla con `estado`, `pasoPendiente` e `idCaso` por consulta, y lo
 mismo queda en `request_check.json`. Esas consultas van marcadas como `SONDA`
