@@ -1,0 +1,220 @@
+meta {
+  name: Crear Usuario[Gigya]
+  type: http
+  seq: 24
+}
+
+post {
+  url: https://accounts.us1.gigya.com/accounts.register
+  body: formUrlEncoded
+  auth: none
+}
+
+headers {
+  content-type: application/x-www-form-urlencoded
+  origin: https://cdns.us1.gigya.com
+  referer: https://cdns.us1.gigya.com/
+}
+
+body:form-urlencoded {
+  apiKey: 4_7e7hXQFydtXC85iCAHxVhw
+  regToken: {{gigyaRegToken}}
+  email: {{gigyaRegEmail}}
+  password: {{regPassword}}
+  username: {{gigyaRegUsername}}
+  profile: {{gigyaRegProfile}}
+  data: {{gigyaRegData}}
+  preferences: {{gigyaRegPreferences}}
+  regSource: https://dev.colsubsidio.com/creditos/solicitud/login
+  finalizeRegistration: true
+  include: profile,data,emails,loginIDs
+  lang: es
+  format: json
+}
+
+script:pre-request {
+  // Replica el submit del screen-set ColsubB2C-RegistrationLogin (gigya-register-screen):
+  //   1) accounts.isAvailableLoginID para el username (tipo+numero) y el correo
+  //   2) accounts.initRegistration -> regToken
+  //   3) este request: accounts.register con finalizeRegistration=true
+  // Los datos salen del environment registro-dev. regPalabra vacia = palabra aleatoria en el correo.
+  const axios = require("axios");
+
+  const API_KEY = "4_7e7hXQFydtXC85iCAHxVhw";
+  const GIGYA = "https://accounts.us1.gigya.com";
+  const opts = {
+    headers: {
+      "content-type": "application/x-www-form-urlencoded",
+      "origin": "https://cdns.us1.gigya.com",
+      "referer": "https://cdns.us1.gigya.com/"
+    },
+    validateStatus: () => true
+  };
+  const gigya = async (metodo, params) => {
+    // Safe Mode de Bruno no trae URLSearchParams
+    const form = Object.entries({ apiKey: API_KEY, format: "json", ...params })
+      .map(([k, val]) => `${encodeURIComponent(k)}=${encodeURIComponent(val)}`)
+      .join("&");
+    const r = await axios.post(`${GIGYA}/${metodo}`, form, opts);
+    const d = typeof r.data === "string" ? JSON.parse(r.data) : r.data;
+    if (d.errorCode !== 0) throw new Error(`${metodo}: ${d.errorCode} ${d.errorMessage} ${d.errorDetails || ""}`);
+    return d;
+  };
+  const v = (n) => String(bru.getEnvVar(n) ?? "").trim();
+
+  // --- Validaciones del front (screen-set) ---
+  const tipo = v("regTipoDoc").toUpperCase();
+  const numero = v("regNumeroDocumento");
+  if (!/^\d{5,10}$/.test(numero)) {
+    throw new Error("Llena regNumeroDocumento en el environment registro-dev con la cedula a registrar");
+  }
+  const nacimiento = v("regFechaNacimiento");
+  const expedicion = v("regFechaExpedicion");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(nacimiento) || !/^\d{4}-\d{2}-\d{2}$/.test(expedicion)) {
+    throw new Error("regFechaNacimiento y regFechaExpedicion van como AAAA-MM-DD");
+  }
+  // Con CC el front solo deja expedicion desde el dia siguiente a cumplir 18
+  const mayoria = new Date(nacimiento);
+  mayoria.setUTCFullYear(mayoria.getUTCFullYear() + 18);
+  if (tipo === "CC" && new Date(expedicion) <= mayoria) {
+    throw new Error(`Con CC la expedicion debe ser posterior a ${mayoria.toISOString().slice(0, 10)}`);
+  }
+  const indicativo = v("regIndicativo");
+  const celular = v("regCelular");
+  if (indicativo === "+57" ? !/^\d{10}$/.test(celular) : !/^\d{5,}$/.test(celular)) {
+    throw new Error("regCelular: 10 digitos con +57, minimo 5 con otros indicativos");
+  }
+  const password = v("regPassword");
+  if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,15}$/.test(password)) {
+    throw new Error("regPassword: 8 a 15 caracteres con mayuscula, minuscula, numero y especial (politica de Gigya)");
+  }
+
+  // --- Correo: base+palabra@dominio, en minusculas como emailToLowerCase() del front ---
+  const letras = "abcdefghijklmnopqrstuvwxyz";
+  const palabra = v("regPalabra") ||
+    "qa" + Array.from({ length: 6 }, () => letras[Math.floor(Math.random() * letras.length)]).join("");
+  const [usuarioCorreo, dominio] = v("regCorreoBase").split("@");
+  const email = `${usuarioCorreo}+${palabra}@${dominio}`.toLowerCase();
+  const username = tipo + numero;
+
+  // --- 1) Disponibilidad (el front lo hace al cambiar documento) ---
+  const libreUsuario = await gigya("accounts.isAvailableLoginID", { loginID: username });
+  if (!libreUsuario.isAvailable) throw new Error(`${username} ya tiene cuenta en Gigya`);
+  const libreCorreo = await gigya("accounts.isAvailableLoginID", { loginID: email });
+  if (!libreCorreo.isAvailable) throw new Error(`${email} ya tiene cuenta en Gigya`);
+
+  // --- 2) regToken ---
+  const init = await gigya("accounts.initRegistration", { isLite: "false" });
+
+  // --- Campos tal como los arma el screen-set ---
+  // onSubmit: fecha del input date + 300 min -> ISO (00:00 hora Colombia)
+  const iso = (fecha) => `${fecha}T05:00:00.000Z`;
+  const [anio, mes, dia] = nacimiento.split("-").map(Number);
+  const profile = {
+    firstName: v("regNombre"),
+    lastName: v("regApellido"),
+    birthYear: anio,
+    birthMonth: mes,
+    birthDay: dia,
+    phones: { number: indicativo + celular }
+  };
+  const data = {
+    tpIdentificacion: tipo,
+    numeroDocumento: numero,
+    fechaNacimiento: iso(nacimiento),
+    fechaEmissionDocumento: iso(expedicion),
+    CantidadAutenticacion: 1,
+    IndicaB2C: true,
+    OrigenCliente: "Portales"
+  };
+  const preferences = {
+    terms: {
+      PersonalData: { isConsentGranted: true },
+      CustomerPrivacy: { isConsentGranted: true }
+    }
+  };
+
+  // Van al environment (declaradas vacias en registro-dev) para que el Body las reconozca
+  bru.setEnvVar("gigyaRegToken", init.regToken);
+  bru.setEnvVar("gigyaRegEmail", email);
+  bru.setEnvVar("gigyaRegUsername", username);
+  bru.setEnvVar("gigyaRegProfile", JSON.stringify(profile));
+  bru.setEnvVar("gigyaRegData", JSON.stringify(data));
+  bru.setEnvVar("gigyaRegPreferences", JSON.stringify(preferences));
+}
+
+script:post-response {
+  let body = res.getBody();
+  if (typeof body === "string") {
+    try { body = JSON.parse(body); } catch (e) { body = {}; }
+  }
+  const estados = {
+    0: "CREADO: ya puede iniciar sesion",
+    206001: "CREADO pero pendiente de completar registro (faltan campos obligatorios)",
+    206002: "CREADO pero pendiente de verificar el correo: abrir el enlace que llega al buzon",
+    400003: "NO CREADO: el correo o el username ya existen",
+    400009: "NO CREADO: error de validacion (ver validationErrors)",
+    401020: "NO CREADO: Gigya pide captcha (riesgo); crear este desde el navegador"
+  };
+  const resumen = {
+    resultado: estados[body.errorCode] || `NO CREADO: ${body.errorCode} ${body.errorMessage}`,
+    login: `${bru.getEnvVar("regTipoDoc")} ${bru.getEnvVar("regNumeroDocumento")}`,
+    username: bru.getEnvVar("gigyaRegUsername"),
+    email: bru.getEnvVar("gigyaRegEmail"),
+    UID: body.UID || null,
+    errorCode: body.errorCode,
+    errorDetails: body.errorDetails || null,
+    validationErrors: body.validationErrors || null
+  };
+  console.log(JSON.stringify(resumen, null, 2));
+  if (body.UID) {
+    bru.setVar("gigyaUltimoUID", body.UID);
+    bru.setVar("gigyaUltimoEmail", resumen.email);
+  }
+}
+
+tests {
+  test("Gigya crea la cuenta (errorCode 0 o 206002)", () => {
+    expect(res.body.errorCode, `${res.body.errorCode} ${res.body.errorMessage} ${res.body.errorDetails || ""}`).to.be.oneOf([0, 206002]);
+  });
+
+  test("devuelve UID", () => {
+    expect(res.body.UID, "sin UID").to.be.a("string").and.not.empty;
+  });
+}
+
+docs {
+  Crea un usuario CIAM (Gigya) igual que el formulario "REGISTRATE" de
+  https://dev.colsubsidio.com/creditos/solicitud/login (screen-set ColsubB2C-RegistrationLogin,
+  pantalla gigya-register-screen). El front no llama ningun backend propio: todo va a Gigya.
+
+  Uso: seleccionar el environment registro-dev, cambiar regNumeroDocumento (y lo que cambie) > Send.
+  El resultado sale en Timeline/consola: username (tipo+numero), correo generado y UID.
+  Para iniciar sesion en el front: tipo de documento + numero + regPassword.
+
+  El pre-request encadena, como el SDK:
+  1. accounts.isAvailableLoginID con username (ej. CC1023456789) y con el correo: si existe, corta.
+  2. accounts.initRegistration (isLite=false) -> regToken.
+  3. Este request: accounts.register con finalizeRegistration=true.
+
+  Como arma los campos el screen-set:
+  - username = data.tpIdentificacion + data.numeroDocumento (input oculto con gigya-expression).
+    Es el loginID con el que se entra por documento.
+  - data.fechaNacimiento / fechaEmissionDocumento: valor del input date + 300 min en ISO
+    (2001-09-15 -> 2001-09-15T05:00:00.000Z), hecho en onSubmit.
+  - profile.birthYear/Month/Day salen de fechaNacimiento.
+  - profile.phones.number = indicativo + celular (+573206308258).
+  - Ocultos fijos: data.CantidadAutenticacion=1, data.IndicaB2C=true, data.OrigenCliente=Portales.
+  - preferences.terms.PersonalData y CustomerPrivacy con isConsentGranted=true (los 2 checks).
+  - Correo en minusculas (emailToLowerCase).
+
+  Politica de clave de Gigya (respuesta 400009 del sitio): 8-15 caracteres, mayuscula, minuscula,
+  numero y caracter especial.
+
+  Validaciones que el front hace contra Apigee test y este request NO repite:
+  lista negra de correos (/herramientas/listanegra) y consultas de usuario CIAM por documento o
+  telefono (/tecnologia/ciam/usuarios). Gigya no exige celular unico.
+
+  errorCode: 0 creado | 206002 creado, falta verificar el correo (enlace en el buzon) |
+  400003 ya existe | 400009 validacion | 401020 pide captcha.
+}
