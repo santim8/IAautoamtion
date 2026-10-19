@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "drupal-mock",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["drupal_mock.py", "4010"],
+      "port": 4010
+    },
+    {
+      "name": "front-consumo-local",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:/Users/santiago.correa03/qa-front-consumo/node_modules/next/dist/bin/next", "dev", "C:/Users/santiago.correa03/qa-front-consumo", "-p", "3005"],
+      "port": 3005
+    }
+  ]
+}

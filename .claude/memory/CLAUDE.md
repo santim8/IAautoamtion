@@ -34,6 +34,9 @@ Leerlos **antes** de diseñar o ejecutar pruebas del tema correspondiente:
 - [reference_contrato_notificaciones_bizagi.md](reference_contrato_notificaciones_bizagi.md) — enums `paso`/`estadoPaso` de Bizagi → plataforma, estados aceptados por paso, pantallas de error del front y valores de `canalOrigen` (código develop)
 - [reference_drawio_diagrama_hus_2026.md](reference_drawio_diagrama_hus_2026.md) — tablero draw.io por sprint (S32–S40) del Caso 1: HUs, tareas de QC del usuario, microservicio de carga + Azure AI y qué está desactualizado frente a Azure; incluye la pestaña Libre Inversión (flujo, libranza, capacidad y QC)
 
+**Drupal (contenido parametrizable)**
+- [reference_drupal_cert_mapa_contenido.md](reference_drupal_cert_mapa_contenido.md) — **cómo está armado Drupal CERT y cómo lo consume el front**: tipos de contenido → vistas REST → servicio → pantalla, qué tiene dimensión de producto (Casuísticas no), JSON armado como texto, pantallas en blanco por código faltante, flags por JSON:API y receta de QA. Acceso al admin en solo lectura con `python drupal_sesion.py login|estado|ver`
+
 **Workflows**
 - [workflow_consultar_pr.md](workflow_consultar_pr.md) — consultar Pull Requests en Azure DevOps
 - [workflow_cancelar_caso.md](workflow_cancelar_caso.md) / [workflow_cancelar_caso_vigente.md](workflow_cancelar_caso_vigente.md) — cancelación de casos en Bizagi
@@ -362,6 +365,10 @@ python bizagi_consultar_caso.py 1075662894
 ---
 
 ## Feature Flags CERT
+
+> **Desde el 2026-10-02 las 4 URLs de abajo responden 404**: CloudFront las manda a S3, aunque la vista sigue existiendo en Drupal. Mientras se arregla, leer los flags por JSON:API (no requiere sesión):
+> `curl -s "https://platform-test-external.colsubsidio.com/loans-cert-admin-solicitud/jsonapi/node/mantaince_window?fields%5Bnode--mantaince_window%5D=field_feature_flag,field_feature_flag_inc_reac,field_fflag_incr,field_maintenance_window,changed"`
+> Campos: `field_feature_flag` = CIAM, `field_fflag_incr` = incremento, `field_feature_flag_inc_reac` = reactivación, `field_maintenance_window` = mantenimiento. Detalle en [reference_drupal_cert_mapa_contenido.md](reference_drupal_cert_mapa_contenido.md).
 
 ### CIAM
 - **Trigger:** "está activo ciam" / "consultar ciam"

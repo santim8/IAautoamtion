@@ -76,6 +76,7 @@ pedíselas a quien ya tenga el panel andando.
 | ruta | contenido |
 |---|---|
 | `evidences/` | una carpeta por corrida del observador (no se versiona) |
+| `observador/` | código del observador de flujos; `observador_flujo.py` es solo el punto de entrada. El mapa de módulos y dónde se agrega cada cosa (endpoint, complemento, salida) está en `observador/__init__.py` |
 | `esquemas_servicios.json` | contrato observado de cada servicio; **sí se versiona** |
 | `~/.panel_qa/usuarios_prueba.json` | usuarios de prueba, con sus claves en claro |
 | `colsubsidio_flow/data/cedulas.json` | cédulas de los tests UI por data provider, sin claves; **sí se versiona** |

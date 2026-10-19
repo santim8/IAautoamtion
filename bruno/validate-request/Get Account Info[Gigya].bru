@@ -1,0 +1,91 @@
+meta {
+  name: Get Account Info[Gigya]
+  type: http
+  seq: 23
+}
+
+post {
+  url: https://accounts.us1.gigya.com/accounts.getAccountInfo
+  body: formUrlEncoded
+  auth: none
+}
+
+headers {
+  content-type: application/x-www-form-urlencoded
+  origin: https://cdns.us1.gigya.com
+  referer: https://cdns.us1.gigya.com/
+}
+
+body:form-urlencoded {
+  apiKey: 4_7e7hXQFydtXC85iCAHxVhw
+  login_token: st2.s.AtLtr_EZHw.EJBTbYQpIEshmKRWaaVCns4cJkMdxyIcs0SdkMY955a45CWHnD5XFJv9RrXgNwl_6ZsOQHgUumVz4c_UsnSnrh712sxykhZEd6uDrvY8yW-99xx_lg8jJkL53vuCxMSG.SKicSQufZYQVwYkJAK7HgsT2G5JiLW_wV2Lsd1zWDoju0FBcqUwi2bKY-5S0yAL-5CGulehAMj6QFjZ0W334-g.sc3
+  authMode: cookie
+  sdk: js_latest
+  pageURL: https://dev.colsubsidio.com/
+  sdkBuild: 2400
+  gmid: {{gigyaGmid}}
+  ucid: {{gigyaUcid}}
+  include: profile,data,emails,loginIDs,preferences
+  extraProfileFields: phones
+  format: json
+}
+
+script:pre-request {
+  // Solo aplica si el token va en la var de environment gigyaLoginToken (y el body usa
+  // {{gigyaLoginTokenLimpio}}). Si se pega directo en Body > login_token, no se toca.
+  // Como el SDK de Gigya (gigya.js): de la cookie glt_ solo va lo que esta antes de "|"
+  let crudo = String(bru.getEnvVar("gigyaLoginToken") || "").trim();
+  if (crudo) {
+    try { crudo = decodeURIComponent(crudo); } catch (_) {}
+    const token = crudo.split("|")[0];
+    if (!token.startsWith("st2.")) {
+      throw new Error("gigyaLoginToken debe ser el valor de la cookie glt_4_7e7hXQFydtXC85iCAHxVhw (empieza con st2.), no el de gltexp_");
+    }
+    bru.setVar("gigyaLoginTokenLimpio", token);
+  }
+  // gmid/ucid: identifican el navegador donde se hizo el login; el SDK los manda en cada
+  // llamada. Sin valor van vacios (no como "{{...}}").
+  bru.setVar("gigyaGmid", String(bru.getEnvVar("gigyaGmid") || "").trim());
+  bru.setVar("gigyaUcid", String(bru.getEnvVar("gigyaUcid") || "").trim());
+}
+
+tests {
+  test("Gigya acepta el login_token (errorCode 0)", () => {
+    expect(res.body.errorCode, `${res.body.errorCode} ${res.body.errorMessage}`).to.equal(0);
+  });
+  
+  test("trae el documento del afiliado", () => {
+    expect(res.body.data, `sin data: ${res.body.errorMessage}`).to.be.an("object");
+    expect(res.body.data.tpIdentificacion).to.be.oneOf(["CC", "CE"]);
+    expect(res.body.data.numeroDocumento).to.match(/^\d+$/);
+  });
+}
+
+docs {
+  Datos de la cuenta Gigya (CIAM) del usuario logueado: UID, data.{tpIdentificacion, numeroDocumento,
+  fechaNacimiento, fechaEmissionDocumento, IndicaB2C...}, profile, emails, loginIDs y preferences.
+  Es lo mismo que trae la respuesta de accounts.login, pero sin volver a mandar la clave.
+  
+  Requiere la var secreta {{gigyaLoginToken}} del environment test:
+  1. Loguearse en https://dev.colsubsidio.com/creditos/solicitud/login con el usuario a consultar.
+  2. DevTools > Application > Cookies > dev.colsubsidio.com > glt_4_7e7hXQFydtXC85iCAHxVhw: su valor
+     (st2.s...) es el login_token. Tambien sale en Network > accounts.login > sessionInfo.login_token
+     (el observador lo tapa en la evidencia).
+  3. Pegarlo en Environments > test > gigyaLoginToken.
+  Dura lo que la sesion (sessionInfo.expires_in = 7200 s en el login). Ojo: hay otra cookie parecida,
+  gltexp_4_7e7h..., que NO es el token. Si el valor trae "|..." se puede pegar completo: el pre-request
+  deja solo lo de antes del "|", igual que el SDK. authMode, sdk, pageURL, origin y referer copian lo
+  que manda gigya.js en sus llamadas con sesion.
+  
+  gmid y ucid (vars secretas gigyaGmid / gigyaUcid): salen del payload de accounts.login o
+  accounts.getAccountInfo en DevTools > Network, del MISMO navegador y sesion del login_token.
+  El SDK los manda en cada llamada (gigya.js ApiService.sendRequest) desde origin cdns.us1.gigya.com.
+  
+  apiKey = NEXT_PUBLIC_CIAM_API_KEY del front de dev.
+  Gigya responde HTTP 200 aunque falle; el resultado esta en errorCode:
+  - 0: OK
+  - 403012 No valid session: token vencido o sesion cerrada
+  - 403005 Unauthorized user: lo enviado no es un login_token
+  - 400093 Invalid ApiKey parameter: apiKey de otro sitio
+  - 403007 Permission denied: Gigya acepto la sesion pero no deja llamar el metodo asi (visto en Bruno el 2026-10-07)
+}
