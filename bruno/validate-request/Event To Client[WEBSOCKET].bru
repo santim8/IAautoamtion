@@ -1,0 +1,63 @@
+meta {
+  name: Event To Client[WEBSOCKET]
+  type: http
+  seq: 27
+}
+
+post {
+  url: https://platform-test-internal.colsubsidio.com/loans/int-req-mgr/internal/v1/status/event-to-client
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+  accept: application/json
+  x-api-key: ecn24ysGnZ4X17cU5lX4Q9gyFvyPR7fD1DkwR7I7
+}
+
+body:json {
+  {
+    "idCaso": "1",
+    "noveltyType": "1",
+    "idProducto": "2",
+    "documento": {
+      "tipo": "CO1C",
+      "numero": "80273420"
+    },
+    "paso": "VALIDATION",
+    "estadoPaso": "REQUIRED_WORK_TIME_DEP"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  Notificación de Bizagi a la plataforma: int-req-mgr la reenvía al front por WebSocket
+  (lambda send-message-socket). Es la que dispara cada pantalla del flujo.
+  
+  Dominio: usar platform-test-INTERNAL con x-api-key. Por platform-test-external + /internal/
+  el WAF responde 403 (HTML "Acceso Denegado"), aunque se mande un token CIAM válido.
+  
+  No consulta el caso en Bizagi: idCaso y documento pueden ser ficticios.
+  - 200 + enviarEventoCliente.estado = OK: había un socket abierto con id
+    {idProducto}_{tipo}_{numero} y el mensaje se entregó.
+  - 200 + resultado "Sesión no encontrada" / ERROR_SENDING_MESSAGE: el estado se aceptó,
+    pero nadie tenía el socket abierto.
+  - 500 LRMIT0001 "Failed to read HTTP message": el ambiente no conoce ese estadoPaso.
+  
+  Reglas del paso VALIDATION:
+  - estadoPaso OK: datosAdicionales.tipoAfiliacion obligatorio (si falta: LRMGRIN0007).
+  - Cualquier otro estado: sin datosAdicionales (si viene: LRMGRIN0018).
+  Los errores de negocio dicen 400 en el body pero llegan con HTTP 500.
+  
+  Estados nuevos (tarea 232000, PR 25476): INVALID_USER, REQUIRED_WORK_TIME_RETIRED,
+  INVALID_REQUIREMENTS_SALARY_DEP, INVALID_REQUIREMENTS_SALARY_IND,
+  INVALID_GENDER_REQUIREMENT_WOMEN, MANDATORY_REFINANCE, MAX_CURRENT_WOMEN_LOANS.
+  El 15/10 solo estaban en DEV (loans-dev2-back), no en CERT (loans-cert-back).
+  
+  Para abrir el socket y ver el mensaje:
+  node test_services/test_event_to_client/event_to_client.mjs --estado AFFILIATE_STATUS
+}

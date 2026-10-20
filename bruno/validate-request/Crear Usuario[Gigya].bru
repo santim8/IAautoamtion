@@ -37,7 +37,7 @@ script:pre-request {
   //   1) accounts.isAvailableLoginID para el username (tipo+numero) y el correo
   //   2) accounts.initRegistration -> regToken
   //   3) este request: accounts.register con finalizeRegistration=true
-  // Los datos salen del environment registro-dev. regPalabra vacia = palabra aleatoria en el correo.
+  // Los datos salen del environment registro-dev. regPalabra vacia = cc<numero> en el correo.
   const axios = require("axios");
 
   const API_KEY = "4_7e7hXQFydtXC85iCAHxVhw";
@@ -90,9 +90,8 @@ script:pre-request {
   }
 
   // --- Correo: base+palabra@dominio, en minusculas como emailToLowerCase() del front ---
-  const letras = "abcdefghijklmnopqrstuvwxyz";
-  const palabra = v("regPalabra") ||
-    "qa" + Array.from({ length: 6 }, () => letras[Math.floor(Math.random() * letras.length)]).join("");
+  // +cc<numero>, como el lote: asi el panel sabe que la cuenta la creo Bruno y le pone regPassword
+  const palabra = v("regPalabra") || (tipo + numero).toLowerCase();
   const [usuarioCorreo, dominio] = v("regCorreoBase").split("@");
   const email = `${usuarioCorreo}+${palabra}@${dominio}`.toLowerCase();
   const username = tipo + numero;

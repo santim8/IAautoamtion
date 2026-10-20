@@ -1,0 +1,53 @@
+meta {
+  name: Validar Usuario Registrado[Gigya]
+  type: http
+  seq: 25
+}
+
+post {
+  url: https://accounts.us1.gigya.com/accounts.isAvailableLoginID
+  body: formUrlEncoded
+  auth: none
+}
+
+headers {
+  content-type: application/x-www-form-urlencoded
+  origin: https://cdns.us1.gigya.com
+  referer: https://cdns.us1.gigya.com/
+}
+
+body:form-urlencoded {
+  apiKey: 4_7e7hXQFydtXC85iCAHxVhw
+  loginID: {{regTipoDoc}}52335676
+  format: json
+}
+
+script:post-response {
+  let body = res.getBody();
+  if (typeof body === "string") {
+    try { body = JSON.parse(body); } catch (e) { body = {}; }
+  }
+  const loginID = `${bru.getEnvVar("regTipoDoc")}${bru.getEnvVar("regNumeroDocumento")}`;
+  const resumen = body.errorCode === 0
+    ? { loginID, registrado: !body.isAvailable }
+    : { loginID, error: `${body.errorCode} ${body.errorMessage} ${body.errorDetails || ""}` };
+  console.log(JSON.stringify(resumen));
+}
+
+tests {
+  test("Gigya responde (errorCode 0)", () => {
+    expect(res.body.errorCode, `${res.body.errorCode} ${res.body.errorMessage}`).to.equal(0);
+  });
+}
+
+docs {
+  Dice si un loginID ya tiene cuenta CIAM (Gigya). Es la misma consulta que hace el formulario
+  "REGISTRATE" de dev.colsubsidio.com al cambiar tipo o numero de documento (getIDInfo del screen-set).
+  
+  Uso: environment registro-dev > regTipoDoc + regNumeroDocumento > Send.
+  Para consultar un correo, reemplazar el valor de loginID en Body por el correo.
+  
+  Respuesta: isAvailable true = NO esta registrado; false = ya tiene cuenta.
+  Gigya responde HTTP 200 aunque falle: mirar errorCode (0 = OK).
+  Solo consulta, no crea ni modifica nada.
+}

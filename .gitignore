@@ -21,6 +21,11 @@ evidences/
 
 # Usuarios de prueba (claves en claro, no se versionan)
 usuarios_prueba.json
+# Archivos con cedulas que se suben para validar (python usuarios.py importar)
+cargas/
+# CSV del lote de Crear Usuarios Lote[Gigya] y su resultado: cedulas y correos
+# de quien lo corrio (usuarios.py los reescribe en cada crear-ciam)
+bruno/validate-request/data/
 
 # Ajustes por maquina del panel
 panel.config.json
