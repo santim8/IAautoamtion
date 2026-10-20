@@ -116,6 +116,83 @@ pestaña Usuarios del panel), o de `COLS_CLAVE`, o se pide por consola.
 `--hasta-login` recorre hasta el formulario de login sin pedir clave.
 Sin `--capturas` no se guarda ningún pantallazo.
 
+## Colecciones de Bruno
+
+Las colecciones del repo ya están en formato Bruno (una carpeta con un
+`bruno.json` y un `.bru` por request), así que no se importan: se **abren**.
+Bruno trabaja sobre esos mismos archivos, sin copiarlos a otro lado.
+
+| carpeta | en Bruno se llama | qué tiene | environments |
+|---|---|---|---|
+| `bruno/validate-request/` | `request_colsubsidio` | validaciones de afiliación, tarjeta y SIIF; request check, request data y validate request; novedades, Bizagi, Gigya (crear usuario y lote) y biometría por pasos | `test`, `CERT`, `registro-dev` |
+| `bruno/biometria/` | `biometria` | biometría completa (pasos 1 a 3) en un solo request | ninguno |
+| `bruno/notification-service/` | `notification-service` | TC-01 a TC-30 y TC-CAP de correos y SMS | `CERT`, `colsubsidio-test` |
+| `test_services/test_A02/bruno/` | `activation-file` | token de Apigee y archivo A02 (activación/aumento) | `test` |
+
+### Abrir una colección
+
+1. Instala Bruno de escritorio desde <https://www.usebruno.com/downloads>.
+2. **Open Collection** (en la pantalla de inicio o en el menú `···` de la barra
+   lateral) y elige la carpeta que tiene el `bruno.json`. Ni la raíz del repo
+   ni `bruno/` son colecciones: Bruno no las abre.
+3. La primera vez pregunta el modo de JavaScript: **Safe Mode**. Los scripts del
+   repo están escritos para ese modo: `require("axios")` funciona, pero
+   `URLSearchParams`, `URL`, `fetch` y `Buffer` no existen. Se cambia después
+   desde la configuración de la colección.
+4. Arriba a la derecha, cambia *No Environment* por el environment que toque.
+
+Se repite el paso 2 por cada colección.
+
+### Lo que no viene con el clon
+
+- **Variables secretas.** Las que un environment declara en `vars:secret`
+  Bruno las guarda cifradas en la máquina, no en el `.bru`, así que llegan
+  vacías. Se cargan a mano en *Environment Settings*:
+
+  | colección | environment | variables |
+  |---|---|---|
+  | `request_colsubsidio` | `CERT` | `token` |
+  | `request_colsubsidio` | `test` | `gigyaLoginToken`, `gigyaGmid`, `gigyaUcid` |
+
+  El resto (URLs, `x-api-key`, credenciales de Apigee) está en el archivo del
+  environment y llega con el repo.
+- **El CSV del lote de Gigya.** `bruno/validate-request/data/` no se versiona;
+  `python usuarios.py exportar bruno` arma el CSV de *Crear Usuarios
+  Lote[Gigya]* (ver `README_PANEL.md`).
+
+Todo lo que cambies en Bruno (un body, un request nuevo, un valor del
+environment) queda escrito en los `.bru` y aparece en `git status`. Los tokens
+que se renuevan seguido (`token`, `tokenCIAM`, `tokenApegee`) viven en el
+environment `test`: conviene mirar ese diff antes de commitear.
+
+### Importar desde Postman o Insomnia
+
+**Import Collection** es para archivos de otras herramientas (Postman,
+Insomnia, OpenAPI): eliges el formato, el archivo y la carpeta donde Bruno crea
+la colección nueva, ya convertida a `.bru`. En el repo hay dos:
+
+| archivo | formato | equivalente en Bruno |
+|---|---|---|
+| `insomnia/Biometria_Completa.json` | Insomnia (export v4) | `bruno/biometria/` |
+| `test_services/test_event_to_client/event-to-client.postman_collection.json` | Postman | `Event To Client[WEBSOCKET].bru` en `bruno/validate-request/` |
+
+Como los dos ya tienen su versión en Bruno, importarlos crea una copia aparte.
+Si importas algo nuevo para versionarlo, guárdalo en `bruno/<nombre>/`.
+
+### Desde consola
+
+```
+npm install -g @usebruno/cli
+cd bruno/notification-service
+bru run --env CERT
+bru run "TC-01 EMAIL CUPO_CREDITO_APROBADO.bru" --env CERT
+bru run --env CERT --reporter-json results.json --reporter-html results.html
+```
+
+`bru run` se corre parado en la carpeta de la colección (la del `bruno.json`).
+Si PowerShell no deja correr `bru` por la execution policy, usa `bru.cmd`: es
+lo que hace `python usuarios.py crear-ciam` por dentro.
+
 ## Notas de uso
 
 **Detener y generar reporte** no mata el proceso: le pide al observador que
