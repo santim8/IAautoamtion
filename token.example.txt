@@ -72,17 +72,7 @@ project_azure=
 #       setx BIZAGI_USER "tu.usuario"
 #       setx BIZAGI_PASSWORD "tu.clave"
 #
-# 4.2 create_testcases_automation.py (script suelto, no es pestana):
-#
-#       setx OPENAI_API_KEY "sk-..."     requerida solo en Modo 1
-#
-#     Y estas tres son opcionales, tienen valor por defecto:
-#       OPENAI_MODEL         gpt-4.1-mini
-#       BIZAGI_AREA_PATH     Ecosistema Digital Credito y Seguros
-#       BIZAGI_ASSIGNED_TO   vacio
-#       TC_OUTPUT_DIR        raiz del repo
-#
-# 4.3 Claves de los usuarios de prueba: van en la pestana "Usuarios", que las
+# 4.2 Claves de los usuarios de prueba: van en la pestana "Usuarios", que las
 #     guarda en ~/.panel_qa/usuarios_prueba.json. El catalogo compartido del
 #     repo (usuarios_compartidos.json) viaja SIN contrasenas a proposito, asi
 #     que al clonar vas a ver los usuarios pero con la clave vacia.

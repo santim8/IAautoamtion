@@ -1,0 +1,1011 @@
+{
+  "info": {
+    "name": "int-req-mgr event-to-client",
+    "_postman_id": "6b1f0c7e-232a-4e3b-9a51-0e2c1e7c2320",
+    "description": "Notificación Bizagi → plataforma: `POST /loans/int-req-mgr/internal/v1/status/event-to-client`. int-req-mgr la reenvía al front por WebSocket (lambda `send-message-socket`).\n\n**Dominio y auth:** `platform-test-internal.colsubsidio.com` + header `x-api-key`. Por `platform-test-external` el WAF responde 403 (HTML \"Acceso Denegado\") aunque se mande un token CIAM válido.\n\n**No hace falta un usuario real:** el servicio no consulta el caso en Bizagi. `idCaso` y el documento pueden ser ficticios (por defecto 999000111). Con un documento ficticio no se le cierra el socket a alguien que esté probando en el front con ese documento.\n\n**Cómo leer la respuesta:**\n- 200 + `enviarEventoCliente.estado = OK`: había un socket abierto con id `{idProducto}_{tipo}_{numero}` y el mensaje se entregó.\n- 200 + \"Sesión no encontrada\" / `ERROR_SENDING_MESSAGE`: el estado se aceptó, pero nadie tenía ese socket abierto.\n- 500 `LRMIT0001` \"Failed to read HTTP message\": el ambiente no conoce ese `estadoPaso` (no está desplegado).\n\n**Reglas del paso VALIDATION:** con `OK`, `datosAdicionales.tipoAfiliacion` es obligatorio (si falta: LRMGRIN0007). Con cualquier otro estado, `datosAdicionales` no se envía (si viene: LRMGRIN0018).\n\n**Ver el mensaje en el socket:** `node test_services/test_event_to_client/event_to_client.mjs --estado INVALID_USER` abre el socket y envía la notificación. El WebSocket nativo de Node no sirve, porque manda `sec-websocket-protocol` en minúsculas y la lambda `on-connect` exige `Sec-WebSocket-Protocol` (responde 502). En Postman: New → WebSocket, URL `wss://966rvchw1g.execute-api.us-east-2.amazonaws.com/cert`, header `Sec-WebSocket-Protocol` = `2_CO1C_999000111` (no probado en Postman).\n\n**Ambientes (15/10):** los estados de la tarea 232000 (PR 25476) solo están en DEV (`loans-dev2-back`, us-east-1). Ningún host público ni el front de dev apuntan a DEV. CERT (`loans-cert-back`, el de platform-test) corre la rama `fix/case-for-review-event-to-client` desde el 9/10.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://platform-test-internal.colsubsidio.com"
+    },
+    {
+      "key": "apiKey",
+      "value": "ecn24ysGnZ4X17cU5lX4Q9gyFvyPR7fD1DkwR7I7"
+    },
+    {
+      "key": "idCaso",
+      "value": "1"
+    },
+    {
+      "key": "idProducto",
+      "value": "2"
+    },
+    {
+      "key": "noveltyType",
+      "value": "1"
+    },
+    {
+      "key": "tipoDocumento",
+      "value": "CO1C"
+    },
+    {
+      "key": "numeroDocumento",
+      "value": "999000111"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Estados nuevos 232000 (VALIDATION)",
+      "description": "Sin datosAdicionales. Con el PR 25476 desplegado: 200. Sin él: 500 LRMIT0001.",
+      "item": [
+        {
+          "name": "VALIDATION INVALID_USER",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"Estado aceptado por el servicio\", () => pm.expect(b.enviarEventoCliente, \"sin enviarEventoCliente: el ambiente no conoce el estado\").to.be.an(\"object\"));",
+                  "const id = [pm.collectionVariables.get(\"idProducto\"), pm.collectionVariables.get(\"tipoDocumento\"), pm.collectionVariables.get(\"numeroDocumento\")].join(\"_\");",
+                  "const entregado = b.enviarEventoCliente && b.enviarEventoCliente.estado === \"OK\";",
+                  "console.log((entregado ? \"Entregado al socket \" : \"Aceptado, sin socket abierto para \") + id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": \"{{idCaso}}\",\n  \"noveltyType\": \"{{noveltyType}}\",\n  \"idProducto\": \"{{idProducto}}\",\n  \"documento\": {\n    \"tipo\": \"{{tipoDocumento}}\",\n    \"numero\": \"{{numeroDocumento}}\"\n  },\n  \"paso\": \"VALIDATION\",\n  \"estadoPaso\": \"INVALID_USER\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loans/int-req-mgr/internal/v1/status/event-to-client",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loans",
+                "int-req-mgr",
+                "internal",
+                "v1",
+                "status",
+                "event-to-client"
+              ]
+            },
+            "description": "El usuario no es válido o no cumple con las condiciones para continuar."
+          },
+          "response": []
+        },
+        {
+          "name": "VALIDATION REQUIRED_WORK_TIME_RETIRED",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"Estado aceptado por el servicio\", () => pm.expect(b.enviarEventoCliente, \"sin enviarEventoCliente: el ambiente no conoce el estado\").to.be.an(\"object\"));",
+                  "const id = [pm.collectionVariables.get(\"idProducto\"), pm.collectionVariables.get(\"tipoDocumento\"), pm.collectionVariables.get(\"numeroDocumento\")].join(\"_\");",
+                  "const entregado = b.enviarEventoCliente && b.enviarEventoCliente.estado === \"OK\";",
+                  "console.log((entregado ? \"Entregado al socket \" : \"Aceptado, sin socket abierto para \") + id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": \"{{idCaso}}\",\n  \"noveltyType\": \"{{noveltyType}}\",\n  \"idProducto\": \"{{idProducto}}\",\n  \"documento\": {\n    \"tipo\": \"{{tipoDocumento}}\",\n    \"numero\": \"{{numeroDocumento}}\"\n  },\n  \"paso\": \"VALIDATION\",\n  \"estadoPaso\": \"REQUIRED_WORK_TIME_RETIRED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loans/int-req-mgr/internal/v1/status/event-to-client",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loans",
+                "int-req-mgr",
+                "internal",
+                "v1",
+                "status",
+                "event-to-client"
+              ]
+            },
+            "description": "El pensionado/jubilado no cumple con el tiempo mínimo requerido."
+          },
+          "response": []
+        },
+        {
+          "name": "VALIDATION INVALID_REQUIREMENTS_SALARY_DEP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"Estado aceptado por el servicio\", () => pm.expect(b.enviarEventoCliente, \"sin enviarEventoCliente: el ambiente no conoce el estado\").to.be.an(\"object\"));",
+                  "const id = [pm.collectionVariables.get(\"idProducto\"), pm.collectionVariables.get(\"tipoDocumento\"), pm.collectionVariables.get(\"numeroDocumento\")].join(\"_\");",
+                  "const entregado = b.enviarEventoCliente && b.enviarEventoCliente.estado === \"OK\";",
+                  "console.log((entregado ? \"Entregado al socket \" : \"Aceptado, sin socket abierto para \") + id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": \"{{idCaso}}\",\n  \"noveltyType\": \"{{noveltyType}}\",\n  \"idProducto\": \"{{idProducto}}\",\n  \"documento\": {\n    \"tipo\": \"{{tipoDocumento}}\",\n    \"numero\": \"{{numeroDocumento}}\"\n  },\n  \"paso\": \"VALIDATION\",\n  \"estadoPaso\": \"INVALID_REQUIREMENTS_SALARY_DEP\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loans/int-req-mgr/internal/v1/status/event-to-client",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loans",
+                "int-req-mgr",
+                "internal",
+                "v1",
+                "status",
+                "event-to-client"
+              ]
+            },
+            "description": "El dependiente no cumple los requisitos de salario."
+          },
+          "response": []
+        },
+        {
+          "name": "VALIDATION INVALID_REQUIREMENTS_SALARY_IND",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"Estado aceptado por el servicio\", () => pm.expect(b.enviarEventoCliente, \"sin enviarEventoCliente: el ambiente no conoce el estado\").to.be.an(\"object\"));",
+                  "const id = [pm.collectionVariables.get(\"idProducto\"), pm.collectionVariables.get(\"tipoDocumento\"), pm.collectionVariables.get(\"numeroDocumento\")].join(\"_\");",
+                  "const entregado = b.enviarEventoCliente && b.enviarEventoCliente.estado === \"OK\";",
+                  "console.log((entregado ? \"Entregado al socket \" : \"Aceptado, sin socket abierto para \") + id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": \"{{idCaso}}\",\n  \"noveltyType\": \"{{noveltyType}}\",\n  \"idProducto\": \"{{idProducto}}\",\n  \"documento\": {\n    \"tipo\": \"{{tipoDocumento}}\",\n    \"numero\": \"{{numeroDocumento}}\"\n  },\n  \"paso\": \"VALIDATION\",\n  \"estadoPaso\": \"INVALID_REQUIREMENTS_SALARY_IND\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loans/int-req-mgr/internal/v1/status/event-to-client",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loans",
+                "int-req-mgr",
+                "internal",
+                "v1",
+                "status",
+                "event-to-client"
+              ]
+            },
+            "description": "El independiente no cumple los requisitos de salario."
+          },
+          "response": []
+        },
+        {
+          "name": "VALIDATION INVALID_GENDER_REQUIREMENT_WOMEN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"Estado aceptado por el servicio\", () => pm.expect(b.enviarEventoCliente, \"sin enviarEventoCliente: el ambiente no conoce el estado\").to.be.an(\"object\"));",
+                  "const id = [pm.collectionVariables.get(\"idProducto\"), pm.collectionVariables.get(\"tipoDocumento\"), pm.collectionVariables.get(\"numeroDocumento\")].join(\"_\");",
+                  "const entregado = b.enviarEventoCliente && b.enviarEventoCliente.estado === \"OK\";",
+                  "console.log((entregado ? \"Entregado al socket \" : \"Aceptado, sin socket abierto para \") + id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": \"{{idCaso}}\",\n  \"noveltyType\": \"{{noveltyType}}\",\n  \"idProducto\": \"{{idProducto}}\",\n  \"documento\": {\n    \"tipo\": \"{{tipoDocumento}}\",\n    \"numero\": \"{{numeroDocumento}}\"\n  },\n  \"paso\": \"VALIDATION\",\n  \"estadoPaso\": \"INVALID_GENDER_REQUIREMENT_WOMEN\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loans/int-req-mgr/internal/v1/status/event-to-client",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loans",
+                "int-req-mgr",
+                "internal",
+                "v1",
+                "status",
+                "event-to-client"
+              ]
+            },
+            "description": "No cumple el requisito de género para mujeres."
+          },
+          "response": []
+        },
+        {
+          "name": "VALIDATION MANDATORY_REFINANCE",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"Estado aceptado por el servicio\", () => pm.expect(b.enviarEventoCliente, \"sin enviarEventoCliente: el ambiente no conoce el estado\").to.be.an(\"object\"));",
+                  "const id = [pm.collectionVariables.get(\"idProducto\"), pm.collectionVariables.get(\"tipoDocumento\"), pm.collectionVariables.get(\"numeroDocumento\")].join(\"_\");",
+                  "const entregado = b.enviarEventoCliente && b.enviarEventoCliente.estado === \"OK\";",
+                  "console.log((entregado ? \"Entregado al socket \" : \"Aceptado, sin socket abierto para \") + id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": \"{{idCaso}}\",\n  \"noveltyType\": \"{{noveltyType}}\",\n  \"idProducto\": \"{{idProducto}}\",\n  \"documento\": {\n    \"tipo\": \"{{tipoDocumento}}\",\n    \"numero\": \"{{numeroDocumento}}\"\n  },\n  \"paso\": \"VALIDATION\",\n  \"estadoPaso\": \"MANDATORY_REFINANCE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loans/int-req-mgr/internal/v1/status/event-to-client",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loans",
+                "int-req-mgr",
+                "internal",
+                "v1",
+                "status",
+                "event-to-client"
+              ]
+            },
+            "description": "Requiere refinanciación (retanqueo) obligatoria."
+          },
+          "response": []
+        },
+        {
+          "name": "VALIDATION MAX_CURRENT_WOMEN_LOANS",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"Estado aceptado por el servicio\", () => pm.expect(b.enviarEventoCliente, \"sin enviarEventoCliente: el ambiente no conoce el estado\").to.be.an(\"object\"));",
+                  "const id = [pm.collectionVariables.get(\"idProducto\"), pm.collectionVariables.get(\"tipoDocumento\"), pm.collectionVariables.get(\"numeroDocumento\")].join(\"_\");",
+                  "const entregado = b.enviarEventoCliente && b.enviarEventoCliente.estado === \"OK\";",
+                  "console.log((entregado ? \"Entregado al socket \" : \"Aceptado, sin socket abierto para \") + id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": \"{{idCaso}}\",\n  \"noveltyType\": \"{{noveltyType}}\",\n  \"idProducto\": \"{{idProducto}}\",\n  \"documento\": {\n    \"tipo\": \"{{tipoDocumento}}\",\n    \"numero\": \"{{numeroDocumento}}\"\n  },\n  \"paso\": \"VALIDATION\",\n  \"estadoPaso\": \"MAX_CURRENT_WOMEN_LOANS\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loans/int-req-mgr/internal/v1/status/event-to-client",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loans",
+                "int-req-mgr",
+                "internal",
+                "v1",
+                "status",
+                "event-to-client"
+              ]
+            },
+            "description": "Máximo de créditos permitidos para mujeres."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Regresión",
+      "item": [
+        {
+          "name": "VALIDATION OK (con tipoAfiliacion)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"Estado aceptado por el servicio\", () => pm.expect(b.enviarEventoCliente, \"sin enviarEventoCliente: el ambiente no conoce el estado\").to.be.an(\"object\"));",
+                  "const id = [pm.collectionVariables.get(\"idProducto\"), pm.collectionVariables.get(\"tipoDocumento\"), pm.collectionVariables.get(\"numeroDocumento\")].join(\"_\");",
+                  "const entregado = b.enviarEventoCliente && b.enviarEventoCliente.estado === \"OK\";",
+                  "console.log((entregado ? \"Entregado al socket \" : \"Aceptado, sin socket abierto para \") + id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": \"{{idCaso}}\",\n  \"noveltyType\": \"{{noveltyType}}\",\n  \"idProducto\": \"{{idProducto}}\",\n  \"documento\": {\n    \"tipo\": \"{{tipoDocumento}}\",\n    \"numero\": \"{{numeroDocumento}}\"\n  },\n  \"paso\": \"VALIDATION\",\n  \"estadoPaso\": \"OK\",\n  \"datosAdicionales\": {\n    \"tipoAfiliacion\": \"D\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loans/int-req-mgr/internal/v1/status/event-to-client",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loans",
+                "int-req-mgr",
+                "internal",
+                "v1",
+                "status",
+                "event-to-client"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "VALIDATION AFFILIATE_STATUS (estado existente)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"Estado aceptado por el servicio\", () => pm.expect(b.enviarEventoCliente, \"sin enviarEventoCliente: el ambiente no conoce el estado\").to.be.an(\"object\"));",
+                  "const id = [pm.collectionVariables.get(\"idProducto\"), pm.collectionVariables.get(\"tipoDocumento\"), pm.collectionVariables.get(\"numeroDocumento\")].join(\"_\");",
+                  "const entregado = b.enviarEventoCliente && b.enviarEventoCliente.estado === \"OK\";",
+                  "console.log((entregado ? \"Entregado al socket \" : \"Aceptado, sin socket abierto para \") + id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": \"{{idCaso}}\",\n  \"noveltyType\": \"{{noveltyType}}\",\n  \"idProducto\": \"{{idProducto}}\",\n  \"documento\": {\n    \"tipo\": \"{{tipoDocumento}}\",\n    \"numero\": \"{{numeroDocumento}}\"\n  },\n  \"paso\": \"VALIDATION\",\n  \"estadoPaso\": \"AFFILIATE_STATUS\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loans/int-req-mgr/internal/v1/status/event-to-client",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loans",
+                "int-req-mgr",
+                "internal",
+                "v1",
+                "status",
+                "event-to-client"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "VALIDATION REQUIRED_WORK_TIME_IND (estado existente)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"Estado aceptado por el servicio\", () => pm.expect(b.enviarEventoCliente, \"sin enviarEventoCliente: el ambiente no conoce el estado\").to.be.an(\"object\"));",
+                  "const id = [pm.collectionVariables.get(\"idProducto\"), pm.collectionVariables.get(\"tipoDocumento\"), pm.collectionVariables.get(\"numeroDocumento\")].join(\"_\");",
+                  "const entregado = b.enviarEventoCliente && b.enviarEventoCliente.estado === \"OK\";",
+                  "console.log((entregado ? \"Entregado al socket \" : \"Aceptado, sin socket abierto para \") + id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": \"{{idCaso}}\",\n  \"noveltyType\": \"{{noveltyType}}\",\n  \"idProducto\": \"{{idProducto}}\",\n  \"documento\": {\n    \"tipo\": \"{{tipoDocumento}}\",\n    \"numero\": \"{{numeroDocumento}}\"\n  },\n  \"paso\": \"VALIDATION\",\n  \"estadoPaso\": \"REQUIRED_WORK_TIME_IND\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loans/int-req-mgr/internal/v1/status/event-to-client",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loans",
+                "int-req-mgr",
+                "internal",
+                "v1",
+                "status",
+                "event-to-client"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "OFFER_RESULT CASE_FOR_REVIEW (Zona Gris, HU 227148)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"Estado aceptado por el servicio\", () => pm.expect(b.enviarEventoCliente, \"sin enviarEventoCliente: el ambiente no conoce el estado\").to.be.an(\"object\"));",
+                  "const id = [pm.collectionVariables.get(\"idProducto\"), pm.collectionVariables.get(\"tipoDocumento\"), pm.collectionVariables.get(\"numeroDocumento\")].join(\"_\");",
+                  "const entregado = b.enviarEventoCliente && b.enviarEventoCliente.estado === \"OK\";",
+                  "console.log((entregado ? \"Entregado al socket \" : \"Aceptado, sin socket abierto para \") + id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": \"{{idCaso}}\",\n  \"noveltyType\": \"{{noveltyType}}\",\n  \"idProducto\": \"{{idProducto}}\",\n  \"documento\": {\n    \"tipo\": \"{{tipoDocumento}}\",\n    \"numero\": \"{{numeroDocumento}}\"\n  },\n  \"paso\": \"OFFER_RESULT\",\n  \"estadoPaso\": \"CASE_FOR_REVIEW\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loans/int-req-mgr/internal/v1/status/event-to-client",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loans",
+                "int-req-mgr",
+                "internal",
+                "v1",
+                "status",
+                "event-to-client"
+              ]
+            },
+            "description": "Hoy solo existe en la rama fix/case-for-review-event-to-client (PR 25372 a qa, activo). develop no lo tiene: desplegar develop en CERT lo quita."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Negativos",
+      "item": [
+        {
+          "name": "VALIDATION INVALID_USER con datosAdicionales",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 500 (el servicio devuelve 500 aunque el body diga 400)\", () => pm.response.to.have.status(500));",
+                  "const e = pm.response.json().errores[0];",
+                  "pm.test(\"codigoError LRMGRIN0018\", () => pm.expect(e.codigoError).to.eql(\"LRMGRIN0018\"));",
+                  "pm.test(\"detalle\", () => pm.expect(e.detalle).to.include(\"datosAdicionales\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": \"{{idCaso}}\",\n  \"noveltyType\": \"{{noveltyType}}\",\n  \"idProducto\": \"{{idProducto}}\",\n  \"documento\": {\n    \"tipo\": \"{{tipoDocumento}}\",\n    \"numero\": \"{{numeroDocumento}}\"\n  },\n  \"paso\": \"VALIDATION\",\n  \"estadoPaso\": \"INVALID_USER\",\n  \"datosAdicionales\": {\n    \"tipoAfiliacion\": \"D\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loans/int-req-mgr/internal/v1/status/event-to-client",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loans",
+                "int-req-mgr",
+                "internal",
+                "v1",
+                "status",
+                "event-to-client"
+              ]
+            },
+            "description": "Requiere el PR 25476 desplegado; si no, responde LRMIT0001."
+          },
+          "response": []
+        },
+        {
+          "name": "VALIDATION OK sin datosAdicionales",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 500 (el servicio devuelve 500 aunque el body diga 400)\", () => pm.response.to.have.status(500));",
+                  "const e = pm.response.json().errores[0];",
+                  "pm.test(\"codigoError LRMGRIN0007\", () => pm.expect(e.codigoError).to.eql(\"LRMGRIN0007\"));",
+                  "pm.test(\"detalle\", () => pm.expect(e.detalle).to.include(\"datosAdicionales\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": \"{{idCaso}}\",\n  \"noveltyType\": \"{{noveltyType}}\",\n  \"idProducto\": \"{{idProducto}}\",\n  \"documento\": {\n    \"tipo\": \"{{tipoDocumento}}\",\n    \"numero\": \"{{numeroDocumento}}\"\n  },\n  \"paso\": \"VALIDATION\",\n  \"estadoPaso\": \"OK\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loans/int-req-mgr/internal/v1/status/event-to-client",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loans",
+                "int-req-mgr",
+                "internal",
+                "v1",
+                "status",
+                "event-to-client"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "VALIDATION estado inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 500 (el servicio devuelve 500 aunque el body diga 400)\", () => pm.response.to.have.status(500));",
+                  "const e = pm.response.json().errores[0];",
+                  "pm.test(\"codigoError LRMIT0001\", () => pm.expect(e.codigoError).to.eql(\"LRMIT0001\"));",
+                  "pm.test(\"detalle\", () => pm.expect(e.detalle).to.include(\"Failed to read HTTP message\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "accept",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": \"{{idCaso}}\",\n  \"noveltyType\": \"{{noveltyType}}\",\n  \"idProducto\": \"{{idProducto}}\",\n  \"documento\": {\n    \"tipo\": \"{{tipoDocumento}}\",\n    \"numero\": \"{{numeroDocumento}}\"\n  },\n  \"paso\": \"VALIDATION\",\n  \"estadoPaso\": \"NO_EXISTE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loans/int-req-mgr/internal/v1/status/event-to-client",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loans",
+                "int-req-mgr",
+                "internal",
+                "v1",
+                "status",
+                "event-to-client"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Sin x-api-key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": \"{{idCaso}}\",\n  \"noveltyType\": \"{{noveltyType}}\",\n  \"idProducto\": \"{{idProducto}}\",\n  \"documento\": {\n    \"tipo\": \"{{tipoDocumento}}\",\n    \"numero\": \"{{numeroDocumento}}\"\n  },\n  \"paso\": \"VALIDATION\",\n  \"estadoPaso\": \"AFFILIATE_STATUS\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loans/int-req-mgr/internal/v1/status/event-to-client",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loans",
+                "int-req-mgr",
+                "internal",
+                "v1",
+                "status",
+                "event-to-client"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Dominio external (curl original)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403 del WAF\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": \"{{idCaso}}\",\n  \"noveltyType\": \"{{noveltyType}}\",\n  \"idProducto\": \"{{idProducto}}\",\n  \"documento\": {\n    \"tipo\": \"{{tipoDocumento}}\",\n    \"numero\": \"{{numeroDocumento}}\"\n  },\n  \"paso\": \"VALIDATION\",\n  \"estadoPaso\": \"AFFILIATE_STATUS\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://platform-test-external.colsubsidio.com/loans/int-req-mgr/internal/v1/status/event-to-client",
+              "protocol": "https",
+              "host": [
+                "platform-test-external",
+                "colsubsidio",
+                "com"
+              ],
+              "path": [
+                "loans",
+                "int-req-mgr",
+                "internal",
+                "v1",
+                "status",
+                "event-to-client"
+              ]
+            },
+            "description": "El curl que circula usa platform-test-external + Authorization CIAM: el WAF lo bloquea con 403."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

@@ -25,13 +25,14 @@ Leerlos **antes** de diseñar o ejecutar pruebas del tema correspondiente:
 - [project_carga_documental_reglas_tecnicas.md](project_carga_documental_reglas_tecnicas.md) — FE/Drupal, endpoint de documentos requeridos (matriz Bizagi), trama uFlow, evento `CASE_REVIEW` y validaciones de archivos
 - [project_hu_carga_documental_renderizado.md](project_hu_carga_documental_renderizado.md) — **HU 217173** (renderizado de "Información adicional + Carga"): matriz Bizagi como fuente de verdad, modal de frecuencia, `CASE_REVIEW`, delimitación con 217175/217858/223810/217180, tareas hijas y **revisión de la suite TC001-TC018**
 - [project_hu217172_pantalla_ingresos.md](project_hu217172_pantalla_ingresos.md) — PBI 217172: pantalla de ingresos por tipo de trabajador (**fuente: SAP**), campos por perfil y revisión de la suite TC001-TC017
+- [project_hu217171_formulario_info_personal_back.md](project_hu217171_formulario_info_personal_back.md) — **PBI 217171** (back del formulario contacto + ingresos): tipo de trabajador D/I/P/F desde `/request/check` (Bizagi `kpTipoTrabajador`), request-data por perfil y validaciones del BE, **500 en request-data de novedades** (buildBody null sin `datosFinancieros`) y riesgos (Facultativo, `codigoCampana`, tipo nulo)
 - [project_hu213144_revision_documental_backoffice.md](project_hu213144_revision_documental_backoffice.md) — RF-213144: formulario del Analista en Bizagi (paneles A-G), causales de rechazo, rutas Aprobado/Devolver
 - [project_hu217528_mover_campana_creacion_caso.md](project_hu217528_mover_campana_creacion_caso.md) — HU 217528: mueve XPaths de campaña de /request-data a /validate-request; evidencia parcial revisada; plan de despliegue a prod (PENDING)
 - [reference_drupal_contenido_gestion_documental.md](reference_drupal_contenido_gestion_documental.md) — matriz de contenido parametrizable en Drupal (items 1-35): labels, límites de caracteres [Restringido/Sugerido] y listas editables
 - [reference_flujo_actual_cupo_servicios.md](reference_flujo_actual_cupo_servicios.md) — **línea base**: mapa pantalla→servicio del flujo actual de cupo (aprobado en firme) con evidencia real, dónde se injerta Gestión Documental y qué campos ya existen en el contrato
 - [reference_figma_gestion_documental.md](reference_figma_gestion_documental.md) — mockups (vigente: node-id `29654-55949`)
 - [project_hu227148_derivacion_zona_gris_asistido.md](project_hu227148_derivacion_zona_gris_asistido.md) — **HU 227148** (solución temporal 2026 del Caso 1): Zona Gris → canal asistido; **estado temporal = `OFFER_RESULT` + `CASE_FOR_REVIEW`** (pantalla "Un asesor continuará…"), mockups finales, reingreso por `CASE_IN_PROGRESS_PROMOTER`, contraparte Gattaca (203293) y vacíos para QC
-- [reference_contrato_notificaciones_bizagi.md](reference_contrato_notificaciones_bizagi.md) — enums `paso`/`estadoPaso` de Bizagi → plataforma, estados aceptados por paso, pantallas de error del front y valores de `canalOrigen` (código develop)
+- [reference_contrato_notificaciones_bizagi.md](reference_contrato_notificaciones_bizagi.md) — enums `paso`/`estadoPaso` de Bizagi → plataforma, estados aceptados por paso, pantallas de error del front y valores de `canalOrigen` (código develop); **cómo probar `event-to-client` a mano** (dominio internal + x-api-key, socket `{idProducto}_{tipo}_{numero}`, DEV vs CERT)
 - [reference_drawio_diagrama_hus_2026.md](reference_drawio_diagrama_hus_2026.md) — tablero draw.io por sprint (S32–S40) del Caso 1: HUs, tareas de QC del usuario, microservicio de carga + Azure AI y qué está desactualizado frente a Azure; incluye la pestaña Libre Inversión (flujo, libranza, capacidad y QC)
 
 **Drupal (contenido parametrizable)**
@@ -198,24 +199,21 @@ CC	1097397286	C0lsu_25#Bsid!
 
 ---
 
-### PROMPT 4 — Generar Test Cases (Excel para Azure DevOps)
+### PROMPT 4 — Generar Test Cases
 
-Para crear casos de prueba a partir de una historia de usuario y exportarlos a Excel listo para importar a Azure DevOps:
+Para crear casos de prueba a partir de una historia de usuario:
 
-**Archivos fijos (se reemplazan por cada historia, NO se versionan por historia):**
-- Entrada: `test_cases.json` en la raíz del repo
-- Salida: `test_cases.xlsx` en la raíz del repo
+**Archivo fijo (se reemplaza por cada historia, NO se versiona por historia):**
+- `test_cases.json` en la raíz del repo
 
 **Flujo:**
 1. Cuando el usuario diga `"crear test cases"` o similar para una historia, Claude:
    - Genera/sobreescribe `test_cases.json` con los casos en formato JSON estructurado
    - Cada caso tiene `title` y `steps[]` con `action` + `expected`
    - El primer paso siempre son las "Precondiciones"
-2. Cuando el usuario diga `"transformar"` o `"exportar"`:
-   ```bash
-   python create_testcases_automation.py
-   ```
-   Genera `test_cases.xlsx` que sobreescribe el anterior.
+2. Ya no hay exportación a Excel (se quitó `create_testcases_automation.py` el
+   2026-10-20 para que el repo se pueda compartir sin pandas ni OpenAI). Si piden
+   el Excel para Azure DevOps, avisar que esa lógica ya no está en el repo.
 
 **Formato JSON esperado:**
 ```json
@@ -232,7 +230,7 @@ Para crear casos de prueba a partir de una historia de usuario y exportarlos a E
 ]
 ```
 
-El propósito de archivos fijos es **no llenar el repositorio** con información de cada historia.
+El propósito del archivo fijo es **no llenar el repositorio** con información de cada historia.
 
 ---
 

@@ -1,242 +1,777 @@
 [
   {
-    "title": "TC001 - Libre Inversión: su dirección propia abre el Onboarding",
+    "title": "TC001 - Libre Inversión: dependiente con una empresa VIGEN pasa SAP, ASCARD y SIIF y llega a políticas",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Ventana de incógnito nueva (el navegador recuerda el último producto visitado)\n- HU 225423, escenario 1",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Afiliado dependiente (ZGRP) con una sola empresa en estado VIGEN\n- ASCARD sin bolsillo 31 o con un estado que no bloquea en Consumo (no K, D, C, Y, A, J, M, L, Z, R, B, F)\n- SIIF sin moras y sin saldo en créditos de Libre Inversión (si no, sale retanqueo)\n- Dato de prueba: por definir en el banco de usuarios (dependiente ZGRP, empresa VIGEN, pasa las tres validaciones)\n- Referencia: HU 225425, escenarios 1, 2 y 6",
         "expected": ""
       },
       {
-        "action": "Given el afiliado abre en el navegador https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/libre-inversion/onboarding",
+        "action": "Given el afiliado inicia sesión desde el Onboarding de Libre Inversión",
         "expected": ""
       },
       {
-        "action": "When la página termina de cargar",
+        "action": "When se muestra la pantalla de carga en /consumo/libre-inversion/validaciones",
         "expected": ""
       },
       {
-        "action": "Then se muestra la pantalla de Onboarding de la solicitud de crédito",
-        "expected": "Encabezado \"Solicitud de crédito\" y el paso 1 del Onboarding"
+        "action": "Then en Network salen, en este orden, affiliation-validations, card-validations y product-validations, todas con estado OK",
+        "expected": "Los tres request llevan \"grupoProducto\": \"CONSUMO\" y \"idProducto\": 1"
       },
       {
-        "action": "And la barra de direcciones termina en /consumo/libre-inversion/onboarding",
-        "expected": "Dirección: .../consumo/libre-inversion/onboarding"
+        "action": "And la respuesta de SAP trae la empresa en datosAdicionales.empleadores con empresaPrincipal = true y tipoAfiliacion = \"D\"",
+        "expected": "Un solo empleador CO1N"
       },
       {
-        "action": "And no se muestra la página \"Lo sentimos, no encontramos esta página\"",
-        "expected": "No aparece la página de producto no encontrado"
+        "action": "And el afiliado llega a /consumo/libre-inversion/politicas sin ningún mensaje de bloqueo",
+        "expected": "Se crea la cookie de validaciones completas"
       }
     ]
   },
   {
-    "title": "TC002 - Libre Inversión: después de iniciar sesión el afiliado sigue en Libre Inversión",
+    "title": "TC003 - Libre Inversión: pensionado pasa las validaciones de caja (con y sin empresa en SAP)",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Ventana de incógnito nueva (el navegador recuerda el último producto visitado)\n- Cédula autorizada (CO1C) sin solicitudes en curso (confirmar con /request/check) y usuario del portal transaccional con clave conocida\n- HU 225423, escenario 2\n- Lo que muestra la pantalla de validaciones de Consumo depende del supuesto S1 (pendiente del PO)",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Variante A: pensionado (ZGRE/ZGEN) con una empresa pagadora en estado VIGEN en SAP\n- Variante B: pensionado sin empresas en SAP\n- Dato de prueba: A: CC 52961647 (ZGRE, empresa 9003360047 VIGEN; pasa SAP y SIIF en dev, confirmar ASCARD y que no tenga caso abierto). B: CC 1144154258 (ZGEN, sin empresas)\n- Referencia: HU 225425, escenario 3\n- Nota: la etiqueta \"Pensionado\" sin NIT y la clasificación No Libranza se ven en Información personal (HU 225431) y en Bizagi, no en esta pantalla. Medido el 19/10: la variante B hoy se rechaza con INVALID_USER \"Estado empresa dependiente\" (defecto)",
         "expected": ""
       },
       {
-        "action": "Given el afiliado abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/libre-inversion/onboarding y avanza con \"Siguiente\" hasta el paso 3",
+        "action": "Given el pensionado inicia sesión desde el Onboarding de Libre Inversión",
         "expected": ""
       },
       {
-        "action": "When pulsa \"Comenzar solicitud\"",
-        "expected": "Se muestra la pantalla \"Inicia sesión\" de Colsubsidio"
-      },
-      {
-        "action": "And inicia sesión con su documento y clave",
+        "action": "When se ejecutan las validaciones de caja",
         "expected": ""
       },
       {
-        "action": "Then la barra de direcciones termina en /consumo/libre-inversion/validaciones",
-        "expected": "Dirección .../consumo/libre-inversion/validaciones (no .../cupo-de-credito/validaciones)"
+        "action": "Then affiliation-validations responde OK con tipoAfiliacion = \"P\"",
+        "expected": "Variantes A y B"
       },
       {
-        "action": "And se registra la pantalla que se muestra en esa dirección",
-        "expected": "Según el supuesto S1: \"Lo sentimos, no encontramos esta página\" hasta que la HU 225425 entregue la pantalla de validaciones de Consumo"
+        "action": "And card-validations y product-validations responden OK",
+        "expected": ""
+      },
+      {
+        "action": "And el afiliado llega a /consumo/libre-inversion/politicas",
+        "expected": "Variantes A y B; ninguna se bloquea por no tener empresa"
       }
     ]
   },
   {
-    "title": "TC003 - Paso interno sin sesión: vuelve al Onboarding del mismo producto (Libre Inversión y Cupo)",
+    "title": "TC004 - Libre Inversión: independiente sin empresas en SAP pasa las validaciones de caja",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Ventana de incógnito nueva (el navegador recuerda el último producto visitado)\n- Sin sesión iniciada\n- HU 225423, escenario 3",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Afiliado independiente (ZGRI) sin empresas en SAP, que pasa ASCARD y SIIF\n- Dato de prueba: CC 52812754 (ZGRI, sin empresas; confirmar ASCARD y SIIF)\n- Referencia: HU 225425, escenario 3\n- Nota: medido el 19/10: hoy se rechaza con INVALID_USER \"Estado empresa dependiente\" (defecto, mismo origen que TC027). La etiqueta \"Independiente\" sin NIT es de la HU 225431",
         "expected": ""
       },
       {
-        "action": "Given el afiliado no ha iniciado sesión",
+        "action": "Given el independiente inicia sesión desde el Onboarding de Libre Inversión",
         "expected": ""
       },
       {
-        "action": "When abre directamente https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/libre-inversion/validaciones",
+        "action": "When se ejecutan las validaciones de caja",
         "expected": ""
       },
       {
-        "action": "Then el sistema lo lleva al Onboarding de Libre Inversión",
-        "expected": "La dirección cambia a .../consumo/libre-inversion/onboarding y se ve el Onboarding (no el de Cupo de Crédito)"
+        "action": "Then affiliation-validations responde OK con tipoAfiliacion = \"I\" y la lista de empleadores vacía",
+        "expected": "No se rechaza por no tener empresa"
       },
       {
-        "action": "And repite con /politicas, /informacion-personal, /personalizacion-oferta, /datos-adicionales, /biometria y /fin bajo /consumo/libre-inversion/",
-        "expected": "En cada uno vuelve a .../consumo/libre-inversion/onboarding"
-      },
-      {
-        "action": "And en la misma pestaña abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/cupo-de-credito/validaciones",
-        "expected": "La dirección cambia a .../cupo-de-credito/onboarding y se ve el Onboarding de Cupo (no el de Libre Inversión)"
-      },
-      {
-        "action": "And repite con /cupo-de-credito/politicas y /cupo-de-credito/informacion-personal",
-        "expected": "En cada uno vuelve a .../cupo-de-credito/onboarding"
+        "action": "And el afiliado llega a /consumo/libre-inversion/politicas",
+        "expected": ""
       }
     ]
   },
   {
-    "title": "TC004 - Producto inexistente: se muestra la página de producto no encontrado",
+    "title": "TC005 - Libre Inversión: una empresa no vigente y otra VIGEN (solo cuenta la VIGEN)",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Ventana de incógnito nueva (el navegador recuerda el último producto visitado)\n- HU 225423, escenario 4",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Variante A: una empresa VIGEN y otra en un estado distinto de VIGEN y RADIC (por ejemplo RETIR)\n- Variante B: una empresa VIGEN y otra en RADIC\n- Dato de prueba: por definir (pedir a datos o al banco: dependiente con 2 empresas en esos estados)\n- Referencia: HU 225425, escenario 2\n- Nota: por código, la variante A pasa (el mapper descarta la empresa RETIR) y la variante B se rechaza con INVALID_USER, porque Consumo exige que todas sean VIGEN. Confirmar con la PO cuál es el comportamiento esperado de la B",
         "expected": ""
       },
       {
-        "action": "Given el afiliado abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/producto-falso/onboarding",
+        "action": "Given el afiliado inicia sesión desde el Onboarding de Libre Inversión",
         "expected": ""
       },
       {
-        "action": "When la página carga",
+        "action": "When affiliation-validations consulta SAP",
         "expected": ""
       },
       {
-        "action": "Then se muestra la página de producto no encontrado",
-        "expected": "Título: \"Lo sentimos, no encontramos esta página\" / Texto: \"La dirección que buscas no existe o cambió de lugar.\" / \"Cód. error 404\" / Botón \"Ir a Colsubsidio.com\""
+        "action": "Then la respuesta solo trae en datosAdicionales.empleadores la empresa VIGEN (variante A)",
+        "expected": "La empresa RETIR no aparece"
       },
       {
-        "action": "And pulsa \"Ir a Colsubsidio.com\"",
-        "expected": "Se abre https://www.colsubsidio.com/creditos en la misma pestaña"
+        "action": "And el afiliado continúa a /consumo/libre-inversion/politicas sin pantalla de selección de empresa",
+        "expected": "Variante A. La variante B se registra con el resultado real y la respuesta de la PO"
       }
     ]
   },
   {
-    "title": "TC005 - Libre Inversión mal escrita o producto no habilitado: se muestra la página de producto no encontrado",
+    "title": "TC006 - Libre Inversión: bolsillo 31 en X (robada) o W (desafiliado) no bloquea",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Ventana de incógnito nueva (el navegador recuerda el último producto visitado)\n- HU 225423, escenario 4",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP y SIIF\n- En ASCARD, el bolsillo 31 está en estado X o W\n- Dato de prueba: por definir (bolsillo 31 en X o en W, con tarjeta activa)\n- Referencia: HU 225425, escenario 4\n- Nota: el código de Consumo solo bloquea K, D, C, Y, A, J, M, L, Z, R, B y F; la tarjeta no activa (CARD_STATUS) sí bloquea (ver TC029)",
         "expected": ""
       },
       {
-        "action": "Given el afiliado abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/Libre-Inversion/onboarding (con mayúsculas)",
-        "expected": "Título: \"Lo sentimos, no encontramos esta página\" / Texto: \"La dirección que buscas no existe o cambió de lugar.\" / \"Cód. error 404\" / Botón \"Ir a Colsubsidio.com\""
+        "action": "Given el afiliado inicia sesión desde el Onboarding de Libre Inversión",
+        "expected": ""
       },
       {
-        "action": "When abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/libre_inversion/onboarding (con guion bajo)",
-        "expected": "Título: \"Lo sentimos, no encontramos esta página\" / Texto: \"La dirección que buscas no existe o cambió de lugar.\" / \"Cód. error 404\" / Botón \"Ir a Colsubsidio.com\""
+        "action": "When card-validations evalúa el bolsillo 31 en estado X o W",
+        "expected": ""
       },
       {
-        "action": "And abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/vehiculo/onboarding (producto fuera del alcance)",
-        "expected": "Título: \"Lo sentimos, no encontramos esta página\" / Texto: \"La dirección que buscas no existe o cambió de lugar.\" / \"Cód. error 404\" / Botón \"Ir a Colsubsidio.com\""
+        "action": "Then card-validations responde OK, sin tipoSolicitud ni tarjetaAmparada",
+        "expected": "Respuesta de Consumo"
       },
       {
-        "action": "Then en ninguna de las tres direcciones se muestra el Onboarding",
-        "expected": "Ninguna carga el Onboarding"
+        "action": "And el afiliado continúa a /consumo/libre-inversion/politicas",
+        "expected": ""
       }
     ]
   },
   {
-    "title": "TC006 - Cambio de Libre Inversión a Cupo: después del login el afiliado queda en Cupo de Crédito",
+    "title": "TC007 - Libre Inversión: SIIF sin obligaciones registradas no bloquea",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Una sola ventana de incógnito para todo el caso\n- Cédula autorizada (CO1C) sin solicitudes en curso (confirmar con /request/check) y usuario del portal transaccional con clave conocida\n- HU 225423, escenario 5 (equivale a TC006 de la suite 229925)",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP y ASCARD\n- SIIF no le registra obligaciones (o solo obligaciones canceladas, sin saldo)\n- Dato de prueba: CC 52961647 (product-validations OK en dev con idProducto 1; confirmar ASCARD)\n- Referencia: HU 225425, escenario 10",
         "expected": ""
       },
       {
-        "action": "Given el afiliado abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/libre-inversion/onboarding",
+        "action": "Given el afiliado inicia sesión desde el Onboarding de Libre Inversión",
         "expected": ""
       },
       {
-        "action": "And en la misma pestaña abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/cupo-de-credito/onboarding",
-        "expected": "Se muestra el Onboarding de Cupo (\"Tu Cupo de Crédito en minutos, con disponibilidad inmediata.\")"
-      },
-      {
-        "action": "When avanza hasta el paso 3, pulsa \"Comenzar solicitud\" e inicia sesión",
+        "action": "When product-validations consulta las obligaciones en SIIF",
         "expected": ""
       },
       {
-        "action": "Then la barra de direcciones termina en /cupo-de-credito/validaciones",
-        "expected": "Dirección .../cupo-de-credito/validaciones y el flujo de Cupo continúa como siempre"
+        "action": "Then product-validations responde OK",
+        "expected": "Request con grupoProducto CONSUMO e idProducto 1"
+      },
+      {
+        "action": "And el afiliado continúa a /consumo/libre-inversion/politicas sin mensaje de bloqueo",
+        "expected": ""
       }
     ]
   },
   {
-    "title": "TC007 - Cambio de Cupo a Libre Inversión: después del login el afiliado queda en Libre Inversión",
+    "title": "TC008 - Libre Inversión: afiliado no encontrado en SAP",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Una sola ventana de incógnito para todo el caso\n- Cédula autorizada (CO1C) sin solicitudes en curso (confirmar con /request/check) y usuario del portal transaccional con clave conocida\n- HU 225423, escenario 5",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El documento no existe en SAP (validador de derechos devuelve data vacía)\n- Dato de prueba: CC 360750 (no tiene cuenta CIAM: crearla con usuarios.py crear-ciam o simular la respuesta con route de Playwright)\n- Referencia: HU 225425, escenario 11. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"Afiliado no encontrado\"\n- Nota: medido el 19/10: affiliation-validations responde HTTP 404 (INVALID_USER), CloudFront lo cambia por su HTML y el front muestra el error técnico (defecto). Drupal AFFILIATE_STATUS tiene otro título, sin la frase del dependiente, y botón \"Afíliate ya\" hacia /afiliate/proceso",
         "expected": ""
       },
       {
-        "action": "Given el afiliado abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/cupo-de-credito/onboarding",
+        "action": "Given el afiliado inicia sesión en el flujo de Libre Inversión",
         "expected": ""
       },
       {
-        "action": "And en la misma pestaña abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/libre-inversion/onboarding",
-        "expected": "Se muestra el Onboarding de Libre Inversión"
-      },
-      {
-        "action": "When avanza hasta el paso 3, pulsa \"Comenzar solicitud\" e inicia sesión",
+        "action": "When affiliation-validations informa que el afiliado no existe",
         "expected": ""
       },
       {
-        "action": "Then la barra de direcciones termina en /consumo/libre-inversion/validaciones",
-        "expected": "Dirección .../consumo/libre-inversion/validaciones (no .../cupo-de-credito/validaciones)"
+        "action": "Then la pantalla de carga se detiene y se muestra el título \"Lo sentimos, este producto es exclusivo para afiliados\"",
+        "expected": "Título exacto del diseño; no se llega a /consumo/libre-inversion/politicas"
+      },
+      {
+        "action": "And se muestra el texto \"Si eres independiente o pensionado, te invitamos a realizar tu solicitud de afiliación en línea para que puedas adquirir nuestros productos y servicios. Si eres trabajador dependiente, consulta con tu empresa sobre el proceso de afiliación a Colsubsidio.\"",
+        "expected": "Texto exacto del diseño, sin mencionar \"Cupo de Crédito\""
+      },
+      {
+        "action": "And se ve el botón \"Afíliate ahora\" hacia https://www.colsubsidio.com/afiliaciones, que abre en una pestaña nueva (_blank), con foco visible y operable con teclado",
+        "expected": "Abre en otra pestaña; la solicitud sigue en la pestaña original"
+      },
+      {
+        "action": "And no se muestra el botón \"Volver\"",
+        "expected": ""
+      },
+      {
+        "action": "And se ve el link \"Ir a Colsubsidio.com\" hacia https://www.colsubsidio.com/, que abre en una pestaña nueva (_blank), tiene foco visible y se activa con Enter",
+        "expected": "Abre en otra pestaña; la solicitud sigue en la pestaña original"
       }
     ]
   },
   {
-    "title": "TC008 - Regresión: solicitud de Cupo de Crédito de principio a fin sin cambios",
+    "title": "TC009 - Libre Inversión: titularidad o afiliación no vigente (INVALID_USER)",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Ventana de incógnito nueva (el navegador recuerda el último producto visitado)\n- Cédula autorizada (CO1C) sin solicitudes en curso que pueda completar una solicitud de Cupo (resultado aprobado del motor)\n- Biometría disponible en el ambiente\n- HU 225423, escenario 6 (el cambio tocó 13 archivos compartidos con Cupo: encabezado, barra de pasos, inicio de sesión, políticas y conexión en tiempo real)",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Variante A: el documento es de un beneficiario, no del titular\n- Variante B: la afiliación no está VIGEN\n- Dato de prueba: A: por definir (beneficiario con cuenta CIAM). B: CC 1023876310 (RETIR; INVALID_USER \"Afiliado no vigente\" en dev)\n- Referencia: HU 225425, escenario 11. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"Titularidad, Estado de afiliación\"\n- Nota: hoy Drupal INVALID_USER dice \"No puedes acceder al Cupo de Crédito\" y tiene un botón \"Afíliate\" que el diseño no lleva (defecto de contenido)",
         "expected": ""
       },
       {
-        "action": "Given el afiliado abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/cupo-de-credito/onboarding",
-        "expected": "Se muestra el Onboarding de Cupo"
-      },
-      {
-        "action": "When completa la solicitud: Onboarding, inicio de sesión, validaciones, políticas, información personal, personalización de oferta, datos adicionales y biometría",
+        "action": "Given el afiliado inicia sesión en el flujo de Libre Inversión",
         "expected": ""
       },
       {
-        "action": "Then todas las direcciones del flujo empiezan por /cupo-de-credito/",
-        "expected": "Ninguna dirección contiene /consumo/"
+        "action": "When affiliation-validations responde VALIDATION_ERROR con código INVALID_USER",
+        "expected": ""
       },
       {
-        "action": "And la barra de pasos del encabezado aparece en información personal, personalización de oferta, datos adicionales y biometría",
-        "expected": "Barra de pasos visible en esos 4 pasos y con el paso correcto marcado"
+        "action": "Then la pantalla de carga se detiene y se muestra el título \"¡Lo sentimos! No podemos continuar con tu solicitud de crédito\"",
+        "expected": "Título exacto del diseño; no se llega a /consumo/libre-inversion/politicas"
       },
       {
-        "action": "And la solicitud termina en la pantalla final de Cupo",
-        "expected": "Dirección .../cupo-de-credito/fin con el mensaje final de siempre"
+        "action": "And se muestra el texto \"Para acceder a este producto es necesario contar con una afiliación activa a Colsubsidio y ser el titular de la afiliación. Para más información, comunícate con la Línea Audio Servicios (601) 7457900 Opción 2.\"",
+        "expected": "Texto exacto del diseño, sin mencionar \"Cupo de Crédito\""
+      },
+      {
+        "action": "And la pantalla no tiene botón principal, solo el link",
+        "expected": "Sin \"Afíliate\" ni \"Volver\""
+      },
+      {
+        "action": "And se ve el link \"Ir a Colsubsidio.com\" hacia https://www.colsubsidio.com/, que abre en una pestaña nueva (_blank), tiene foco visible y se activa con Enter",
+        "expected": "Abre en otra pestaña; la solicitud sigue en la pestaña original"
       }
     ]
   },
   {
-    "title": "TC009 - Afiliado con solicitud de Cupo en curso que entra por Libre Inversión (comportamiento por definir)",
+    "title": "TC010 - Libre Inversión: edad fuera de 18 a 69 años (AGE_OUT_OF_RANGE)",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (en Certificación, cuando se despliegue la rama feat/consumer-loans: https://dev.colsubsidio.com/creditos/solicitud)\n- Ventana de incógnito nueva (el navegador recuerda el último producto visitado)\n- Cédula autorizada (CO1C) con una solicitud de Cupo en curso (estado IN_PROGRESS en /request/check)\n- HU 225423, supuesto S3: el comportamiento esperado está pendiente de definir con el PO",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Afiliado vigente y titular con 70 años o más (o menor de 18)\n- Dato de prueba: por definir en el banco (afiliado de 70 años o más con cuenta CIAM)\n- Referencia: HU 225425, escenario 11. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"No cumple con la edad requerida\"\n- Nota: hoy Drupal AGE_OUT_OF_RANGE dice \"el Cupo de Crédito está disponible...\" (defecto de contenido)",
         "expected": ""
       },
       {
-        "action": "Given el afiliado abre https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud/consumo/libre-inversion/onboarding y avanza hasta el paso 3",
+        "action": "Given el afiliado inicia sesión en el flujo de Libre Inversión",
         "expected": ""
       },
       {
-        "action": "When pulsa \"Comenzar solicitud\" e inicia sesión",
+        "action": "When affiliation-validations responde VALIDATION_ERROR con código AGE_OUT_OF_RANGE",
         "expected": ""
       },
       {
-        "action": "Then se registran la dirección y la pantalla que se muestran",
-        "expected": "Por definir (S3). Según el código, el sistema retomaría el caso de Cupo en una dirección /consumo/libre-inversion/... que todavía no existe. Reportar lo observado al PO."
+        "action": "Then la pantalla de carga se detiene y se muestra el título \"Lo sentimos, no te encuentras en el rango de edad requerido\"",
+        "expected": "Título exacto del diseño; no se llega a /consumo/libre-inversion/politicas"
+      },
+      {
+        "action": "And se muestra el texto \"Actualmente, la solicitud de crédito está disponible solo para nuestros afiliados entre 18 a 69 años. Agradecemos tu interés y te invitamos a considerar otros servicios de la caja.\"",
+        "expected": "Texto exacto del diseño, sin mencionar \"Cupo de Crédito\""
+      },
+      {
+        "action": "And se ve el link \"Ir a Colsubsidio.com\" hacia https://www.colsubsidio.com/, que abre en una pestaña nueva (_blank), tiene foco visible y se activa con Enter",
+        "expected": "Abre en otra pestaña; la solicitud sigue en la pestaña original"
+      }
+    ]
+  },
+  {
+    "title": "TC011 - Libre Inversión: dependiente con menos de 2 meses de antigüedad laboral (REQUIRED_WORK_TIME_DEP) [bloqueado]",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Dependiente con menos de 2 meses en la empresa actual\n- Dato de prueba: por definir\n- Referencia: HU 225425, escenario 1. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"Antigüedad laboral mínima\"\n- Nota: BLOQUEADO hasta que negocio defina quién valida antigüedad, aporte e ingresos en Consumo: hoy ni el endpoint externo ni el interno los validan (ProductRightsValidationPolicy.shouldValidateGroupConditions = false). Si los valida Bizagi, el mensaje llega por el socket VALIDATION después de políticas, no en la pantalla de carga",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado inicia sesión en el flujo de Libre Inversión",
+        "expected": ""
+      },
+      {
+        "action": "When se valida la antigüedad laboral y responde REQUIRED_WORK_TIME_DEP",
+        "expected": ""
+      },
+      {
+        "action": "Then la pantalla de carga se detiene y se muestra el título \"Lo sentimos, aún no tienes la antigüedad laboral mínima\"",
+        "expected": "Título exacto del diseño; no se llega a /consumo/libre-inversion/politicas"
+      },
+      {
+        "action": "And se muestra el texto \"Para esta solicitud la antigüedad laboral mínima requerida es de 2 meses. ¡No te desanimes! Una vez alcances ese período, estaremos aquí para ayudarte con tu solicitud.\"",
+        "expected": "Texto exacto del diseño, sin mencionar \"Cupo de Crédito\""
+      },
+      {
+        "action": "And se ve el link \"Ir a Colsubsidio.com\" hacia https://www.colsubsidio.com/, que abre en una pestaña nueva (_blank), tiene foco visible y se activa con Enter",
+        "expected": "Abre en otra pestaña; la solicitud sigue en la pestaña original"
+      }
+    ]
+  },
+  {
+    "title": "TC012 - Libre Inversión: pensionado con menos de 6 meses de afiliación (REQUIRED_WORK_TIME_RETIRED) [bloqueado]",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Pensionado con menos de 6 meses de afiliación a la caja\n- Dato de prueba: por definir\n- Referencia: HU 225425, escenario 1. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"Pensionado no cumple con antigüedad mínima\"\n- Nota: BLOQUEADO hasta que negocio defina quién valida antigüedad, aporte e ingresos en Consumo: hoy ni el endpoint externo ni el interno los validan (ProductRightsValidationPolicy.shouldValidateGroupConditions = false). Si los valida Bizagi, el mensaje llega por el socket VALIDATION después de políticas, no en la pantalla de carga",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado inicia sesión en el flujo de Libre Inversión",
+        "expected": ""
+      },
+      {
+        "action": "When se valida la antigüedad de afiliación y responde REQUIRED_WORK_TIME_RETIRED",
+        "expected": ""
+      },
+      {
+        "action": "Then la pantalla de carga se detiene y se muestra el título \"Lo sentimos, aún no tienes la antigüedad mínima de afiliación\"",
+        "expected": "Título exacto del diseño; no se llega a /consumo/libre-inversion/politicas"
+      },
+      {
+        "action": "And se muestra el texto \"Para esta solicitud, la antigüedad mínima requerida de afiliación a la caja es de 6 meses. ¡No te desanimes! Una vez alcances ese periodo, estaremos aquí para ayudarte con tu solicitud.\"",
+        "expected": "Texto exacto del diseño, sin mencionar \"Cupo de Crédito\""
+      },
+      {
+        "action": "And se ve el link \"Ir a Colsubsidio.com\" hacia https://www.colsubsidio.com/, que abre en una pestaña nueva (_blank), tiene foco visible y se activa con Enter",
+        "expected": "Abre en otra pestaña; la solicitud sigue en la pestaña original"
+      }
+    ]
+  },
+  {
+    "title": "TC013 - Libre Inversión: independiente con menos de 12 meses de afiliación (REQUIRED_WORK_TIME_IND) [bloqueado]",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Independiente con menos de 12 meses de afiliación a la caja\n- Dato de prueba: por definir\n- Referencia: HU 225425, escenario 1. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"Independiente no cumple con antigüedad mínima\"\n- Nota: BLOQUEADO hasta que negocio defina quién valida antigüedad, aporte e ingresos en Consumo: hoy ni el endpoint externo ni el interno los validan (ProductRightsValidationPolicy.shouldValidateGroupConditions = false). Si los valida Bizagi, el mensaje llega por el socket VALIDATION después de políticas, no en la pantalla de carga. Además, Drupal REQUIRED_WORK_TIME_IND dice 6 meses y ese texto lo comparte Cupo",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado inicia sesión en el flujo de Libre Inversión",
+        "expected": ""
+      },
+      {
+        "action": "When se valida la antigüedad de afiliación y responde REQUIRED_WORK_TIME_IND",
+        "expected": ""
+      },
+      {
+        "action": "Then la pantalla de carga se detiene y se muestra el título \"Lo sentimos, aún no tienes la antigüedad mínima de afiliación\"",
+        "expected": "Título exacto del diseño; no se llega a /consumo/libre-inversion/politicas"
+      },
+      {
+        "action": "And se muestra el texto \"Para esta solicitud, la antigüedad mínima requerida de afiliación a la caja es de 12 meses. ¡No te desanimes! Una vez alcances ese periodo, estaremos aquí para ayudarte con tu solicitud.\"",
+        "expected": "Texto exacto del diseño, sin mencionar \"Cupo de Crédito\""
+      },
+      {
+        "action": "And se ve el link \"Ir a Colsubsidio.com\" hacia https://www.colsubsidio.com/, que abre en una pestaña nueva (_blank), tiene foco visible y se activa con Enter",
+        "expected": "Abre en otra pestaña; la solicitud sigue en la pestaña original"
+      }
+    ]
+  },
+  {
+    "title": "TC014 - Libre Inversión: dependiente con ingresos menores a 1 SMMLV (INVALID_REQUIREMENTS_SALARY_DEP) [bloqueado]",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Dependiente con salario registrado en SAP menor a 1 SMMLV\n- Dato de prueba: por definir\n- Referencia: HU 225425, escenario 1. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"Ingresos de Dependiente o no dependiente\"\n- Nota: BLOQUEADO hasta que negocio defina quién valida antigüedad, aporte e ingresos en Consumo: hoy ni el endpoint externo ni el interno los validan (ProductRightsValidationPolicy.shouldValidateGroupConditions = false). Si los valida Bizagi, el mensaje llega por el socket VALIDATION después de políticas, no en la pantalla de carga",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado inicia sesión en el flujo de Libre Inversión",
+        "expected": ""
+      },
+      {
+        "action": "When se validan los ingresos y responde INVALID_REQUIREMENTS_SALARY_DEP",
+        "expected": ""
+      },
+      {
+        "action": "Then la pantalla de carga se detiene y se muestra el título \"¡Lo sentimos! No podemos continuar con tu solicitud de crédito\"",
+        "expected": "Título exacto del diseño; no se llega a /consumo/libre-inversion/politicas"
+      },
+      {
+        "action": "And se muestra el texto \"Para esta solicitud, es necesario contar con ingresos equivalentes o superiores a un salario mínimo legal vigente (SMMLV). Agradecemos tu interés y te invitamos a considerar otros servicios de la caja.\"",
+        "expected": "Texto exacto del diseño, sin mencionar \"Cupo de Crédito\""
+      },
+      {
+        "action": "And se ve el link \"Ir a Colsubsidio.com\" hacia https://www.colsubsidio.com/, que abre en una pestaña nueva (_blank), tiene foco visible y se activa con Enter",
+        "expected": "Abre en otra pestaña; la solicitud sigue en la pestaña original"
+      }
+    ]
+  },
+  {
+    "title": "TC015 - Libre Inversión: pensionado o independiente con ingresos menores a 1 SMMLV (INVALID_REQUIREMENTS_SALARY_IND) [bloqueado]",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Pensionado o independiente con ingresos registrados en SAP menores a 1 SMMLV\n- Dato de prueba: por definir\n- Referencia: HU 225425, escenario 1. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"Ingresos de Dependiente o no dependiente\"\n- Nota: BLOQUEADO hasta que negocio defina quién valida antigüedad, aporte e ingresos en Consumo: hoy ni el endpoint externo ni el interno los validan (ProductRightsValidationPolicy.shouldValidateGroupConditions = false). Si los valida Bizagi, el mensaje llega por el socket VALIDATION después de políticas, no en la pantalla de carga",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado inicia sesión en el flujo de Libre Inversión",
+        "expected": ""
+      },
+      {
+        "action": "When se validan los ingresos y responde INVALID_REQUIREMENTS_SALARY_IND",
+        "expected": ""
+      },
+      {
+        "action": "Then la pantalla de carga se detiene y se muestra el título \"¡Lo sentimos! No podemos continuar con tu solicitud de crédito\"",
+        "expected": "Título exacto del diseño; no se llega a /consumo/libre-inversion/politicas"
+      },
+      {
+        "action": "And se muestra el texto \"Para esta solicitud, es necesario contar con ingresos equivalentes o superiores a un salario mínimo legal vigente (SMMLV). Agradecemos tu interés y te invitamos a considerar otros servicios de la caja.\"",
+        "expected": "Texto exacto del diseño, sin mencionar \"Cupo de Crédito\""
+      },
+      {
+        "action": "And se ve el link \"Ir a Colsubsidio.com\" hacia https://www.colsubsidio.com/, que abre en una pestaña nueva (_blank), tiene foco visible y se activa con Enter",
+        "expected": "Abre en otra pestaña; la solicitud sigue en la pestaña original"
+      }
+    ]
+  },
+  {
+    "title": "TC016 - Libre Inversión: empresa no VIGEN muestra el mensaje de empleador, no el de titularidad",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Dependiente cuya empresa no está VIGEN (o sin empresas activas en SAP)\n- Dato de prueba: CC 80057089 (ZGRP sin empresas activas; INVALID_USER \"Estado empresa dependiente\" en dev)\n- Referencia: HU 225425, escenarios 2 y 11. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"% de aporte dep o no dependiente, Estado del empleador\"\n- Nota: medido el 19/10: el back de Consumo responde INVALID_USER, así que se pinta el texto de titularidad (defecto: el diseño espera el mensaje de empleador). El porcentaje de aporte no se valida en ningún endpoint (ver bloqueo de TC011)",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado inicia sesión en el flujo de Libre Inversión",
+        "expected": ""
+      },
+      {
+        "action": "When affiliation-validations rechaza por el estado de la empresa",
+        "expected": ""
+      },
+      {
+        "action": "Then la pantalla de carga se detiene y se muestra el título \"¡Lo sentimos! No podemos continuar con tu solicitud de crédito\"",
+        "expected": "Título exacto del diseño; no se llega a /consumo/libre-inversion/politicas"
+      },
+      {
+        "action": "And se muestra el texto \"Agradecemos tu interés y te invitamos a considerar otros servicios de la caja.\"",
+        "expected": "Texto exacto del diseño, sin mencionar \"Cupo de Crédito\""
+      },
+      {
+        "action": "And se ve el link \"Ir a Colsubsidio.com\" hacia https://www.colsubsidio.com/, que abre en una pestaña nueva (_blank), tiene foco visible y se activa con Enter",
+        "expected": "Abre en otra pestaña; la solicitud sigue en la pestaña original"
+      }
+    ]
+  },
+  {
+    "title": "TC017 - Libre Inversión: bolsillo 31 en estado restringido (K, D, C, Y, A, J, M, L, Z, R, B o F)",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP\n- En ASCARD, el bolsillo 31 está en uno de los 12 estados restringidos\n- Dato de prueba: CC 1023944601 (bolsillo 31 en Y, cobro jurídico; confirmar que pase SAP)\n- Referencia: HU 225425, escenario 4. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"Estados de ASCARD\"\n- Nota: en Consumo el front pinta el código INVALID_REQUIREMENTS directo (sin casuísticas Redeban); hoy Drupal INVALID_REQUIREMENTS dice \"No podemos atender tu solicitud de Cupo de Crédito\" (defecto de contenido)",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado inicia sesión en el flujo de Libre Inversión",
+        "expected": ""
+      },
+      {
+        "action": "When card-validations responde VALIDATION_ERROR INVALID_REQUIREMENTS \"Afiliado con cupo activo\" con la letra del estado en descripcionErrorValidacion",
+        "expected": ""
+      },
+      {
+        "action": "Then la pantalla de carga se detiene y se muestra el título \"¡Lo sentimos! No podemos continuar con tu solicitud de crédito\"",
+        "expected": "Título exacto del diseño; no se llega a /consumo/libre-inversion/politicas"
+      },
+      {
+        "action": "And se muestra el texto \"Agradecemos tu interés y te invitamos a conocer otros servicios de la caja.\"",
+        "expected": "Texto exacto del diseño, sin mencionar \"Cupo de Crédito\""
+      },
+      {
+        "action": "And product-validations no se llama",
+        "expected": "Las validaciones se cortan en el primer rechazo"
+      },
+      {
+        "action": "And se ve el link \"Ir a Colsubsidio.com\" hacia https://www.colsubsidio.com/, que abre en una pestaña nueva (_blank), tiene foco visible y se activa con Enter",
+        "expected": "Abre en otra pestaña; la solicitud sigue en la pestaña original"
+      }
+    ]
+  },
+  {
+    "title": "TC018 - Libre Inversión: obligación en mora sin saldo de Libre Inversión (INVALID_REQUIREMENTS)",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP y ASCARD\n- SIIF le registra una obligación vencida, de dudoso recaudo o castigada, sin saldo en créditos de Libre Inversión\n- Dato de prueba: CC 38140673 (mora en el producto 14; INVALID_REQUIREMENTS \"Afiliado con productos en mora\" en dev)\n- Referencia: HU 225425, escenario 10. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"Moras en SIIF\"\n- Nota: Figma usa \"conocer\" en desktop y \"considerar\" en mobile para este mismo código. Si la mora es en un crédito de Libre Inversión con saldo, sale retanqueo (TC022), no este mensaje",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado inicia sesión en el flujo de Libre Inversión",
+        "expected": ""
+      },
+      {
+        "action": "When product-validations responde VALIDATION_ERROR INVALID_REQUIREMENTS",
+        "expected": ""
+      },
+      {
+        "action": "Then la pantalla de carga se detiene y se muestra el título \"¡Lo sentimos! No podemos continuar con tu solicitud de crédito\"",
+        "expected": "Título exacto del diseño; no se llega a /consumo/libre-inversion/politicas"
+      },
+      {
+        "action": "And se muestra el texto \"Agradecemos tu interés y te invitamos a conocer otros servicios de la caja.\"",
+        "expected": "Texto exacto del diseño, sin mencionar \"Cupo de Crédito\""
+      },
+      {
+        "action": "And se ve el link \"Ir a Colsubsidio.com\" hacia https://www.colsubsidio.com/, que abre en una pestaña nueva (_blank), tiene foco visible y se activa con Enter",
+        "expected": "Abre en otra pestaña; la solicitud sigue en la pestaña original"
+      }
+    ]
+  },
+  {
+    "title": "TC022 - Libre Inversión: crédito de Libre Inversión con saldo redirige al CFA (retanqueo)",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP y ASCARD\n- SIIF le registra al menos un crédito de Libre Inversión con saldo mayor a 0\n- Desplegado el PR 25559 (tarea 226677) con NEXT_PUBLIC_CFA_SITE configurada en dev\n- Dato de prueba: CC 1122651592 (código 360 con saldo de $928.050; MANDATORY_REFINANCE en dev)\n- Referencia: HU 225425, escenario 9. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, sección \"Validaciones de Retanqueo\" (\"Se descarta casuística y será una re-dirección automática a otro portal (CFA)\")\n- Nota: la regla de saldo corre antes que la de mora: este afiliado está en mora y aun así va al CFA. Confirmar con negocio",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado inicia sesión desde el Onboarding de Libre Inversión",
+        "expected": ""
+      },
+      {
+        "action": "When product-validations responde VALIDATION_ERROR con código MANDATORY_REFINANCE",
+        "expected": ""
+      },
+      {
+        "action": "Then solo se ve el loader \"Cargando...\", sin pantalla ni mensaje de error",
+        "expected": ""
+      },
+      {
+        "action": "And el navegador abre https://transacciones.colsubsidio.com/credito/lineas-de-credito/credito-de-consumo.php en la misma pestaña",
+        "expected": "La URL es la de NEXT_PUBLIC_CFA_SITE del ambiente"
+      },
+      {
+        "action": "And al presionar \"Atrás\" en el navegador no se vuelve a /consumo/libre-inversion/validaciones",
+        "expected": "La redirección reemplaza el historial"
+      }
+    ]
+  },
+  {
+    "title": "TC024 - Libre Inversión: la causal de rechazo queda registrada con su paso",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Afiliado que se rechaza en ASCARD o en SIIF\n- Dato de prueba: CC 1023944601 (ASCARD) o CC 38140673 (SIIF)\n- Referencia: HU 225425, escenario 11\n- Nota: lo que se puede ver es la analítica (dataLayer). El registro en base es la tabla DynamoDB de eligibility: pedir la consulta a Verónica o Mateo",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado se rechaza en la pantalla de carga",
+        "expected": ""
+      },
+      {
+        "action": "When se muestra la pantalla de bloqueo",
+        "expected": ""
+      },
+      {
+        "action": "Then en la consola, window.dataLayer tiene el evento de desborde de validación con cod_error, regla_error y step",
+        "expected": "cod_error = código del back; regla_error = reglaErrorValidacion; step = Ascard o Siif"
+      },
+      {
+        "action": "And en DynamoDB de eligibility queda la validación fallida con el documento, el código y la regla",
+        "expected": "Evidencia entregada por desarrollo"
+      },
+      {
+        "action": "And para un retanqueo (CC 1122651592) la regla registrada describe el retanqueo",
+        "expected": "Hoy llega \"Afiliado con productos en mora\" (defecto de trazabilidad)"
+      }
+    ]
+  },
+  {
+    "title": "TC025 - Libre Inversión: error técnico o timeout de SAP, ASCARD o SIIF muestra la pantalla de error técnico",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Afiliado que pasa las validaciones (por ejemplo, el dato de TC001)\n- Forzar la falla: DevTools > Network > clic derecho > Bloquear URL de solicitud sobre affiliation-validations, card-validations o product-validations (o route de Playwright con status 500)\n- Referencia: HU 225425, escenario 11; casuística EXECUTION_ERROR de Drupal (nodo 1183)",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado inicia sesión desde el Onboarding de Libre Inversión",
+        "expected": ""
+      },
+      {
+        "action": "When una de las tres validaciones falla (bloqueo, HTTP 500 o 404)",
+        "expected": ""
+      },
+      {
+        "action": "Then la pantalla de carga no se queda colgada y se muestra \"¡Lo sentimos!\" con \"Lamentablemente no podemos continuar con tu solicitud debido a inconvenientes técnicos...\"",
+        "expected": "Contenido de EXECUTION_ERROR: helper \"Cód. error 500\" y botón \"Conocer Canales de servicio\""
+      },
+      {
+        "action": "And se repite con cada una de las tres validaciones",
+        "expected": "Mismo resultado en las tres; las validaciones siguientes no se llaman"
+      }
+    ]
+  },
+  {
+    "title": "TC026 - Libre Inversión: las pantallas de rechazo coinciden con Figma en desktop y móvil",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Usar las pantallas de rechazo de TC008 a TC018\n- Referencia: Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191; límites de Drupal: título 65, párrafo uno 250, párrafo dos 100, helper 22, botón 32 y link 35 caracteres",
+        "expected": ""
+      },
+      {
+        "action": "Given se muestra una pantalla de rechazo de Libre Inversión",
+        "expected": ""
+      },
+      {
+        "action": "When se revisa en desktop (1366 px) y en móvil (375 px)",
+        "expected": ""
+      },
+      {
+        "action": "Then el encabezado dice \"Solicitud de crédito\" y la imagen, la tipografía y la disposición coinciden con el diseño",
+        "expected": "Sin scroll horizontal en móvil"
+      },
+      {
+        "action": "And título, texto, botón y link coinciden letra por letra con Figma",
+        "expected": "Ningún texto menciona \"Cupo de Crédito\""
+      },
+      {
+        "action": "And botón y link abren su URL en una pestaña nueva, tienen foco visible al navegar con Tab y se activan con Enter",
+        "expected": "Hoy abren en la misma pestaña (defecto frente a la nota _blank de Figma)"
+      }
+    ]
+  },
+  {
+    "title": "TC027 - Regresión Cupo de Crédito: independiente o pensionado sin empresas en SAP sigue pasando",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Entrada por /cupo-de-credito/onboarding (no por Consumo)\n- Dato de prueba: CC 52812754 (ZGRI) y CC 1144154258 (ZGEN), sin empresas en SAP\n- Referencia: Regresión de Cupo por el cambio de eligibility (PR 25381)\n- Nota: medido el 19/10: en CERT (rama qa) pasan OK; en dev (develop) se rechazan con INVALID_USER \"La empresa donde trabaja el usuario debe estar en estado Vigente o en Radicación\" (defecto)",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado inicia sesión desde el Onboarding de Cupo de Crédito",
+        "expected": ""
+      },
+      {
+        "action": "When affiliation-validations se llama con grupoProducto CUPO",
+        "expected": ""
+      },
+      {
+        "action": "Then responde OK y el afiliado sigue a /cupo-de-credito/politicas",
+        "expected": "Mismo resultado que hoy en CERT"
+      }
+    ]
+  },
+  {
+    "title": "TC028 - Cupo activo (bolsillo 31 normal): Consumo deja pasar y Cupo bloquea",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Dato de prueba: CC 52952636 (bolsillo 31 en estado 1 NORMAL)\n- Referencia: HU 225425, escenario 4 y punto 4 de la descripción (estados de cupo)",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado entra por /consumo/libre-inversion/onboarding",
+        "expected": ""
+      },
+      {
+        "action": "When card-validations se llama con grupoProducto CONSUMO",
+        "expected": ""
+      },
+      {
+        "action": "Then responde OK y el afiliado continúa (si pasa SIIF)",
+        "expected": "No se bloquea por tener cupo activo"
+      },
+      {
+        "action": "And al entrar con la misma cédula por /cupo-de-credito/onboarding, card-validations responde INVALID_REQUIREMENTS \"Afiliado con cupo activo\" y se muestra la casuística Redeban de Cupo",
+        "expected": "Cupo sin cambios"
+      }
+    ]
+  },
+  {
+    "title": "TC029 - Libre Inversión: tarjeta multiservicios no activa (CARD_STATUS) [resultado por confirmar]",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP; su tarjeta multiservicios no está activa en ASCARD\n- Dato de prueba: CC 1015392154 (CARD_STATUS en dev)\n- Referencia: HU 225425, escenario 4 y Excel \"Validaciones de caja V2\" (estado de tarjeta: \"No aplica para consumo\")\n- Nota: el código de Consumo sí bloquea por CARD_STATUS y Figma no tiene pantalla para este caso: confirmar con la PO si debe pasar o bloquear",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado inicia sesión desde el Onboarding de Libre Inversión",
+        "expected": ""
+      },
+      {
+        "action": "When card-validations responde CARD_STATUS \"Tarjeta multiservicios no activa\"",
+        "expected": ""
+      },
+      {
+        "action": "Then el resultado coincide con lo que defina la PO",
+        "expected": "Hoy: pantalla \"Lo sentimos / Verifica el estado de tu Tarjeta de Afiliación Multiservicios...\""
+      }
+    ]
+  },
+  {
+    "title": "TC030 - Cada producto envía su grupoProducto e idProducto a las validaciones",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Con DevTools > Network abierto\n- Dato de prueba: cualquier cédula que llegue a las tres validaciones\n- Referencia: HU 225425, criterios técnicos (parametrización por producto) y tarea 226676",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado entra por cada ruta: /consumo/libre-inversion, /consumo/compra-de-cartera, /consumo/mujeres y /cupo-de-credito",
+        "expected": ""
+      },
+      {
+        "action": "When se llaman affiliation-validations, card-validations y product-validations",
+        "expected": ""
+      },
+      {
+        "action": "Then Libre Inversión envía \"grupoProducto\": \"CONSUMO\" con \"idProducto\": 1; Compra de Cartera, 2; Mujeres, 72",
+        "expected": "Los tres request de cada producto llevan el mismo par"
+      },
+      {
+        "action": "And Cupo envía \"grupoProducto\": \"CUPO\" sin idProducto",
+        "expected": ""
+      },
+      {
+        "action": "And en Consumo no se escribe la cookie de tipo de solicitud (caseType) y la respuesta de ASCARD no trae tipoSolicitud ni tarjetaAmparada",
+        "expected": ""
+      }
+    ]
+  },
+  {
+    "title": "TC031 - Las validaciones se cortan en el primer rechazo",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Dato de prueba: CC 80057089 o CC 1023876310 (se rechazan en SAP)\n- Referencia: HU 225425; orden SAP > ASCARD > SIIF",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado inicia sesión desde el Onboarding de Libre Inversión",
+        "expected": ""
+      },
+      {
+        "action": "When affiliation-validations responde VALIDATION_ERROR",
+        "expected": ""
+      },
+      {
+        "action": "Then card-validations y product-validations no se llaman",
+        "expected": "Network solo muestra la llamada de SAP"
+      },
+      {
+        "action": "And se cierra la sesión del afiliado al mostrar la pantalla de rechazo",
+        "expected": "Se borra el token; recargar lleva al Onboarding"
+      }
+    ]
+  },
+  {
+    "title": "TC032 - Retanqueo solo por créditos del mismo subproducto (variantes)",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Variante A: Compra de Cartera, con saldo en un crédito de Compra de Cartera\n- Variante B: Libre Inversión, con saldo solo en un crédito de Compra de Cartera\n- Variante C: Mujeres, con saldo en un crédito de Libre Inversión\n- Dato de prueba: A y B: CC 346393 (código 606 con saldo, en mora). C: CC 1122651592\n- Referencia: HU 225425, escenario 9 (\"créditos vigentes de Consumo con saldo\")\n- Nota: por código: A redirige al CFA; B y C no son retanqueo (salen por mora). La HU habla de cualquier crédito de Consumo: confirmar la regla con negocio",
+        "expected": ""
+      },
+      {
+        "action": "Given el afiliado inicia sesión en el producto de cada variante",
+        "expected": ""
+      },
+      {
+        "action": "When product-validations evalúa los saldos",
+        "expected": ""
+      },
+      {
+        "action": "Then la variante A responde MANDATORY_REFINANCE y redirige al CFA",
+        "expected": ""
+      },
+      {
+        "action": "And las variantes B y C muestran el resultado definido por negocio",
+        "expected": "Hoy: INVALID_REQUIREMENTS \"Afiliado con productos en mora\""
+      }
+    ]
+  },
+  {
+    "title": "TC033 - Libre Inversión: no se puede saltar la pantalla de validaciones",
+    "steps": [
+      {
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Referencia: HU 225425, escenario 1 (las validaciones son paso obligatorio)",
+        "expected": ""
+      },
+      {
+        "action": "Given un afiliado sin sesión en Libre Inversión",
+        "expected": ""
+      },
+      {
+        "action": "When abre directamente /consumo/libre-inversion/politicas",
+        "expected": ""
+      },
+      {
+        "action": "Then lo redirige al Onboarding de Libre Inversión",
+        "expected": "HTTP 307 a /consumo/libre-inversion/onboarding"
+      },
+      {
+        "action": "And un afiliado que se acaba de rechazar en validaciones tampoco ve políticas al escribir esa URL",
+        "expected": "No se crea caso en validate-request"
       }
     ]
   }

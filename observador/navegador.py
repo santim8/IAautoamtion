@@ -6,14 +6,22 @@ from observador.config import SCRIPT
 from observador.util import es_url_real
 
 
+# Donde lo deja el instalador de Chrome: para toda la maquina o solo el usuario.
+CANDIDATOS_CHROME = [
+    r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+    r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+    os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"),
+]
+
+
+def buscar_chrome():
+    """Ruta de chrome.exe, o None (tambien la usa verificar_entorno.py)."""
+    return next((c for c in CANDIDATOS_CHROME if os.path.exists(c)), None)
+
+
 def lanzar_chrome(puerto):
     """Abre Chrome con puerto de depuracion y perfil aparte (el login persiste)."""
-    candidatos = [
-        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-        os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"),
-    ]
-    exe = next((c for c in candidatos if os.path.exists(c)), None)
+    exe = buscar_chrome()
     if not exe:
         print("No encontre chrome.exe. Lanzalo a mano con:")
         print(f'  chrome.exe --remote-debugging-port={puerto} '

@@ -27,6 +27,17 @@ python -m pip install -r requirements.txt
 python -m playwright install chromium
 ```
 
+Después, para saber qué le falta a la máquina y qué pestaña deja de andar por
+eso (no instala ni cambia nada):
+
+```
+python verificar_entorno.py
+```
+
+Para levantar el front de Consumo en local (`front-consumo-local` en
+`.claude/launch.json`), el clon va en `~/qa-front-consumo` o donde diga la
+variable `QA_FRONT_DIR`.
+
 ## Configuración
 
 Qué pide cada pestaña, para no configurar de más:
@@ -81,7 +92,7 @@ pedíselas a quien ya tenga el panel andando.
 | `~/.panel_qa/usuarios_prueba.json` | usuarios de prueba, con sus claves en claro |
 | `colsubsidio_flow/data/cedulas.json` | cédulas de los tests UI por data provider, sin claves; **sí se versiona** |
 | `~/.panel_qa/backups/` | copia previa a cada guardado |
-| `~/.panel_qa/logs/` | log completo de cada corrida y los Excel exportados |
+| `~/.panel_qa/logs/` | log completo de cada corrida |
 
 Los usuarios viven fuera del repo a propósito: dentro, un `git clean -fdx` se
 los llevaría por delante.

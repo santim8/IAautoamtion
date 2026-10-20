@@ -10,7 +10,7 @@
     {
       "name": "front-consumo-local",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["C:/Users/santiago.correa03/qa-front-consumo/node_modules/next/dist/bin/next", "dev", "C:/Users/santiago.correa03/qa-front-consumo", "-p", "3005"],
+      "runtimeArgs": ["front_consumo_local.js", "3005"],
       "port": 3005
     }
   ]
