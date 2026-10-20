@@ -35,11 +35,11 @@ datas = [
     ("usuarios_compartidos.json", "."),
 ]
 binaries = []
-hiddenimports = HIJOS + ["esquemas", "rutas", "sonda_check"]
+hiddenimports = HIJOS + ["esquemas", "rutas", "sonda_check", "usuarios"]
 
 # playwright trae su driver de node como dato del paquete; sin collect_all el
 # .exe arranca y falla al abrir el navegador
-for paquete in ("playwright", "jsonschema", "openpyxl"):
+for paquete in ("playwright", "jsonschema"):
     d, b, h = collect_all(paquete)
     datas += d
     binaries += b

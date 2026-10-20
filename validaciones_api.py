@@ -10,8 +10,8 @@ porque el WAF de AWS bloquea esos clientes con 403, y el header
 
 Imprime `[EXCEL_UPDATE] Thread:N doc - servicio - estado` por cada
 resultado, el mismo formato que ya lee panel_observador.py (clase
-Validaciones) via RE_EXCEL -- asi la tabla, los colores y el export a Excel
-del panel no necesitan cambios.
+Validaciones) via RE_RESULTADO -- asi la tabla y los colores del panel no
+necesitan cambios.
 
 Uso:
     python validaciones_api.py [--hilos N] TIPO:NUMERO [TIPO:NUMERO ...]
@@ -129,8 +129,8 @@ def _curl(metodo, url, headers=None, body=None, params=None, timeout=20):
 def _interpretar_validacion(status, cuerpo, codigo_ok=200):
     """PASS/FAIL/PARTIAL segun resultadoValidacion.estado, igual que
     ReportUtils.getValidationStatusFromResponse/...DetailsFromResponse en
-    Java. Sirve para Validation Bizagi, Card Validation, Siif Validation,
-    Restrictive List y Validate Request."""
+    Java. Sirve para Validation Bizagi, Card Validation, Siif Validation y
+    Validate Request."""
     resultado = cuerpo.get("resultadoValidacion") if isinstance(cuerpo, dict) else None
     if not isinstance(resultado, dict):
         return ("PASS" if status == codigo_ok else "FAIL"), "HTTP %s" % status
@@ -372,15 +372,7 @@ def validar_documento(tipo, numero):
                 novedad = {1: "ORIGINACIÓN", 2: "AUMENTO", 3: "REACTIVACIÓN"}.get(tipo_solicitud)
                 _emitir(numero, "Novedad Estado", novedad or "DESCONOCIDO (%s)" % tipo_solicitud)
 
-    # 6) Restrictive List
-    status, cuerpo = _curl(
-        "POST", BASE_APIGEE + "/api/v2/credito/elegibilidad/listasrestrictivas",
-        headers={"Authorization": "Bearer %s" % token_apigee()},
-        body={"numeroDocumento": numero, "tipoDocumento": doc_servicios})
-    estado, detalle = _interpretar_validacion(status, cuerpo)
-    _emitir(numero, "Restrictive List", "%s - %s" % (estado, detalle))
-
-    # 7) Siif Validation
+    # 6) Siif Validation (Restrictive List se quito: el servicio ya no esta vigente)
     status, cuerpo = _curl(
         "POST", BASE_APIGEE + "/api/v2/credito/elegibilidad/productos",
         headers={"Authorization": "Bearer %s" % token_apigee()},
@@ -388,7 +380,7 @@ def validar_documento(tipo, numero):
     estado, detalle = _interpretar_validacion(status, cuerpo)
     _emitir(numero, "Siif Validation", "%s - %s" % (estado, detalle))
 
-    # 8) Validate Request -- solo si el usuario tiene credenciales SSO
+    # 7) Validate Request -- solo si el usuario tiene credenciales SSO
     doc_validate = DOC_TYPE_VALIDATE_REQUEST.get(tipo.upper())
     if not sso:
         _emitir(numero, "Validate Request", "SKIP - Sin credenciales SSO")
@@ -402,7 +394,7 @@ def validar_documento(tipo, numero):
         estado, detalle = _interpretar_validacion(status, cuerpo, codigo_ok=202)
         _emitir(numero, "Validate Request", "%s - %s" % (estado, detalle))
 
-    # 9) Preapproved
+    # 8) Preapproved
     doc_pre = DOC_TYPE_PREAPPROVED.get(tipo.upper())
     if doc_pre is None:
         _emitir(numero, "Preapproved", "SKIP - Tipo de documento no soportado (%s)" % tipo)
