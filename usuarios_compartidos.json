@@ -2,39 +2,53 @@
   {
     "tipo": "CC",
     "usuario": "1032410060",
-    "clave": "",
+    "clave": "C0lsu_25#Bsid!",
     "descripcion": "APROVADO",
-    "status": "Disponible",
-    "falla": ""
+    "status": "Bloqueado",
+    "falla": "en siif",
+    "etiquetas": [
+      "genero-cruzado-sap",
+      "hu225425"
+    ]
   },
   {
     "tipo": "CC",
     "usuario": "52167144",
-    "clave": "",
-    "descripcion": "INDEPEDIENTE",
+    "clave": "C0lsu_25#Bsid!!",
+    "descripcion": "INDEPEDIENTE/reactivación,",
     "status": "Disponible",
-    "falla": ""
+    "falla": "cupo activo",
+    "etiquetas": [
+      "hu225425"
+    ]
   },
   {
     "tipo": "CC",
     "usuario": "52961647",
-    "clave": "",
+    "clave": "C0lsu_25#Bsid!",
     "descripcion": "PREAPROVADO",
     "status": "Con falla",
-    "falla": "Rechaza motor"
+    "falla": "NO CONTRASEÑA",
+    "etiquetas": [
+      "hu225425"
+    ]
   },
   {
     "tipo": "CC",
     "usuario": "74188681",
-    "clave": "",
+    "clave": "C0lsu_25#Bsid!!",
     "descripcion": "",
     "status": "",
-    "falla": ""
+    "falla": "",
+    "etiquetas": [
+      "hu225423",
+      "hu225425"
+    ]
   },
   {
     "tipo": "CC",
     "usuario": "1078366073",
-    "clave": "",
+    "clave": "C0lsu_25#Bsid!",
     "descripcion": "",
     "status": "En uso",
     "falla": ""
@@ -42,31 +56,42 @@
   {
     "tipo": "CC",
     "usuario": "74188681",
-    "clave": "",
+    "clave": "C0lsu_25#Bsid!",
     "descripcion": "",
     "status": "",
-    "falla": ""
+    "falla": "",
+    "etiquetas": [
+      "hu225423",
+      "hu225425"
+    ]
   },
   {
     "tipo": "CC",
     "usuario": "52961647",
-    "clave": "",
-    "descripcion": "PENSIONADO",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "PENSIONADO, zona gris",
     "status": "Disponible",
-    "falla": ""
+    "falla": "",
+    "etiquetas": [
+      "hu225425"
+    ]
   },
   {
     "tipo": "CC",
     "usuario": "79978859",
-    "clave": "",
+    "clave": "C0lsu_25#Bsid!",
     "descripcion": "PREAPROVADO",
     "status": "Con falla",
-    "falla": "motor se demora en responde"
+    "falla": "motor se demora en responde",
+    "etiquetas": [
+      "genero-cruzado-sap",
+      "hu225423"
+    ]
   },
   {
     "tipo": "CC",
     "usuario": "79386136",
-    "clave": "",
+    "clave": "C0lsu_25#Bsid!",
     "descripcion": "REACTIVACION",
     "status": "Con falla",
     "falla": "Falla motor"
@@ -74,25 +99,1135 @@
   {
     "tipo": "CC",
     "usuario": "1000000001",
-    "clave": "",
+    "clave": "C0lsu_25#Bsid¡",
     "descripcion": "NOVEDADES",
     "status": "",
+    "falla": "",
+    "etiquetas": [
+      "hu225423"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "80057089",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "aprovado",
+    "status": "Disponible",
+    "falla": "",
+    "etiquetas": [
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "79978859",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "testest",
+    "status": "Disponible",
+    "falla": "",
+    "etiquetas": [
+      "genero-cruzado-sap",
+      "hu225423"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "39712148",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "facutativo",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "360750",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "facutativo",
+    "status": "Disponible",
+    "falla": "",
+    "etiquetas": [
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "17976879",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "Dependiente, zona gris",
+    "status": "",
+    "falla": "rechaza motor"
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1030533215",
+    "clave": "C0lsu_25#Bsid!!",
+    "descripcion": "zona gris",
+    "status": "",
+    "falla": "CASE IN PROGRESSS"
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52852731",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "faculttativo funciona",
+    "status": "Disponible",
+    "falla": "",
+    "etiquetas": [
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52705624",
+    "clave": "Colsu25#bsidio",
+    "descripcion": "independiente",
+    "status": "Disponible",
+    "falla": "",
+    "etiquetas": [
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52335676",
+    "clave": "Colsu_25#bsidio",
+    "descripcion": "dependiente",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "80426317",
+    "clave": "Colsu_25#bsidio",
+    "descripcion": "rechaza motor",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "41336668",
+    "clave": "Colsu_25#bsidio",
+    "descripcion": "falla en biometria | correo pruebav2@deltajohnsons.com",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "novedades-autorizada",
+      "hu225425",
+      "lote-claves-2026-10-23"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "51760693",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "ASCARD V (reactivacion), lista autorizada de novedades",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "novedades-autorizada",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1140814422",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "ASCARD 1 (aumento), lista autorizada de novedades | correo estadozpruebaaa@somoj.com",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "novedades-autorizada",
+      "lote-claves-2026-10-23",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1095915781",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "ASCARD I + amparada, lista autorizada de novedades | correo pruebao2@deltajohnsons.com",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "novedades-autorizada",
+      "lote-claves-2026-10-23",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1097397286",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "ASCARD 1 (aumento), lista autorizada de novedades | correo estadosprueba1@somoj.com",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "novedades-autorizada",
+      "lote-claves-2026-10-23",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52634111",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "ASCARD I + amparada, lista autorizada de novedades | correo pruebai@deltajohnsons.com",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "novedades-autorizada",
+      "hu225425",
+      "lote-claves-2026-10-23"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52966724",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "ASCARD 1 (aumento), lista autorizada de novedades | correo estado52prue@somoj.com",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "novedades-autorizada",
+      "lote-claves-2026-10-23",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "79528108",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "ASCARD I (reactivacion), lista autorizada de novedades | correo pruebai2@deltajohnsons.com",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "novedades-autorizada",
+      "lote-claves-2026-10-23",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1013595547",
+    "clave": "",
+    "descripcion": "ASCARD I + amparada (card-validations)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "20156603",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "ASCARD I + amparada (card-validations) | correo pruebaamp@deltajohnsons.com",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "hu225425",
+      "lote-claves-2026-10-23"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52526685",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "ASCARD O (cupo congelado) hasta 2026-10; el 14-10 paso a 1 | correo pruebao@deltajohnsons.com",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "lote-claves-2026-10-23",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "80810798",
+    "clave": "",
+    "descripcion": "ASCARD 1 hasta 2026-10; el 14-10 paso a J (mora)",
+    "status": "",
     "falla": ""
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1023876310",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "ASCARD 1 (incremento) segun card-validations | correo orqprueba@wshu.net",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "hu225425",
+      "lote-claves-2026-10-23"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "79584194",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "ASCARD R cuenta refinanciada (2026-10, puede haber cambiado) | correo pruebar@deltajohnsons.com",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "candidato-mora",
+      "hu225425",
+      "lote-claves-2026-10-23"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "19184974",
+    "clave": "",
+    "descripcion": "ASCARD K cuenta castigada (2026-10, puede haber cambiado)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "candidato-mora",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "19246507",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "ASCARD J cobro pre juridico (2026-10, puede haber cambiado) | correo redeban8@mechanicspedia.com",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "candidato-mora",
+      "hu225425",
+      "lote-claves-2026-10-23"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "11259747",
+    "clave": "",
+    "descripcion": "ASCARD J cobro pre juridico (2026-10, puede haber cambiado)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "candidato-mora",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "547911",
+    "clave": "",
+    "descripcion": "ASCARD B cancelada por el banco (2026-10, puede haber cambiado)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "candidato-mora",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1023944601",
+    "clave": "",
+    "descripcion": "ASCARD Y cobro juridico (2026-10, puede haber cambiado)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "candidato-mora",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "13617086",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "ASCARD A mora en productos (2026-10, puede haber cambiado) | correo prueba3a@deltajohnsons.com",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "candidato-mora",
+      "hu225425",
+      "lote-claves-2026-10-23"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "80833648",
+    "clave": "Colsubsidio2025.",
+    "descripcion": "sin tarjeta (CARD_STATUS) | correo ramipagr@colsubsidio.com",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "lote-claves-2026-10-23",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1024539415",
+    "clave": "",
+    "descripcion": "sin tarjeta (CARD_STATUS)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "hu225425"
+    ]
   },
   {
     "tipo": "CC",
     "usuario": "1000000004",
     "clave": "",
-    "descripcion": "aprovado",
+    "descripcion": "visto en capturas (hombre)",
     "status": "",
     "falla": ""
   },
   {
     "tipo": "CC",
-    "usuario": "79978859",
+    "usuario": "79152092",
+    "clave": "",
+    "descripcion": "visto en capturas (hombre)",
+    "status": "",
+    "falla": ""
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52812754",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "visto en capturas (mujer, ZAIN)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1023866784",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "creado en CIAM dev por Bruno (206002, falta verificar correo)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "ciam-lote-2026-10-08"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1023892854",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "creado en CIAM dev por Bruno (206002, falta verificar correo)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "ciam-lote-2026-10-08"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1023937694",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "creado en CIAM dev por Bruno (206002, falta verificar correo)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "ciam-lote-2026-10-08"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1023946960",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "creado en CIAM dev por Bruno (206002, falta verificar correo)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "ciam-lote-2026-10-08"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1023930505",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "creado en CIAM dev por Bruno (206002, falta verificar correo)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "ciam-lote-2026-10-08"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1024478153",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "creado en CIAM dev por Bruno (206002, falta verificar correo)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "ciam-lote-2026-10-08"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1024518525",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "creado en CIAM dev por Bruno (206002, falta verificar correo)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "ciam-lote-2026-10-08"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "53072901",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "creado en CIAM dev por Bruno (206002, falta verificar correo)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "ciam-lote-2026-10-08"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "93295151",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "creado en CIAM dev por Bruno (206002, falta verificar correo)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "ciam-lote-2026-10-08"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "937774",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "creado en CIAM dev por Bruno (206002, falta verificar correo)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "ciam-lote-2026-10-08",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "11367371",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "creado en CIAM dev por Bruno (206002, falta verificar correo)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "ciam-lote-2026-10-08"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "346212",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "creado en CIAM dev por Bruno (206002, falta verificar correo)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "ciam-lote-2026-10-08"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52362727",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "creado en CIAM dev por Bruno (206002, falta verificar correo)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "ciam-lote-2026-10-08"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52373682",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "creado en CIAM dev por Bruno (206002, falta verificar correo)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "ciam-lote-2026-10-08"
+    ]
+  },
+  {
+    "tipo": "CE",
+    "usuario": "293495",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "register dio 500001 pero la cuenta aparece como existente (2026-10-08)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "ciam-dudoso"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52952636",
     "clave": "",
     "descripcion": "",
     "status": "",
-    "falla": ""
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-15"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1015392154",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-15"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "80273420",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-80273420",
+      "ciam-creado-2026-10-15"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "80808288",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "Dependiente, zona gris (pedida, sin confirmar)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-15",
+      "ciam-creado-2026-10-15"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "86041270",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "Dependiente, zona gris (pedida, sin confirmar)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-15",
+      "ciam-creado-2026-10-15",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "91156652",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "Dependiente, aprobado (pedido, sin confirmar)",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-15",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52160953",
+    "clave": "Colsu25#bsidio",
+    "descripcion": "Dependiente, rechazo",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-15",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1004921429",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-16"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1069734918",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-16",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "38140673",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-16",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1018475123",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-16",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "79301399",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-16"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1022366366",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-16"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1016080743",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-16"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1235339266",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-16",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1122651592",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-16",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1022329396",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-16",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1102842070",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-16"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1014195485",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-16"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "75103224",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-16",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "46673231",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "346393",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "396301",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "512373",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CE",
+    "usuario": "584133",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CE",
+    "usuario": "807188",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "230280",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "536001",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CE",
+    "usuario": "661671",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CE",
+    "usuario": "636711",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "7332595",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "193500",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "7708380",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "9156070",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "39577674",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52303684",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CE",
+    "usuario": "482014",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "3146880",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CE",
+    "usuario": "423569",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52550152",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52620393",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52778960",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "80032935",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "179720",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52368997",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52418847",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "52784932",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "retanqueo-siif-2026-10-19"
+    ]
+  },
+  {
+    "tipo": "CC",
+    "usuario": "1144154258",
+    "clave": "",
+    "descripcion": "",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "consulta-2026-10-19",
+      "hu225425"
+    ]
+  },
+  {
+    "tipo": "CE",
+    "usuario": "382429",
+    "clave": "C0lsu_25#Bsid!",
+    "descripcion": "correo globantdata33@tiffincrane.com",
+    "status": "",
+    "falla": "",
+    "etiquetas": [
+      "lote-claves-2026-10-23",
+      "hu225425"
+    ]
   }
 ]

@@ -3,7 +3,7 @@
     "title": "TC001 - Libre Inversión: dependiente con una empresa VIGEN pasa SAP, ASCARD y SIIF y llega a políticas",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Afiliado dependiente (ZGRP) con una sola empresa en estado VIGEN\n- ASCARD sin bolsillo 31 o con un estado que no bloquea en Consumo (no K, D, C, Y, A, J, M, L, Z, R, B, F)\n- SIIF sin moras y sin saldo en créditos de Libre Inversión (si no, sale retanqueo)\n- Dato de prueba: por definir en el banco de usuarios (dependiente ZGRP, empresa VIGEN, pasa las tres validaciones)\n- Referencia: HU 225425, escenarios 1, 2 y 6",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Afiliado dependiente (ZGRP) con una sola empresa en estado VIGEN\n- ASCARD sin bolsillo 31 o con un estado que no bloquea en Consumo (no K, D, C, Y, A, J, M, L, Z, R, B, F)\n- SIIF sin moras y sin saldo en créditos de Libre Inversión (si no, sale retanqueo)\n- Dato de prueba: CC 52335676 (dependiente, una empresa VIGEN, sin obligaciones en SIIF, sin bolsillo 31; pasa las tres en dev el 23/10; clave en el banco, sin caso). Respaldo: CC 91156652 o CC 52160953\n- Referencia: HU 225425, escenarios 1, 2 y 6",
         "expected": ""
       },
       {
@@ -32,7 +32,7 @@
     "title": "TC003 - Libre Inversión: pensionado pasa las validaciones de caja (con y sin empresa en SAP)",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Variante A: pensionado (ZGRE/ZGEN) con una empresa pagadora en estado VIGEN en SAP\n- Variante B: pensionado sin empresas en SAP\n- Dato de prueba: A: CC 52961647 (ZGRE, empresa 9003360047 VIGEN; pasa SAP y SIIF en dev, confirmar ASCARD y que no tenga caso abierto). B: CC 1144154258 (ZGEN, sin empresas)\n- Referencia: HU 225425, escenario 3\n- Nota: la etiqueta \"Pensionado\" sin NIT y la clasificación No Libranza se ven en Información personal (HU 225431) y en Bizagi, no en esta pantalla. Medido el 19/10: la variante B hoy se rechaza con INVALID_USER \"Estado empresa dependiente\" (defecto)",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Variante A: pensionado (ZGRE/ZGEN) con una empresa pagadora en estado VIGEN en SAP\n- Variante B: pensionado sin empresas en SAP\n- Dato de prueba: A: CC 52961647 (pensionada ZAPE, empresa 9003360047 VIGEN; pasa las tres en dev el 23/10, pero tiene un caso de promotor abierto: cancelarlo antes). B: CC 1144154258 (ZGEN, sin empresas; clave desconocida: validar la regla por API y la pantalla con mock)\n- Referencia: HU 225425, escenario 3\n- Nota: la etiqueta \"Pensionado\" sin NIT y la clasificación No Libranza se ven en Información personal (HU 225431) y en Bizagi, no en esta pantalla. Medido el 19/10: la variante B hoy se rechaza con INVALID_USER \"Estado empresa dependiente\" (defecto)",
         "expected": ""
       },
       {
@@ -61,7 +61,7 @@
     "title": "TC004 - Libre Inversión: independiente sin empresas en SAP pasa las validaciones de caja",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Afiliado independiente (ZGRI) sin empresas en SAP, que pasa ASCARD y SIIF\n- Dato de prueba: CC 52812754 (ZGRI, sin empresas; confirmar ASCARD y SIIF)\n- Referencia: HU 225425, escenario 3\n- Nota: medido el 19/10: hoy se rechaza con INVALID_USER \"Estado empresa dependiente\" (defecto, mismo origen que TC027). La etiqueta \"Independiente\" sin NIT es de la HU 225431",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Afiliado independiente (ZGRI) sin empresas en SAP, que pasa ASCARD y SIIF\n- Dato de prueba: CC 52705624, CC 52812754 o CC 52966724 (ZAIN, sin empresas, clave en el banco; pasan ASCARD y SIIF en dev el 23/10)\n- Referencia: HU 225425, escenario 3\n- Nota: medido el 19/10: hoy se rechaza con INVALID_USER \"Estado empresa dependiente\" (defecto, mismo origen que TC027). La etiqueta \"Independiente\" sin NIT es de la HU 225431",
         "expected": ""
       },
       {
@@ -86,7 +86,7 @@
     "title": "TC005 - Libre Inversión: una empresa no vigente y otra VIGEN (solo cuenta la VIGEN)",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Variante A: una empresa VIGEN y otra en un estado distinto de VIGEN y RADIC (por ejemplo RETIR)\n- Variante B: una empresa VIGEN y otra en RADIC\n- Dato de prueba: por definir (pedir a datos o al banco: dependiente con 2 empresas en esos estados)\n- Referencia: HU 225425, escenario 2\n- Nota: por código, la variante A pasa (el mapper descarta la empresa RETIR) y la variante B se rechaza con INVALID_USER, porque Consumo exige que todas sean VIGEN. Confirmar con la PO cuál es el comportamiento esperado de la B",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Variante A: una empresa VIGEN y otra en un estado distinto de VIGEN y RADIC (por ejemplo RETIR)\n- Variante B: una empresa VIGEN y otra en RADIC\n- Dato de prueba: no hay en el banco. El 23/10 se revisaron las 106 cédulas en affiliation-validations de CERT (datosSinProcesar) y en SAP directo (validador de Apigee): ninguna tiene una empresa RETIR ni RADIC; 7 tienen dos empresas y las dos están VIGEN. Pedir a datos un dependiente con una empresa VIGEN y otra RETIR, y otro con una VIGEN y otra RADIC. Ojo: datosSinProcesar no trae todas las empresas: en CERT (rama qa) deja solo la de ingreso más reciente y en dev (develop) solo las VIGEN y RADIC; el campo empleadoresConcurrentes sí dice cuántas hay\n- Referencia: HU 225425, escenario 2\n- Nota: por código, la variante A pasa (el mapper descarta la empresa RETIR) y la variante B se rechaza con INVALID_USER, porque Consumo exige que todas sean VIGEN. Confirmar con la PO cuál es el comportamiento esperado de la B",
         "expected": ""
       },
       {
@@ -111,7 +111,7 @@
     "title": "TC006 - Libre Inversión: bolsillo 31 en X (robada) o W (desafiliado) no bloquea",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP y SIIF\n- En ASCARD, el bolsillo 31 está en estado X o W\n- Dato de prueba: por definir (bolsillo 31 en X o en W, con tarjeta activa)\n- Referencia: HU 225425, escenario 4\n- Nota: el código de Consumo solo bloquea K, D, C, Y, A, J, M, L, Z, R, B y F; la tarjeta no activa (CARD_STATUS) sí bloquea (ver TC029)",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP y SIIF\n- En ASCARD, el bolsillo 31 está en estado X o W\n- Dato de prueba: no hay bolsillo 31 en X ni en W en el banco (pedir a datos). Cobertura parcial con estados que no bloquean: CC 41336668 (31 en V, devolución voluntaria) y CC 80426317 (31 en I, inactivo); las dos pasan ASCARD en dev y tienen clave\n- Referencia: HU 225425, escenario 4\n- Nota: el código de Consumo solo bloquea K, D, C, Y, A, J, M, L, Z, R, B y F; la tarjeta no activa (CARD_STATUS) sí bloquea (ver TC029)",
         "expected": ""
       },
       {
@@ -136,7 +136,7 @@
     "title": "TC007 - Libre Inversión: SIIF sin obligaciones registradas no bloquea",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP y ASCARD\n- SIIF no le registra obligaciones (o solo obligaciones canceladas, sin saldo)\n- Dato de prueba: CC 52961647 (product-validations OK en dev con idProducto 1; confirmar ASCARD)\n- Referencia: HU 225425, escenario 10",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP y ASCARD\n- SIIF no le registra obligaciones (o solo obligaciones canceladas, sin saldo)\n- Dato de prueba: CC 52335676 (sin obligaciones) y CC 86041270 (crédito de Libre Inversión 160 cancelado, con saldo 0); las dos pasan en dev el 23/10 y tienen clave\n- Referencia: HU 225425, escenario 10",
         "expected": ""
       },
       {
@@ -161,7 +161,7 @@
     "title": "TC008 - Libre Inversión: afiliado no encontrado en SAP",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El documento no existe en SAP (validador de derechos devuelve data vacía)\n- Dato de prueba: CC 360750 (no tiene cuenta CIAM: crearla con usuarios.py crear-ciam o simular la respuesta con route de Playwright)\n- Referencia: HU 225425, escenario 11. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"Afiliado no encontrado\"\n- Nota: medido el 19/10: affiliation-validations responde HTTP 404 (INVALID_USER), CloudFront lo cambia por su HTML y el front muestra el error técnico (defecto). Drupal AFFILIATE_STATUS tiene otro título, sin la frase del dependiente, y botón \"Afíliate ya\" hacia /afiliate/proceso",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El documento no existe en SAP (validador de derechos devuelve data vacía)\n- Dato de prueba: CC 937774 (no existe en SAP; cuenta CIAM creada el 08/10 con clave en el banco: confirmar que el correo esté verificado) o CC 360750 (sin cuenta CIAM: crearla con usuarios.py crear-ciam)\n- Referencia: HU 225425, escenario 11. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"Afiliado no encontrado\"\n- Nota: medido el 19/10: affiliation-validations responde HTTP 404 (INVALID_USER), CloudFront lo cambia por su HTML y el front muestra el error técnico (defecto). Drupal AFFILIATE_STATUS tiene otro título, sin la frase del dependiente, y botón \"Afíliate ya\" hacia /afiliate/proceso",
         "expected": ""
       },
       {
@@ -198,7 +198,7 @@
     "title": "TC009 - Libre Inversión: titularidad o afiliación no vigente (INVALID_USER)",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Variante A: el documento es de un beneficiario, no del titular\n- Variante B: la afiliación no está VIGEN\n- Dato de prueba: A: por definir (beneficiario con cuenta CIAM). B: CC 1023876310 (RETIR; INVALID_USER \"Afiliado no vigente\" en dev)\n- Referencia: HU 225425, escenario 11. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"Titularidad, Estado de afiliación\"\n- Nota: hoy Drupal INVALID_USER dice \"No puedes acceder al Cupo de Crédito\" y tiene un botón \"Afíliate\" que el diseño no lleva (defecto de contenido)",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Variante A: el documento es de un beneficiario, no del titular\n- Variante B: la afiliación no está VIGEN\n- Dato de prueba: A: no hay beneficiario en el banco (pedir a datos, con cuenta CIAM). B: CC 1023876310 o CC 80833648 (RETIR; INVALID_USER \"Afiliado con estado no vigente\" en dev el 23/10; clave en el banco)\n- Referencia: HU 225425, escenario 11. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"Titularidad, Estado de afiliación\"\n- Nota: hoy Drupal INVALID_USER dice \"No puedes acceder al Cupo de Crédito\" y tiene un botón \"Afíliate\" que el diseño no lleva (defecto de contenido)",
         "expected": ""
       },
       {
@@ -231,7 +231,7 @@
     "title": "TC010 - Libre Inversión: edad fuera de 18 a 69 años (AGE_OUT_OF_RANGE)",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Afiliado vigente y titular con 70 años o más (o menor de 18)\n- Dato de prueba: por definir en el banco (afiliado de 70 años o más con cuenta CIAM)\n- Referencia: HU 225425, escenario 11. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"No cumple con la edad requerida\"\n- Nota: hoy Drupal AGE_OUT_OF_RANGE dice \"el Cupo de Crédito está disponible...\" (defecto de contenido)",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Afiliado vigente y titular con 70 años o más (o menor de 18)\n- Dato de prueba: CC 19246507 (72 años; AGE_OUT_OF_RANGE en dev el 23/10; clave en el banco). Sin clave: CC 19184974 (73 años)\n- Referencia: HU 225425, escenario 11. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"No cumple con la edad requerida\"\n- Nota: hoy Drupal AGE_OUT_OF_RANGE dice \"el Cupo de Crédito está disponible...\" (defecto de contenido)",
         "expected": ""
       },
       {
@@ -405,7 +405,7 @@
     "title": "TC016 - Libre Inversión: empresa no VIGEN muestra el mensaje de empleador, no el de titularidad",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Dependiente cuya empresa no está VIGEN (o sin empresas activas en SAP)\n- Dato de prueba: CC 80057089 (ZGRP sin empresas activas; INVALID_USER \"Estado empresa dependiente\" en dev)\n- Referencia: HU 225425, escenarios 2 y 11. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"% de aporte dep o no dependiente, Estado del empleador\"\n- Nota: medido el 19/10: el back de Consumo responde INVALID_USER, así que se pinta el texto de titularidad (defecto: el diseño espera el mensaje de empleador). El porcentaje de aporte no se valida en ningún endpoint (ver bloqueo de TC011)",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Dependiente cuya empresa no está VIGEN (o sin empresas activas en SAP)\n- Dato de prueba: CC 80057089 (ZGRP sin empresas; INVALID_USER \"Estado empresa dependiente\" en dev; clave en el banco)\n- Referencia: HU 225425, escenarios 2 y 11. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"% de aporte dep o no dependiente, Estado del empleador\"\n- Nota: medido el 19/10: el back de Consumo responde INVALID_USER, así que se pinta el texto de titularidad (defecto: el diseño espera el mensaje de empleador). El porcentaje de aporte no se valida en ningún endpoint (ver bloqueo de TC011)",
         "expected": ""
       },
       {
@@ -434,7 +434,7 @@
     "title": "TC017 - Libre Inversión: bolsillo 31 en estado restringido (K, D, C, Y, A, J, M, L, Z, R, B o F)",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP\n- En ASCARD, el bolsillo 31 está en uno de los 12 estados restringidos\n- Dato de prueba: CC 1023944601 (bolsillo 31 en Y, cobro jurídico; confirmar que pase SAP)\n- Referencia: HU 225425, escenario 4. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"Estados de ASCARD\"\n- Nota: en Consumo el front pinta el código INVALID_REQUIREMENTS directo (sin casuísticas Redeban); hoy Drupal INVALID_REQUIREMENTS dice \"No podemos atender tu solicitud de Cupo de Crédito\" (defecto de contenido)",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP\n- En ASCARD, el bolsillo 31 está en uno de los 12 estados restringidos\n- Dato de prueba: CC 52634111 o CC 13617086 (A) y CC 79584194 (R), con clave en el banco; sin clave: CC 1023944601 (Y) y CC 547911 (B). Todas pasan SAP y ASCARD las rechaza con INVALID_REQUIREMENTS en dev el 23/10\n- Referencia: HU 225425, escenario 4. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"Estados de ASCARD\"\n- Nota: en Consumo el front pinta el código INVALID_REQUIREMENTS directo (sin casuísticas Redeban); hoy Drupal INVALID_REQUIREMENTS dice \"No podemos atender tu solicitud de Cupo de Crédito\" (defecto de contenido)",
         "expected": ""
       },
       {
@@ -467,7 +467,7 @@
     "title": "TC018 - Libre Inversión: obligación en mora sin saldo de Libre Inversión (INVALID_REQUIREMENTS)",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP y ASCARD\n- SIIF le registra una obligación vencida, de dudoso recaudo o castigada, sin saldo en créditos de Libre Inversión\n- Dato de prueba: CC 38140673 (mora en el producto 14; INVALID_REQUIREMENTS \"Afiliado con productos en mora\" en dev)\n- Referencia: HU 225425, escenario 10. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"Moras en SIIF\"\n- Nota: Figma usa \"conocer\" en desktop y \"considerar\" en mobile para este mismo código. Si la mora es en un crédito de Libre Inversión con saldo, sale retanqueo (TC022), no este mensaje",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP y ASCARD\n- SIIF le registra una obligación vencida, de dudoso recaudo o castigada, sin saldo en créditos de Libre Inversión\n- Dato de prueba: CC 38140673 (producto 14 en mora), CC 1018475123 o CC 1235339266 (producto 499 castigado): pasan SAP y ASCARD y SIIF responde INVALID_REQUIREMENTS en dev el 23/10; clave desconocida: validar la regla por API y la pantalla con mock\n- Referencia: HU 225425, escenario 10. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, pantalla \"Moras en SIIF\"\n- Nota: Figma usa \"conocer\" en desktop y \"considerar\" en mobile para este mismo código. Si la mora es en un crédito de Libre Inversión con saldo, sale retanqueo (TC022), no este mensaje",
         "expected": ""
       },
       {
@@ -496,7 +496,7 @@
     "title": "TC022 - Libre Inversión: crédito de Libre Inversión con saldo redirige al CFA (retanqueo)",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP y ASCARD\n- SIIF le registra al menos un crédito de Libre Inversión con saldo mayor a 0\n- Desplegado el PR 25559 (tarea 226677) con NEXT_PUBLIC_CFA_SITE configurada en dev\n- Dato de prueba: CC 1122651592 (código 360 con saldo de $928.050; MANDATORY_REFINANCE en dev)\n- Referencia: HU 225425, escenario 9. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, sección \"Validaciones de Retanqueo\" (\"Se descarta casuística y será una re-dirección automática a otro portal (CFA)\")\n- Nota: la regla de saldo corre antes que la de mora: este afiliado está en mora y aun así va al CFA. Confirmar con negocio",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP y ASCARD\n- SIIF le registra al menos un crédito de Libre Inversión con saldo mayor a 0\n- PR 25559 (tarea 226677) mergeado; confirmar que NEXT_PUBLIC_CFA_SITE esté configurada en dev (por código no está en el .env del front: si no redirige y sale una pantalla en blanco o de refinanciación, reportarlo)\n- Regla acordada para las pruebas (22/10): solo cuentan los créditos del mismo producto que se pide\n- Dato de prueba: CC 1122651592 (código 360 con saldo de $928.050, en mora; clave en el banco). Al día: CC 74188681 (código 160 con saldo; clave en el banco, pero con caso de promotor abierto) o CC 1069734918 (código 360 con saldo; sin clave). Las tres dan MANDATORY_REFINANCE en dev el 23/10\n- Referencia: HU 225425 rev 29, escenario 6. Figma de mensajes: bq20S56P25lccKWwLBinTu, nodo 20-2191, sección \"Validaciones de Retanqueo\" (\"Se descarta casuística y será una re-dirección automática a otro portal (CFA)\")\n- Nota: la regla de saldo corre antes que la de mora: este afiliado está en mora y aun así va al CFA. Confirmar con negocio",
         "expected": ""
       },
       {
@@ -525,7 +525,7 @@
     "title": "TC024 - Libre Inversión: la causal de rechazo queda registrada con su paso",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Afiliado que se rechaza en ASCARD o en SIIF\n- Dato de prueba: CC 1023944601 (ASCARD) o CC 38140673 (SIIF)\n- Referencia: HU 225425, escenario 11\n- Nota: lo que se puede ver es la analítica (dataLayer). El registro en base es la tabla DynamoDB de eligibility: pedir la consulta a Verónica o Mateo",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Afiliado que se rechaza en ASCARD o en SIIF\n- Dato de prueba: CC 52634111 (se rechaza en ASCARD) o CC 1122651592 (se rechaza en SIIF), las dos con clave en el banco\n- Referencia: HU 225425, escenario 11\n- Nota: lo que se puede ver es la analítica (dataLayer). El registro en base es la tabla DynamoDB de eligibility: pedir la consulta a Verónica o Mateo",
         "expected": ""
       },
       {
@@ -608,7 +608,7 @@
     "title": "TC027 - Regresión Cupo de Crédito: independiente o pensionado sin empresas en SAP sigue pasando",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Entrada por /cupo-de-credito/onboarding (no por Consumo)\n- Dato de prueba: CC 52812754 (ZGRI) y CC 1144154258 (ZGEN), sin empresas en SAP\n- Referencia: Regresión de Cupo por el cambio de eligibility (PR 25381)\n- Nota: medido el 19/10: en CERT (rama qa) pasan OK; en dev (develop) se rechazan con INVALID_USER \"La empresa donde trabaja el usuario debe estar en estado Vigente o en Radicación\" (defecto)",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Entrada por /cupo-de-credito/onboarding (no por Consumo)\n- Dato de prueba: CC 52705624 o CC 52812754 (ZAIN, clave en el banco) y CC 1144154258 (ZGEN), sin empresas en SAP\n- Referencia: Regresión de Cupo por el cambio de eligibility (PR 25381)\n- Nota: medido el 19/10: en CERT (rama qa) pasan OK; en dev (develop) se rechazan con INVALID_USER \"La empresa donde trabaja el usuario debe estar en estado Vigente o en Radicación\" (defecto)",
         "expected": ""
       },
       {
@@ -629,7 +629,7 @@
     "title": "TC028 - Cupo activo (bolsillo 31 normal): Consumo deja pasar y Cupo bloquea",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Dato de prueba: CC 52952636 (bolsillo 31 en estado 1 NORMAL)\n- Referencia: HU 225425, escenario 4 y punto 4 de la descripción (estados de cupo)",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Dato de prueba: CC 52167144 (bolsillo 31 en 1 NORMAL, clave en el banco): el 23/10 pasa ASCARD en dev (Consumo) y CERT (Cupo) la rechaza con \"Afiliado con cupo activo\". Respaldo con clave: CC 1095915781, CC 79528108, CC 52526685, CC 1097397286 o CC 1140814422\n- Referencia: HU 225425, escenario 4 y punto 4 de la descripción (estados de cupo)",
         "expected": ""
       },
       {
@@ -654,7 +654,7 @@
     "title": "TC029 - Libre Inversión: tarjeta multiservicios no activa (CARD_STATUS) [resultado por confirmar]",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP; su tarjeta multiservicios no está activa en ASCARD\n- Dato de prueba: CC 1015392154 (CARD_STATUS en dev)\n- Referencia: HU 225425, escenario 4 y Excel \"Validaciones de caja V2\" (estado de tarjeta: \"No aplica para consumo\")\n- Nota: el código de Consumo sí bloquea por CARD_STATUS y Figma no tiene pantalla para este caso: confirmar con la PO si debe pasar o bloquear",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- El afiliado pasa SAP; su tarjeta multiservicios no está activa en ASCARD\n- Dato de prueba: CE 382429 (pasa SAP y SIIF; ASCARD CARD_STATUS en dev el 23/10; clave en el banco). Sin clave: CC 1024539415 o CC 75103224. CC 1015392154 ya no sirve: el 23/10 pasa ASCARD\n- Referencia: HU 225425, escenario 4 y Excel \"Validaciones de caja V2\" (estado de tarjeta: \"No aplica para consumo\")\n- Nota: el código de Consumo sí bloquea por CARD_STATUS y Figma no tiene pantalla para este caso: confirmar con la PO si debe pasar o bloquear",
         "expected": ""
       },
       {
@@ -675,7 +675,7 @@
     "title": "TC030 - Cada producto envía su grupoProducto e idProducto a las validaciones",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Con DevTools > Network abierto\n- Dato de prueba: cualquier cédula que llegue a las tres validaciones\n- Referencia: HU 225425, criterios técnicos (parametrización por producto) y tarea 226676",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Con DevTools > Network abierto\n- Dato de prueba: CC 52335676 (el de TC001)\n- Referencia: HU 225425, criterios técnicos (parametrización por producto) y tarea 226676",
         "expected": ""
       },
       {
@@ -704,7 +704,7 @@
     "title": "TC031 - Las validaciones se cortan en el primer rechazo",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Dato de prueba: CC 80057089 o CC 1023876310 (se rechazan en SAP)\n- Referencia: HU 225425; orden SAP > ASCARD > SIIF",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Dato de prueba: CC 80833648 (falla SAP, ASCARD y SIIF: en el front solo debe verse la llamada a SAP; clave en el banco) o CC 80057089\n- Referencia: HU 225425; orden SAP > ASCARD > SIIF",
         "expected": ""
       },
       {
@@ -726,10 +726,10 @@
     ]
   },
   {
-    "title": "TC032 - Retanqueo solo por créditos del mismo subproducto (variantes)",
+    "title": "TC032 - Retanqueo: cada producto solo mira sus propios créditos (variantes)",
     "steps": [
       {
-        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/libre-inversion/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Variante A: Compra de Cartera, con saldo en un crédito de Compra de Cartera\n- Variante B: Libre Inversión, con saldo solo en un crédito de Compra de Cartera\n- Variante C: Mujeres, con saldo en un crédito de Libre Inversión\n- Dato de prueba: A y B: CC 346393 (código 606 con saldo, en mora). C: CC 1122651592\n- Referencia: HU 225425, escenario 9 (\"créditos vigentes de Consumo con saldo\")\n- Nota: por código: A redirige al CFA; B y C no son retanqueo (salen por mora). La HU habla de cualquier crédito de Consumo: confirmar la regla con negocio",
+        "action": "Precondiciones:\n- Ambiente Desarrollo: https://d2b80yrnend1dj.cloudfront.net/loans-dev-solicitud (front feat/consumer-loans y eligibility de develop)\n- Entrada: /consumo/{producto}/onboarding > \"Comenzar solicitud\" > login con cuenta CIAM (clave conocida)\n- La cédula no tiene solicitudes en curso (confirmar con /request/check)\n- Regla acordada para las pruebas (22/10): cada producto solo cuenta sus propios créditos con saldo; el producto Mujeres no tiene retanqueo\n- Variante A: pide Compra de Cartera y tiene saldo en un crédito de Compra de Cartera\n- Variante B: pide Libre Inversión y solo tiene saldo en un crédito de Compra de Cartera\n- Variante C: pide Libre Inversión y solo tiene saldo en un crédito de Mujeres\n- Variante D: pide Mujeres y tiene saldo en un crédito de Libre Inversión\n- Dato de prueba: A y B: CC 396301, CC 230280 o CC 512373 (Compra de Cartera con saldo). Por API, con idProducto 2 dan MANDATORY_REFINANCE y con idProducto 1 el mensaje de moras; en el front no llegan a SIIF porque ASCARD las rechaza por tarjeta no activa (346393 igual). C: CC 1032410060 (crédito de Mujeres 657 con saldo, al día; clave en el banco): pide Libre Inversión y SIIF responde OK. D: CC 1122651592 (en mora; clave en el banco): pide Mujeres y SIIF responde INVALID_REQUIREMENTS, no MANDATORY_REFINANCE; al día: CC 1069734918 (sin clave), SIIF responde OK con idProducto 72\n- Referencia: HU 225425 rev 29, escenario 6, con la lectura acordada\n- Nota: medido en dev el 23/10. Para A y B en el front hace falta pedir a datos un afiliado con Compra de Cartera con saldo y tarjeta activa. 1032410060 es hombre en SAP: no puede pedir Mujeres",
         "expected": ""
       },
       {
@@ -737,16 +737,16 @@
         "expected": ""
       },
       {
-        "action": "When product-validations evalúa los saldos",
+        "action": "When se validan sus créditos con Colsubsidio",
         "expected": ""
       },
       {
-        "action": "Then la variante A responde MANDATORY_REFINANCE y redirige al CFA",
-        "expected": ""
+        "action": "Then en la variante A solo se ve la pantalla de carga y se abre el formulario CFA",
+        "expected": "Sin mensaje; con \"Atrás\" no se vuelve a la pantalla de validaciones"
       },
       {
-        "action": "And las variantes B y C muestran el resultado definido por negocio",
-        "expected": "Hoy: INVALID_REQUIREMENTS \"Afiliado con productos en mora\""
+        "action": "And en las variantes B, C y D no hay redirección al CFA",
+        "expected": "Si el afiliado está al día, continúa a políticas; si está en mora, ve el mensaje de moras"
       }
     ]
   },
