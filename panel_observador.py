@@ -2378,50 +2378,40 @@ class Usuarios(ttk.Frame):
                             if con_errores else "", extra))
 
     def traer(self):
-        """Agrega los del catalogo del repo que no tengas y suma sus etiquetas
-        a los que ya tienes."""
+        """Suma el catalogo del repo: los usuarios que no tengas, sus etiquetas
+        y el estado de los que el repo tenga refrescados mas nuevos."""
         compartidos = _json_o_nada(catalogo_compartido())
         if not isinstance(compartidos, list):
             messagebox.showinfo("Sin catalogo",
                                 "No hay %s en el repo."
                                 % os.path.basename(USUARIOS_COMPARTIDOS))
             return
-        tengo = banco.por_clave(self.datos)
-        nuevos = [u for u in compartidos if self._clave(u) not in tengo]
-        etiquetados = 0
-        for c in compartidos:
-            for u in tengo.get(self._clave(c), []):
-                etiquetados += banco.etiquetar(u, c.get("etiquetas") or [])
-        if not nuevos and not etiquetados:
+        agregados, actualizados = banco.traer(self.datos, compartidos)
+        if not agregados and not actualizados:
             self.estado.set("El catalogo del repo no trae nada nuevo.")
             return
-        self.datos.extend(nuevos)
         self.volcar()
         self.refrescar()
-        self.estado.set("%d usuario(s) traidos del repo, %d con etiquetas nuevas."
-                        % (len(nuevos), etiquetados))
+        self.estado.set("%d usuario(s) traidos del repo, %d actualizados."
+                        % (agregados, actualizados))
 
     def publicar(self):
-        """Escribe el catalogo que se versiona: la libreta y las etiquetas. La
-        clave va solo si lo pediste; el estado y la reserva nunca (son de cada
-        quien y cambian solos)."""
+        """Escribe el catalogo que se versiona: la libreta, las etiquetas, la
+        reserva y el estado del ultimo refresco, para que quien lo traiga vea
+        la tabla como tu. La clave va solo si lo pediste; del estado no van
+        nombre, edad ni empresa (ver banco.publicable)."""
         con_claves = self.publicar_claves.get()
         aviso = ("Se van a publicar %d usuario(s) en %s, que SI se versiona.\n\n"
                  % (len(self.datos), os.path.basename(USUARIOS_COMPARTIDOS)))
+        aviso += ("Van con su estado (sin nombre, edad ni empresa del afiliado) "
+                  "y su reserva.\n\n")
         aviso += ("Las contrasenas van incluidas y quedaran en el historial de "
                   "git de forma permanente, aunque despues borres el archivo."
                   if con_claves else
                   "Las contrasenas NO van: cada quien completa las suyas.")
         if not messagebox.askyesno("Publicar al repo", aviso + "\n\nSeguir?"):
             return
-        salida = []
-        for u in self.datos:
-            fila = {c: u.get(c, "") for c in self.COLS}
-            if not con_claves:
-                fila["clave"] = ""
-            if u.get("etiquetas"):
-                fila["etiquetas"] = list(u["etiquetas"])
-            salida.append(fila)
+        salida = [banco.publicable(u, con_claves) for u in self.datos]
         try:
             with open(USUARIOS_COMPARTIDOS, "w", encoding="utf-8") as f:
                 json.dump(salida, f, ensure_ascii=False, indent=2)

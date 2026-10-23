@@ -9,7 +9,34 @@
     "etiquetas": [
       "genero-cruzado-sap",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-23T11:50:45+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -20,7 +47,36 @@
     "falla": "cupo activo",
     "etiquetas": [
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "C",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "1",
+        "bolsillos": "01:1 NORMAL, 11:1 NORMAL, 31:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-23T11:50:36+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -31,7 +87,38 @@
     "falla": "NO CONTRASEÑA",
     "etiquetas": [
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZAPE",
+        "grupo": "ZGRE",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "I",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": true,
+      "caso": {
+        "estado": "CASE_IN_PROGRESS_PROMOTER",
+        "pasoPendiente": "LOADING",
+        "idCaso": "319424",
+        "noveltyType": "1",
+        "tipoAfiliacion": "P"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-23T11:50:52+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -43,7 +130,37 @@
     "etiquetas": [
       "hu225423",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "C",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "CASE_IN_PROGRESS_PROMOTER",
+        "pasoPendiente": "LOADING",
+        "idCaso": "287133",
+        "noveltyType": "1"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-23T11:50:40+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -51,7 +168,36 @@
     "clave": "C0lsu_25#Bsid!",
     "descripcion": "",
     "status": "En uso",
-    "falla": ""
+    "falla": "",
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "1",
+        "bolsillos": "01:1 NORMAL, 11:1 NORMAL, 31:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-19T22:37:25+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -63,7 +209,37 @@
     "etiquetas": [
       "hu225423",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "C",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "CASE_IN_PROGRESS_PROMOTER",
+        "pasoPendiente": "LOADING",
+        "idCaso": "287133",
+        "noveltyType": "1"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-23T11:50:40+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -74,7 +250,38 @@
     "falla": "",
     "etiquetas": [
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZAPE",
+        "grupo": "ZGRE",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "I",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": true,
+      "caso": {
+        "estado": "CASE_IN_PROGRESS_PROMOTER",
+        "pasoPendiente": "LOADING",
+        "idCaso": "319424",
+        "noveltyType": "1",
+        "tipoAfiliacion": "P"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-23T11:50:52+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -86,7 +293,34 @@
     "etiquetas": [
       "genero-cruzado-sap",
       "hu225423"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-20T14:52:26+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -94,7 +328,34 @@
     "clave": "C0lsu_25#Bsid!",
     "descripcion": "REACTIVACION",
     "status": "Con falla",
-    "falla": "Falla motor"
+    "falla": "Falla motor",
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 3,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL, 11:1 NORMAL, 31:I INACTIVO"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-19T22:37:40+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -105,7 +366,38 @@
     "falla": "",
     "etiquetas": [
       "hu225423"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": true,
+      "caso": {
+        "estado": "CASE_IN_PROGRESS_PROMOTER",
+        "pasoPendiente": "LOADING",
+        "idCaso": "321498",
+        "noveltyType": "1",
+        "tipoAfiliacion": "D"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-20T21:04:32+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -116,7 +408,36 @@
     "falla": "",
     "etiquetas": [
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "validacion": "VALIDATION_ERROR - SAP-AFILIACIONES",
+        "codigoError": "AFFILIATE_STATUS",
+        "regla": "Datos de usuario invalidos",
+        "detalle": "No se pueden mapear los datos del usuario"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-23T11:50:40+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -128,7 +449,34 @@
     "etiquetas": [
       "genero-cruzado-sap",
       "hu225423"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-20T14:52:26+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -139,7 +487,34 @@
     "falla": "",
     "etiquetas": [
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZAFA",
+        "grupo": "ZGRA",
+        "categoria": "B",
+        "genero": "1",
+        "tipoAfiliacion": "I",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-23T11:50:52+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -150,7 +525,31 @@
     "falla": "",
     "etiquetas": [
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "ciam": {
+        "existe": false
+      },
+      "actualizado": "2026-10-23T14:55:51+00:00",
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "sap": {
+        "codigoError": "AFFILIATE_STATUS",
+        "regla": "Usuario no afiliado",
+        "detalle": "Usuario no afiliado",
+        "validacion": "VALIDATION_ERROR - SAP-AFILIACIONES"
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -158,7 +557,38 @@
     "clave": "C0lsu_25#Bsid!",
     "descripcion": "Dependiente, zona gris",
     "status": "",
-    "falla": "rechaza motor"
+    "falla": "rechaza motor",
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "B",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "CASE_IN_PROGRESS_PROMOTER",
+        "pasoPendiente": "LOADING",
+        "idCaso": "319401",
+        "noveltyType": "1",
+        "tipoAfiliacion": "D"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-19T22:37:43+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -166,7 +596,40 @@
     "clave": "C0lsu_25#Bsid!!",
     "descripcion": "zona gris",
     "status": "",
-    "falla": "CASE IN PROGRESSS"
+    "falla": "CASE IN PROGRESSS",
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "1",
+        "bolsillos": "01:1 NORMAL, 31:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "CASE_IN_PROGRESS_PROMOTER",
+        "pasoPendiente": "LOADING",
+        "idCaso": "321485",
+        "noveltyType": "1",
+        "tipoAfiliacion": "D"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-19T22:37:45+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -177,7 +640,34 @@
     "falla": "",
     "etiquetas": [
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZAFA",
+        "grupo": "ZGRA",
+        "categoria": "B",
+        "genero": "1",
+        "tipoAfiliacion": "I",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-23T11:50:53+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -188,7 +678,34 @@
     "falla": "",
     "etiquetas": [
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZAIN",
+        "grupo": "ZGRI",
+        "categoria": "B",
+        "genero": "1",
+        "tipoAfiliacion": "I",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-23T11:50:43+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -199,7 +716,34 @@
     "falla": "",
     "etiquetas": [
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-23T11:50:24+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -210,7 +754,34 @@
     "falla": "",
     "etiquetas": [
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 3,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL, 11:1 NORMAL, 31:I INACTIVO"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-23T11:50:24+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -223,7 +794,34 @@
       "novedades-autorizada",
       "hu225425",
       "lote-claves-2026-10-23"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 3,
+        "amparada": false,
+        "bolsillos": "31:V CUENTA DEVOLUCION VOLUNTARIA"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-23T13:31:26+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -235,7 +833,37 @@
     "etiquetas": [
       "novedades-autorizada",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-23T11:50:38+00:00",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "1",
+        "bolsillos": "01:1 NORMAL, 11:1 NORMAL, 31:1 NORMAL"
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -248,7 +876,37 @@
       "novedades-autorizada",
       "lote-claves-2026-10-23",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "INACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "1",
+        "bolsillos": "01:1 NORMAL, 31:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-23T13:31:20+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -261,7 +919,37 @@
       "novedades-autorizada",
       "lote-claves-2026-10-23",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-23T13:31:27+00:00",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "1",
+        "bolsillos": "31:1 NORMAL"
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -274,7 +962,39 @@
       "novedades-autorizada",
       "lote-claves-2026-10-23",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "1",
+        "bolsillos": "01:1 NORMAL, 31:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-23T13:31:29+00:00",
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "validacion": "VALIDATION_ERROR - SAP-AFILIACIONES",
+        "codigoError": "AFFILIATE_STATUS",
+        "regla": "Datos de usuario invalidos",
+        "detalle": "No se pueden mapear los datos del usuario"
+      },
+      "tms": ""
+    }
   },
   {
     "tipo": "CC",
@@ -287,7 +1007,36 @@
       "novedades-autorizada",
       "hu225425",
       "lote-claves-2026-10-23"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "Afiliado con cupo activo en su tarjeta multiservicios",
+        "bolsillos": "31:A POR MORA EN SUS PRODUCTOS"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-23T13:31:20+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -300,7 +1049,37 @@
       "novedades-autorizada",
       "lote-claves-2026-10-23",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZAIN",
+        "grupo": "ZGRI",
+        "categoria": "B",
+        "genero": "1",
+        "tipoAfiliacion": "I",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "1",
+        "bolsillos": "01:1 NORMAL, 31:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-23T13:31:29+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -313,7 +1092,37 @@
       "novedades-autorizada",
       "lote-claves-2026-10-23",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "B",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "1",
+        "bolsillos": "01:1 NORMAL, 11:1 NORMAL, 31:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-23T13:31:35+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -324,7 +1133,37 @@
     "falla": "",
     "etiquetas": [
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": true,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "I",
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:38:09+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -336,7 +1175,37 @@
     "etiquetas": [
       "hu225425",
       "lote-claves-2026-10-23"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": true,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "1",
+        "bolsillos": "31:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-23T13:31:46+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -348,7 +1217,37 @@
     "etiquetas": [
       "lote-claves-2026-10-23",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "1",
+        "bolsillos": "01:1 NORMAL, 31:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-23T13:31:51+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -356,7 +1255,33 @@
     "clave": "",
     "descripcion": "ASCARD 1 hasta 2026-10; el 14-10 paso a J (mora)",
     "status": "",
-    "falla": ""
+    "falla": "",
+    "estado": {
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "J",
+        "bolsillos": "01:1 NORMAL, 21:1 NORMAL, 31:J CUENTA EN COBRO PRE JURIDICO, 42:1 NORMAL, 51:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:38:21+00:00",
+      "sap": {
+        "codigoError": "AFFILIATE_STATUS",
+        "regla": "Usuario no afiliado",
+        "detalle": "Usuario no afiliado",
+        "validacion": "VALIDATION_ERROR - SAP-AFILIACIONES"
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -368,7 +1293,40 @@
     "etiquetas": [
       "hu225425",
       "lote-claves-2026-10-23"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "RETIR",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "D",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "VALIDATION_ERROR - SAP-AFILIACIONES",
+        "codigoError": "AFFILIATE_STATUS",
+        "regla": "Afiliado no vigente",
+        "detalle": "Afiliado con estado no vigente"
+      },
+      "tms": "INACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "1",
+        "bolsillos": "01:1 NORMAL, 11:1 NORMAL, 21:1 NORMAL, 31:1 NORMAL, 51:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-23T13:31:39+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -381,7 +1339,37 @@
       "candidato-mora",
       "hu225425",
       "lote-claves-2026-10-23"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "INACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "R",
+        "bolsillos": "01:1 NORMAL, 31:R CUENTA REFINANCIADA"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-23T13:31:20+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -393,7 +1381,39 @@
     "etiquetas": [
       "candidato-mora",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "K",
+        "bolsillos": "null:1 NORMAL, 01:1 NORMAL, 21:1 NORMAL, 31:K CUENTA CASTIGADA, 61:1 NORMAL, 71:1 NORMAL, 81:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:38:38+00:00",
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "validacion": "VALIDATION_ERROR - SAP-AFILIACIONES",
+        "codigoError": "AFFILIATE_STATUS",
+        "regla": "Datos de usuario invalidos",
+        "detalle": "No se pueden mapear los datos del usuario"
+      },
+      "tms": ""
+    }
   },
   {
     "tipo": "CC",
@@ -406,7 +1426,40 @@
       "candidato-mora",
       "hu225425",
       "lote-claves-2026-10-23"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "VALIDATION_ERROR - SAP-AFILIACIONES",
+        "codigoError": "AGE_OUT_OF_RANGE",
+        "regla": "Edad fuera de rango",
+        "detalle": "El usuario debe ser mayor o igual de 18 aÃ±os y menor o igual a 69 aÃ±os"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "D",
+        "bolsillos": "null:1 NORMAL, 01:1 NORMAL, 21:1 NORMAL, 31:D CUENTA CON DUDOSO RECAUDO, 61:1 NORMAL, 71:1 NORMAL, 81:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-23T13:31:20+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -418,7 +1471,43 @@
     "etiquetas": [
       "candidato-mora",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "RETIR",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "D",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "VALIDATION_ERROR - SAP-AFILIACIONES",
+        "codigoError": "AFFILIATE_STATUS",
+        "regla": "Afiliado no vigente",
+        "detalle": "Afiliado con estado no vigente"
+      },
+      "tms": "INACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "J",
+        "bolsillos": "01:1 NORMAL, 11:1 NORMAL, 21:1 NORMAL, 31:J CUENTA EN COBRO PRE JURIDICO"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:38:43+00:00",
+      "errores": {
+        "sap": "sin respuesta en 20 s"
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -430,7 +1519,42 @@
     "etiquetas": [
       "candidato-mora",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "B",
+        "bolsillos": "null:1 NORMAL, 01:1 NORMAL, 21:1 NORMAL, 31:B CUENTA CANCELADA POR EL BANCO, 61:1 NORMAL, 71:1 NORMAL, 81:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:38:46+00:00",
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "validacion": "VALIDATION_ERROR - SAP-AFILIACIONES",
+        "codigoError": "AFFILIATE_STATUS",
+        "regla": "Datos de usuario invalidos",
+        "detalle": "No se pueden mapear los datos del usuario"
+      },
+      "tms": "",
+      "errores": {
+        "siif": "sin respuesta en 20 s"
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -442,7 +1566,37 @@
     "etiquetas": [
       "candidato-mora",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "INACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "Y",
+        "bolsillos": "01:1 NORMAL, 11:1 NORMAL, 31:Y COBRO JURIDICO"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:39:04+00:00",
+      "errores": {
+        "caso": "HTTP 500 {\"errores\": [{\"tipo\": \"http://localhost:8080/exception/LRM0002\", \"titulo\": \"Internal Server Error\", \"estado\": 500, \"detalle\": \"Error consumiendo recurso externo"
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -455,7 +1609,36 @@
       "candidato-mora",
       "hu225425",
       "lote-claves-2026-10-23"
-    ]
+    ],
+    "estado": {
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "Afiliado con cupo activo en su tarjeta multiservicios",
+        "bolsillos": "31:A POR MORA EN SUS PRODUCTOS"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-23T13:31:31+00:00",
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA"
+    }
   },
   {
     "tipo": "CC",
@@ -467,7 +1650,39 @@
     "etiquetas": [
       "lote-claves-2026-10-23",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "RETIR",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "D",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "VALIDATION_ERROR - SAP-AFILIACIONES",
+        "codigoError": "AFFILIATE_STATUS",
+        "regla": "Afiliado no vigente",
+        "detalle": "Afiliado con estado no vigente"
+      },
+      "tms": "INACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-23T13:31:52+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -478,7 +1693,38 @@
     "falla": "",
     "etiquetas": [
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "B",
+        "genero": "2",
+        "validacion": "VALIDATION_ERROR - SAP-AFILIACIONES",
+        "codigoError": "AFFILIATE_STATUS",
+        "regla": "Datos de usuario invalidos",
+        "detalle": "No se pueden mapear los datos del usuario"
+      },
+      "tms": "",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:39:10+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -486,7 +1732,35 @@
     "clave": "",
     "descripcion": "visto en capturas (hombre)",
     "status": "",
-    "falla": ""
+    "falla": "",
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "B",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": true,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:39:10+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -494,7 +1768,35 @@
     "clave": "",
     "descripcion": "visto en capturas (hombre)",
     "status": "",
-    "falla": ""
+    "falla": "",
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "B",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 3,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL, 11:1 NORMAL, 31:I INACTIVO"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:39:12+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -505,7 +1807,35 @@
     "falla": "",
     "etiquetas": [
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZAIN",
+        "grupo": "ZGRI",
+        "categoria": "B",
+        "genero": "1",
+        "tipoAfiliacion": "I",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": true
+      },
+      "actualizado": "2026-10-23T11:50:44+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -516,7 +1846,36 @@
     "falla": "",
     "etiquetas": [
       "ciam-lote-2026-10-08"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": true
+      },
+      "actualizado": "2026-10-19T22:39:16+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -527,7 +1886,36 @@
     "falla": "",
     "etiquetas": [
       "ciam-lote-2026-10-08"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": true
+      },
+      "actualizado": "2026-10-19T22:39:17+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -538,7 +1926,36 @@
     "falla": "",
     "etiquetas": [
       "ciam-lote-2026-10-08"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": true
+      },
+      "actualizado": "2026-10-19T22:39:19+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -549,7 +1966,36 @@
     "falla": "",
     "etiquetas": [
       "ciam-lote-2026-10-08"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": true
+      },
+      "actualizado": "2026-10-19T22:39:20+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -560,7 +2006,36 @@
     "falla": "",
     "etiquetas": [
       "ciam-lote-2026-10-08"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": true
+      },
+      "actualizado": "2026-10-19T22:39:22+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -571,7 +2046,36 @@
     "falla": "",
     "etiquetas": [
       "ciam-lote-2026-10-08"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "ciam": {
+        "existe": true,
+        "bruno": true
+      },
+      "actualizado": "2026-10-19T22:39:25+00:00",
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -582,7 +2086,36 @@
     "falla": "",
     "etiquetas": [
       "ciam-lote-2026-10-08"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "B",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": true
+      },
+      "actualizado": "2026-10-19T22:39:25+00:00",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false
+    }
   },
   {
     "tipo": "CC",
@@ -593,7 +2126,39 @@
     "falla": "",
     "etiquetas": [
       "ciam-lote-2026-10-08"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": true
+      },
+      "actualizado": "2026-10-19T22:39:27+00:00",
+      "preaprobado": false,
+      "errores": {
+        "ascard": "HTTP 503 <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\"> <HTML><HEAD><META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text"
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -604,7 +2169,36 @@
     "falla": "",
     "etiquetas": [
       "ciam-lote-2026-10-08"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "ciam": {
+        "existe": true,
+        "bruno": true
+      },
+      "actualizado": "2026-10-19T22:39:29+00:00",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -616,7 +2210,32 @@
     "etiquetas": [
       "ciam-lote-2026-10-08",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": true
+      },
+      "actualizado": "2026-10-23T11:50:42+00:00",
+      "preaprobado": false,
+      "sap": {
+        "codigoError": "AFFILIATE_STATUS",
+        "regla": "Usuario no afiliado",
+        "detalle": "Usuario no afiliado",
+        "validacion": "VALIDATION_ERROR - SAP-AFILIACIONES"
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -627,7 +2246,36 @@
     "falla": "",
     "etiquetas": [
       "ciam-lote-2026-10-08"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "ciam": {
+        "existe": true,
+        "bruno": true
+      },
+      "actualizado": "2026-10-19T22:39:33+00:00",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -638,7 +2286,39 @@
     "falla": "",
     "etiquetas": [
       "ciam-lote-2026-10-08"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": true
+      },
+      "actualizado": "2026-10-19T22:39:35+00:00",
+      "errores": {
+        "siif": "HTTP 401 {\"message\": \"Unauthorized\"}"
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -649,7 +2329,36 @@
     "falla": "",
     "etiquetas": [
       "ciam-lote-2026-10-08"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": true
+      },
+      "actualizado": "2026-10-19T22:39:39+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -660,7 +2369,36 @@
     "falla": "",
     "etiquetas": [
       "ciam-lote-2026-10-08"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": true
+      },
+      "actualizado": "2026-10-19T22:39:39+00:00"
+    }
   },
   {
     "tipo": "CE",
@@ -671,7 +2409,36 @@
     "falla": "",
     "etiquetas": [
       "ciam-dudoso"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "B",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": true
+      },
+      "actualizado": "2026-10-19T22:39:40+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -682,7 +2449,36 @@
     "falla": "",
     "etiquetas": [
       "consulta-2026-10-15"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "B",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "INVALID_REQUIREMENTS",
+        "regla": "Afiliado con cupo activo",
+        "detalle": "1",
+        "bolsillos": "01:1 NORMAL, 31:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": false
+      },
+      "actualizado": "2026-10-19T22:39:43+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -693,7 +2489,34 @@
     "falla": "",
     "etiquetas": [
       "consulta-2026-10-15"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "validacion": "sin resultado (HTTP 403)"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": false
+      },
+      "actualizado": "2026-10-19T22:39:45+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -705,7 +2528,38 @@
     "etiquetas": [
       "consulta-80273420",
       "ciam-creado-2026-10-15"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "CASE_IN_PROGRESS_PROMOTER",
+        "pasoPendiente": "LOADING",
+        "idCaso": "321544",
+        "noveltyType": "1",
+        "tipoAfiliacion": "D"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-20T14:52:54+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -717,7 +2571,38 @@
     "etiquetas": [
       "consulta-2026-10-15",
       "ciam-creado-2026-10-15"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "CASE_IN_PROGRESS_PROMOTER",
+        "pasoPendiente": "LOADING",
+        "idCaso": "321479",
+        "noveltyType": "1",
+        "tipoAfiliacion": "D"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-20T14:52:57+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -730,7 +2615,34 @@
       "consulta-2026-10-15",
       "ciam-creado-2026-10-15",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-23T11:50:36+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -742,7 +2654,34 @@
     "etiquetas": [
       "consulta-2026-10-15",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "C",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-23T11:50:24+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -754,7 +2693,34 @@
     "etiquetas": [
       "consulta-2026-10-15",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": true,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-23T11:50:24+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -765,7 +2731,35 @@
     "falla": "",
     "etiquetas": [
       "consulta-2026-10-16"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-20T14:53:35+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -777,7 +2771,35 @@
     "etiquetas": [
       "consulta-2026-10-16",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-23T11:50:54+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -789,7 +2811,35 @@
     "etiquetas": [
       "consulta-2026-10-16",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "B",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:40:05+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -801,7 +2851,35 @@
     "etiquetas": [
       "consulta-2026-10-16",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:40:11+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -812,7 +2890,35 @@
     "falla": "",
     "etiquetas": [
       "consulta-2026-10-16"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:40:11+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -823,7 +2929,35 @@
     "falla": "",
     "etiquetas": [
       "consulta-2026-10-16"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "B",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:40:13+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -834,7 +2968,35 @@
     "falla": "",
     "etiquetas": [
       "consulta-2026-10-16"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:40:15+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -846,7 +3008,35 @@
     "etiquetas": [
       "consulta-2026-10-16",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:40:16+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -858,7 +3048,34 @@
     "etiquetas": [
       "consulta-2026-10-16",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true
+      },
+      "actualizado": "2026-10-23T11:50:38+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -870,7 +3087,35 @@
     "etiquetas": [
       "consulta-2026-10-16",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": false
+      },
+      "actualizado": "2026-10-19T22:40:24+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -881,7 +3126,36 @@
     "falla": "",
     "etiquetas": [
       "consulta-2026-10-16"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:40:27+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -892,7 +3166,35 @@
     "falla": "",
     "etiquetas": [
       "consulta-2026-10-16"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "OK",
+        "tipoSolicitud": 1,
+        "amparada": false,
+        "bolsillos": "01:1 NORMAL"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:40:27+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -904,7 +3206,36 @@
     "etiquetas": [
       "consulta-2026-10-16",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:40:28+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -915,7 +3246,36 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:40:31+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -926,7 +3286,36 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:40:35+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -938,7 +3327,36 @@
     "etiquetas": [
       "retanqueo-siif-2026-10-19",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "B",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:40:39+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -950,7 +3368,36 @@
     "etiquetas": [
       "retanqueo-siif-2026-10-19",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:40:46+00:00"
+    }
   },
   {
     "tipo": "CE",
@@ -961,7 +3408,39 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:40:46+00:00",
+      "errores": {
+        "ascard": "HTTP 403 <!DOCTYPE html> <html lang=\"es\"> <head> <meta charset=\"UTF-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> <title>Error 403 - Acceso "
+      }
+    }
   },
   {
     "tipo": "CE",
@@ -972,7 +3451,36 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:40:52+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -984,7 +3492,39 @@
     "etiquetas": [
       "retanqueo-siif-2026-10-19",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "B",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:40:56+00:00",
+      "errores": {
+        "caso": "HTTP 403 <!DOCTYPE html> <html lang=\"es\"> <head> <meta charset=\"UTF-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> <title>Error 403 - Acceso "
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -995,7 +3535,35 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "validacion": "sin resultado (HTTP 503)"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:40:57+00:00"
+    }
   },
   {
     "tipo": "CE",
@@ -1006,7 +3574,39 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:41:00+00:00",
+      "errores": {
+        "siif": "HTTP 401 {\"message\": \"Unauthorized\"}"
+      },
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      }
+    }
   },
   {
     "tipo": "CE",
@@ -1017,7 +3617,36 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:41:01+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -1028,7 +3657,36 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:41:07+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -1039,7 +3697,36 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:41:11+00:00",
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -1050,7 +3737,36 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:41:12+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -1061,7 +3777,36 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:41:13+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -1072,7 +3817,39 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:41:15+00:00",
+      "errores": {
+        "ascard": "HTTP 403 <!DOCTYPE html> <html lang=\"es\"> <head> <meta charset=\"UTF-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> <title>Error 403 - Acceso "
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -1083,7 +3860,36 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:41:16+00:00",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      }
+    }
   },
   {
     "tipo": "CE",
@@ -1094,7 +3900,36 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:41:18+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -1105,7 +3940,36 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": false
+      },
+      "actualizado": "2026-10-19T22:41:20+00:00"
+    }
   },
   {
     "tipo": "CE",
@@ -1116,7 +3980,35 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "B",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": false
+      },
+      "actualizado": "2026-10-19T22:41:26+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -1127,7 +4019,35 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": false
+      },
+      "actualizado": "2026-10-19T22:41:29+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -1138,7 +4058,35 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": false
+      },
+      "actualizado": "2026-10-19T22:41:30+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -1149,7 +4097,35 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "C",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": false
+      },
+      "actualizado": "2026-10-19T22:41:32+00:00",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -1160,7 +4136,35 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": false
+      },
+      "actualizado": "2026-10-19T22:41:33+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -1171,7 +4175,35 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "B",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": false
+      },
+      "actualizado": "2026-10-19T22:41:35+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -1182,7 +4214,35 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": false
+      },
+      "actualizado": "2026-10-19T22:41:44+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -1193,7 +4253,38 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": false
+      },
+      "actualizado": "2026-10-19T22:41:44+00:00",
+      "errores": {
+        "caso": "HTTP 403 <!DOCTYPE html> <html lang=\"es\"> <head> <meta charset=\"UTF-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> <title>Error 403 - Acceso "
+      }
+    }
   },
   {
     "tipo": "CC",
@@ -1204,7 +4295,36 @@
     "falla": "",
     "etiquetas": [
       "retanqueo-siif-2026-10-19"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "A",
+        "genero": "1",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "FAIL - HTTP 200 estado: VALIDATION_ERROR - SIIF-OBLIGACIONES",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "ciam": {
+        "existe": true,
+        "bruno": true
+      },
+      "actualizado": "2026-10-19T22:41:44+00:00"
+    }
   },
   {
     "tipo": "CC",
@@ -1228,6 +4348,31 @@
     "etiquetas": [
       "lote-claves-2026-10-23",
       "hu225425"
-    ]
+    ],
+    "estado": {
+      "sap": {
+        "estado": "VIGEN",
+        "tipoTrabajador": "ZTRA",
+        "grupo": "ZGRP",
+        "categoria": "C",
+        "genero": "2",
+        "tipoAfiliacion": "D",
+        "validacion": "OK"
+      },
+      "tms": "ACTIVA",
+      "ascard": {
+        "estado": "VALIDATION_ERROR",
+        "amparada": false,
+        "codigoError": "CARD_STATUS",
+        "regla": "Tarjeta multiservicios no activa",
+        "detalle": "Afiliado con tarjeta multiservicios no activa"
+      },
+      "siif": "PASS - HTTP 200 estado OK",
+      "preaprobado": false,
+      "caso": {
+        "estado": "SIN CASO VIGENTE"
+      },
+      "actualizado": "2026-10-23T13:31:20+00:00"
+    }
   }
 ]
