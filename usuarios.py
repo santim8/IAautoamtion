@@ -53,6 +53,7 @@ Filtros (todos opcionales, se combinan con Y):
   --libres   --etiqueta X   --texto X   --status X
 """
 import argparse
+import copy
 import getpass
 import hashlib
 import json
@@ -650,6 +651,100 @@ def importar(datos, entrantes):
         datos.append(u)
         idx[k] = [u]
         agregados += 1
+    return agregados, actualizados
+
+
+# --- catalogo del repo -----------------------------------------------------------
+# usuarios_compartidos.json lleva la libreta, las etiquetas, la reserva y el
+# estado del ultimo refresco: quien lo trae ve la tabla igual que quien lo
+# publico. Del estado no van el nombre, la edad ni la empresa del afiliado: son
+# datos de una persona y el repo es publico. La tabla no los usa y la ficha los
+# vuelve a traer con Refrescar.
+LIBRETA = ("tipo", "usuario", "clave", "descripcion", "status", "falla")
+PERSONALES = ("nombre",)
+PERSONALES_SAP = ("edad", "empresa")
+
+
+def publicable(u, con_clave=False):
+    """El registro como va al catalogo del repo. La clave solo si se pide."""
+    fila = {c: u.get(c, "") for c in LIBRETA}
+    if not con_clave:
+        fila["clave"] = ""
+    if u.get("etiquetas"):
+        fila["etiquetas"] = list(u["etiquetas"])
+    if u.get("uso"):
+        fila["uso"] = dict(u["uso"])
+    if u.get("estado"):
+        estado = copy.deepcopy(u["estado"])
+        for campo in PERSONALES:
+            estado.pop(campo, None)
+        for campo in PERSONALES_SAP:
+            (estado.get("sap") or {}).pop(campo, None)
+        fila["estado"] = estado
+    return fila
+
+
+def _actualizado(u):
+    """Cuando se refresco ('' si nunca). _ahora() siempre lo escribe en UTC y
+    con el mismo formato, asi que se compara como texto."""
+    return _estado(u).get("actualizado") or ""
+
+
+def _con_personales(estado, local):
+    """El estado del repo con el nombre, la edad y la empresa que ya se
+    tenian: el catalogo no los trae."""
+    nuevo = copy.deepcopy(estado)
+    for campo in PERSONALES:
+        if local.get(campo):
+            nuevo.setdefault(campo, local[campo])
+    sap, sap_local = nuevo.get("sap"), local.get("sap") or {}
+    if isinstance(sap, dict):
+        for campo in PERSONALES_SAP:
+            if sap_local.get(campo):
+                sap.setdefault(campo, sap_local[campo])
+    return nuevo
+
+
+def traer(datos, compartidos):
+    """Suma el catalogo del repo a la libreta. Lo que falta entra tal cual
+    viene (las repetidas del catalogo tambien). En lo que ya esta se suman
+    etiquetas, se llena lo vacio (clave, descripcion, status, falla, reserva) y
+    el estado se cambia si el del repo es de un refresco mas nuevo: lo que cada
+    quien escribio no se pisa. Devuelve (agregados, actualizados).
+
+    Una cedula repetida se empareja por orden: lo vacio de la segunda fila se
+    llena con la segunda del catalogo, no con la primera (cada fila tiene su
+    propia descripcion y falla). Etiquetas y estado van a todas, como en un
+    refresco."""
+    tengo = por_clave(datos)
+    vistas = {}
+    agregados = actualizados = 0
+    for c in compartidos:
+        k = clave(c)
+        if k not in tengo:
+            datos.append(copy.deepcopy(c))
+            agregados += 1
+            continue
+        posicion = vistas[k] = vistas.get(k, -1) + 1
+        cambio = False
+        for i, u in enumerate(tengo[k]):
+            cambio |= etiquetar(u, c.get("etiquetas") or [])
+            if c.get("estado") and _actualizado(c) > _actualizado(u):
+                u["estado"] = _con_personales(c["estado"], _estado(u))
+                cambio = True
+            if i != posicion:
+                continue
+            for campo in ("clave", "descripcion", "status", "falla"):
+                if c.get(campo) and not u.get(campo):
+                    u[campo] = c[campo]
+                    cambio = True
+            # la reserva llega con su status: sin el quedaria reservada y
+            # "Disponible" a la vez
+            if c.get("uso") and not u.get("uso"):
+                u["uso"] = dict(c["uso"])
+                u["status"] = c.get("status") or u.get("status", "")
+                cambio = True
+        actualizados += cambio
     return agregados, actualizados
 
 

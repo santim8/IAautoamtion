@@ -113,8 +113,12 @@ a partir de ahí cada quien maneja el suyo.
 
 | botón | qué hace |
 |---|---|
-| Traer del repo | agrega los del catálogo que aún no tengas y suma sus etiquetas a los que ya tienes |
-| Publicar al repo | reescribe el catálogo con tu lista actual y sus etiquetas (nunca el estado ni la reserva) |
+| Traer del repo | agrega los del catálogo que aún no tengas; a los que ya tienes les suma etiquetas, les llena lo que esté vacío (clave, descripción, status, falla, reserva) y les pone el estado del catálogo si es de un refresco más nuevo que el tuyo. Lo que tú escribiste no se pisa |
+| Publicar al repo | reescribe el catálogo con tu lista actual tal como la ves: etiquetas, reserva y el estado del último refresco (SAP, SIIF, ASCARD, preaprobado, caso, CIAM) |
+
+Del estado no se publican el nombre, la edad ni la empresa del afiliado: el repo
+es público y la tabla no los usa. La ficha los vuelve a mostrar después de
+Refrescar.
 
 **Las contraseñas no se publican por defecto.** El checkbox *Publicar también
 las contraseñas* las incluye, pero entonces quedan en el historial de git de
