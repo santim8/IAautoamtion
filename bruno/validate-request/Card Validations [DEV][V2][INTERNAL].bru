@@ -1,0 +1,47 @@
+meta {
+  name: Card Validations [DEV][V2][INTERNAL]
+  type: http
+  seq: 34
+}
+
+post {
+  url: https://d2b80yrnend1dj.cloudfront.net/loans/eligibility/internal/v2/card-validations
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  x-api-key: 2s5JJxhvYv6wWfVpnLccerlbtWT2GxU6oZwzkWl5
+}
+
+body:json {
+  {
+    "idCaso": "31213",
+    "documento": {
+      "tipo": "CO1C",
+      "numero": "52335676"
+    },
+    "grupoProducto": "CONSUMO",
+    "idProducto": 1
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+settings {
+  encodeUrl: false
+  timeout: 0
+  forwardAuthorizationHeader: false
+}
+
+docs {
+  ASCARD (card-validations) interno de dev, el que llama Bizagi. Pide x-api-key (la misma de "validacion [DEV][V1][INTERNAL]") e idCaso:
+  sin idCaso responde 400 "idCaso es obligatorio para el endpoint interno".
+  Tambien existe /internal/v1/card-validations con el mismo body.
+  
+  Body: documento + grupoProducto (CUPO | CONSUMO) + idProducto (1 Libre Inversion, 2 Compra de Cartera, 72 Mujeres; en CUPO puede ir null).
+  Respuesta igual a la externa: resultadoValidacion.estado OK o VALIDATION_ERROR, con el motivo en datosError.
+}

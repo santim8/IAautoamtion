@@ -213,6 +213,30 @@ def token_ciam():
         return _token_ciam["valor"]
 
 
+def token_ciam_usuario(tipo, numero, nombres="PRUEBA", apellidos="QA",
+                       correo=None, telefono="", segundos=3600):
+    """Token CIAM a nombre del afiliado, sin su clave: token/ciam firma la
+    identidad que se le mande (no consulta Gigya). Es el mismo JWT que el
+    front guarda en la cookie userToken tras el login (customer.documentType
+    2/3 y documentNumber). Sin cache: cada llamada es una sesion nueva."""
+    body = dict(CIAM_BODY_BASE,
+                uid="qa-sin-gigya-%s" % numero,
+                cliente={"nombres": nombres, "apellidos": apellidos, "telefono": telefono,
+                         "correo": correo or "qa+%s%s@ejemplo.com" % (tipo.lower(), numero),
+                         "documento": {"tipo": DOC_TYPE_LOGIN[tipo.upper()], "numero": numero}},
+                sesion={"tiempoSegundos": segundos},
+                credenciales={"gigyaApiKey": _secreto("ciam_gigya_api_key")})
+    status, cuerpo = _curl(
+        "POST", BASE_APIGEE + "/api/v3/afiliacion/validador/token/ciam",
+        headers={"Authorization": "Bearer %s" % token_apigee(),
+                 "x-api-key": _secreto("ciam_token_api_key")},
+        body=body)
+    if status != 200 or not isinstance(cuerpo, dict) or "access_token" not in cuerpo:
+        raise RuntimeError("No se pudo obtener el token CIAM de %s %s: HTTP %s %r"
+                           % (tipo, numero, status, cuerpo))
+    return cuerpo["access_token"]
+
+
 _lock_sso = threading.Lock()
 _tokens_sso = {}   # (tipo, numero) -> token crudo | None
 

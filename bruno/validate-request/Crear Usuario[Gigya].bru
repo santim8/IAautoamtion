@@ -1,7 +1,7 @@
 meta {
   name: Crear Usuario[Gigya]
   type: http
-  seq: 24
+  seq: 23
 }
 
 post {
@@ -39,7 +39,7 @@ script:pre-request {
   //   3) este request: accounts.register con finalizeRegistration=true
   // Los datos salen del environment registro-dev. regPalabra vacia = cc<numero> en el correo.
   const axios = require("axios");
-
+  
   const API_KEY = "4_7e7hXQFydtXC85iCAHxVhw";
   const GIGYA = "https://accounts.us1.gigya.com";
   const opts = {
@@ -61,7 +61,7 @@ script:pre-request {
     return d;
   };
   const v = (n) => String(bru.getEnvVar(n) ?? "").trim();
-
+  
   // --- Validaciones del front (screen-set) ---
   const tipo = v("regTipoDoc").toUpperCase();
   const numero = v("regNumeroDocumento");
@@ -88,23 +88,23 @@ script:pre-request {
   if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,15}$/.test(password)) {
     throw new Error("regPassword: 8 a 15 caracteres con mayuscula, minuscula, numero y especial (politica de Gigya)");
   }
-
+  
   // --- Correo: base+palabra@dominio, en minusculas como emailToLowerCase() del front ---
   // +cc<numero>, como el lote: asi el panel sabe que la cuenta la creo Bruno y le pone regPassword
   const palabra = v("regPalabra") || (tipo + numero).toLowerCase();
   const [usuarioCorreo, dominio] = v("regCorreoBase").split("@");
   const email = `${usuarioCorreo}+${palabra}@${dominio}`.toLowerCase();
   const username = tipo + numero;
-
+  
   // --- 1) Disponibilidad (el front lo hace al cambiar documento) ---
   const libreUsuario = await gigya("accounts.isAvailableLoginID", { loginID: username });
   if (!libreUsuario.isAvailable) throw new Error(`${username} ya tiene cuenta en Gigya`);
   const libreCorreo = await gigya("accounts.isAvailableLoginID", { loginID: email });
   if (!libreCorreo.isAvailable) throw new Error(`${email} ya tiene cuenta en Gigya`);
-
+  
   // --- 2) regToken ---
   const init = await gigya("accounts.initRegistration", { isLite: "false" });
-
+  
   // --- Campos tal como los arma el screen-set ---
   // onSubmit: fecha del input date + 300 min -> ISO (00:00 hora Colombia)
   const iso = (fecha) => `${fecha}T05:00:00.000Z`;
@@ -132,7 +132,7 @@ script:pre-request {
       CustomerPrivacy: { isConsentGranted: true }
     }
   };
-
+  
   // Van al environment (declaradas vacias en registro-dev) para que el Body las reconozca
   bru.setEnvVar("gigyaRegToken", init.regToken);
   bru.setEnvVar("gigyaRegEmail", email);
@@ -176,7 +176,7 @@ tests {
   test("Gigya crea la cuenta (errorCode 0 o 206002)", () => {
     expect(res.body.errorCode, `${res.body.errorCode} ${res.body.errorMessage} ${res.body.errorDetails || ""}`).to.be.oneOf([0, 206002]);
   });
-
+  
   test("devuelve UID", () => {
     expect(res.body.UID, "sin UID").to.be.a("string").and.not.empty;
   });
@@ -186,16 +186,16 @@ docs {
   Crea un usuario CIAM (Gigya) igual que el formulario "REGISTRATE" de
   https://dev.colsubsidio.com/creditos/solicitud/login (screen-set ColsubB2C-RegistrationLogin,
   pantalla gigya-register-screen). El front no llama ningun backend propio: todo va a Gigya.
-
+  
   Uso: seleccionar el environment registro-dev, cambiar regNumeroDocumento (y lo que cambie) > Send.
   El resultado sale en Timeline/consola: username (tipo+numero), correo generado y UID.
   Para iniciar sesion en el front: tipo de documento + numero + regPassword.
-
+  
   El pre-request encadena, como el SDK:
   1. accounts.isAvailableLoginID con username (ej. CC1023456789) y con el correo: si existe, corta.
   2. accounts.initRegistration (isLite=false) -> regToken.
   3. Este request: accounts.register con finalizeRegistration=true.
-
+  
   Como arma los campos el screen-set:
   - username = data.tpIdentificacion + data.numeroDocumento (input oculto con gigya-expression).
     Es el loginID con el que se entra por documento.
@@ -206,14 +206,14 @@ docs {
   - Ocultos fijos: data.CantidadAutenticacion=1, data.IndicaB2C=true, data.OrigenCliente=Portales.
   - preferences.terms.PersonalData y CustomerPrivacy con isConsentGranted=true (los 2 checks).
   - Correo en minusculas (emailToLowerCase).
-
+  
   Politica de clave de Gigya (respuesta 400009 del sitio): 8-15 caracteres, mayuscula, minuscula,
   numero y caracter especial.
-
+  
   Validaciones que el front hace contra Apigee test y este request NO repite:
   lista negra de correos (/herramientas/listanegra) y consultas de usuario CIAM por documento o
   telefono (/tecnologia/ciam/usuarios). Gigya no exige celular unico.
-
+  
   errorCode: 0 creado | 206002 creado, falta verificar el correo (enlace en el buzon) |
   400003 ya existe | 400009 validacion | 401020 pide captcha.
 }

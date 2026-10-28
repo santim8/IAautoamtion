@@ -1,0 +1,45 @@
+meta {
+  name: SIIF Product Validations [DEV][V1][INTERNAL]
+  type: http
+  seq: 36
+}
+
+post {
+  url: https://d2b80yrnend1dj.cloudfront.net/loans/eligibility/internal/v1/product-validations
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  x-api-key: 2s5JJxhvYv6wWfVpnLccerlbtWT2GxU6oZwzkWl5
+}
+
+body:json {
+  {
+    "idCaso": "31213",
+    "documento": {
+      "tipo": "CO1C",
+      "numero": "52335676"
+    },
+    "grupoProducto": "CONSUMO",
+    "idProducto": 1
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+settings {
+  encodeUrl: false
+  timeout: 0
+  forwardAuthorizationHeader: false
+}
+
+docs {
+  SIIF (product-validations) interno de dev, el que llama Bizagi. Pide x-api-key (la misma de "validacion [DEV][V1][INTERNAL]").
+  Ojo: el Swagger dice que sin idCaso responde 400, pero en dev el 28/10 respondio 200 sin idCaso (SAP y ASCARD internos si lo exigen).
+  
+  Body y respuesta iguales a "SIIF Product Validations [DEV][V1][External]" (ver sus docs para reglas y cedulas).
+}

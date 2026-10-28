@@ -11,11 +11,29 @@ Los handlers solo anotan; los cuerpos se leen y se guardan desde el loop
 import time
 
 from observador.alcance import pagina_de
-from observador.config import (ESPERA_FALLO_MS, ESPERA_HUERFANO_S, MAX_BODY,
-                               MAX_CDP_RED, SIN_RESPUESTA, TIPOS_SIN_CUERPO)
+from observador.config import (ESPERA_CUERPO_S, ESPERA_FALLO_MS,
+                               ESPERA_HUERFANO_S, MAX_BODY, MAX_CDP_RED,
+                               SIN_RESPUESTA, TIPOS_SIN_CUERPO)
 from observador.endpoints import cuerpo_inmediato, sin_payload
 from observador.redaccion import redactar_registro
 from observador.util import ahora_iso, cabeceras_request, ruta_de
+
+
+def tiempos_navegador(request):
+    """Inicio, cabeceras y fin segun el navegador (epoch en ms). ts y
+    duracion_ms del registro son de cuando Python atendio el evento, que llega
+    tarde; para medir orden o latencia real se usan estos."""
+    try:
+        t = request.timing or {}
+        inicio = t.get("startTime")
+        if not inicio:
+            return None
+        cabeceras, fin = t.get("responseStart", -1), t.get("responseEnd", -1)
+        return {"inicio": round(inicio),
+                "cabeceras": round(inicio + cabeceras) if cabeceras >= 0 else None,
+                "fin": round(inicio + fin) if fin >= 0 else None}
+    except Exception:
+        return None
 
 
 class CapturaRed:
@@ -25,6 +43,8 @@ class CapturaRed:
         self.pend_req = {}           # request -> metadata, para casar con su response
         self.cola_resp = []          # respuestas pendientes de leer body
         self.cuerpos = {}            # response -> body ya leido en el handler
+        self.llegadas = {}           # response -> cuando llegaron sus cabeceras
+        self.terminados = set()      # requests cuyo cuerpo ya llego entero (o fallo)
         self.cola_fallos = []        # [(request, cuando_ms)] cortados por el navegador
         self.cdp_red = {}            # requestId CDP -> {url, metodo, status, headers, error}
         # (metodo, url) que Playwright SI emitio como 'request'. Lo que CDP vio
@@ -35,6 +55,7 @@ class CapturaRed:
         page.on("request", self.on_request)
         page.on("response", self.on_response)
         page.on("requestfailed", self.on_request_failed)
+        page.on("requestfinished", self.on_request_finished)
         self.enganchar_cdp(page)
 
     # -- Playwright
@@ -75,23 +96,31 @@ class CapturaRed:
         pagina = pagina_de(response.request)
         if not self.alcance.pagina_permitida(pagina):
             return
+        # El cuerpo inmediato va antes del pantallazo: el de accounts.login
+        # dice si el login fallo (errorCode) y de eso depende retratarlo.
+        if cuerpo_inmediato(response.url):
+            try:
+                self.cuerpos[response] = response.body()
+            except Exception:
+                pass             # drenar_respuestas lo intenta otra vez y lo anota
         # Antes del filtro de captura a proposito: hay disparadores que no son
         # endpoints rastreados (estado_civil), y en modo "endpoints" interesa()
         # los descartaria y el pantallazo no se tomaria nunca.
         self.obs.pantallazos.disparar(response, pagina)
         if not self.alcance.interesa(response.url):
             meta = self.pend_req.get(response.request)
-            if meta is None or not meta.get("fuera_catalogo"):
+            if meta is None or not meta.get("fuera_catalogo") or response.status < 400:
+                self.cuerpos.pop(response, None)
+                if meta is not None and meta.get("fuera_catalogo"):
+                    self.pend_req.pop(response.request, None)   # fuera del catalogo y OK
                 return
-            if response.status < 400:
-                self.pend_req.pop(response.request, None)   # fuera del catalogo y OK
-                return
-        if cuerpo_inmediato(response.url):
-            try:
-                self.cuerpos[response] = response.body()
-            except Exception:
-                pass             # drenar_respuestas lo intenta otra vez y lo anota
+        self.llegadas[response] = time.time()
         self.cola_resp.append(response)
+
+    def on_request_finished(self, request):
+        """El cuerpo llego entero: ya se puede leer sin bloquear el loop."""
+        if request in self.pend_req:
+            self.terminados.add(request)
 
     def on_request_failed(self, request):
         """El navegador corto el request: CORS, red caida, abortado.
@@ -102,6 +131,7 @@ class CapturaRed:
         El servidor SI respondio, pero Chrome no deja que el front la lea.
         """
         if request in self.pend_req:
+            self.terminados.add(request)
             self.cola_fallos.append((request, time.time() * 1000))
 
     # -- CDP
@@ -231,45 +261,71 @@ class CapturaRed:
         self.drenar_huerfanos()
 
     def drenar_respuestas(self):
-        """Lee los bodies en el loop principal, no dentro del handler."""
-        # de a una: si un Ctrl+C corta a mitad, lo que falta sigue en la cola
-        # y rescatar_en_vuelo lo registra con su status
-        while self.cola_resp:
-            response = self.cola_resp.pop(0)
-            meta = self.pend_req.pop(response.request, None) or {
-                "ts": ahora_iso(), "t0": time.time(), "metodo": response.request.method,
-                "url": response.url, "tipo": response.request.resource_type,
-                "request_headers": None, "request_body": None,
-            }
-            cuerpo, nota = None, None
-            # un endpoint rastreado siempre conserva su cuerpo, sea del tipo que sea
-            es_rastreado = bool(self.alcance.casar_endpoints(meta["url"]))
-            if meta["tipo"] in TIPOS_SIN_CUERPO and not es_rastreado:
-                nota = "cuerpo omitido (%s)" % meta["tipo"]
-            else:
-                try:
-                    raw = self.cuerpos.pop(response, None)
-                    if raw is None:
-                        raw = response.body()
-                    if len(raw) > MAX_BODY:
-                        cuerpo = raw[:MAX_BODY].decode("utf-8", "replace")
-                        nota = f"truncado en {MAX_BODY} bytes (real: {len(raw)})"
-                    else:
-                        cuerpo = raw.decode("utf-8", "replace")
-                except Exception as e:
-                    nota = f"body no disponible: {type(e).__name__}"
-            try:
-                resp_headers = response.all_headers()
-            except Exception:
-                resp_headers = {}
+        """Lee los bodies en el loop principal, no dentro del handler.
 
-            reg = self.registro(meta, response.status, resp_headers, cuerpo, nota,
-                                request=response.request)
-            # los complementos leen meta y cuerpo crudos, antes de redactar
-            self.obs.avisar("respuesta_leida", meta, cuerpo)
-            paso = self.obs.guardar(reg, pagina_de(response.request),
-                                    t0_ms=meta["t0"] * 1000)
-            self.obs.avisar("respuesta_guardada", paso)
+        response.body() espera al ultimo byte: la respuesta cuyo cuerpo sigue
+        llegando se deja para otra vuelta, y pasado ESPERA_CUERPO_S se
+        registra sin cuerpo, en vez de congelar el loop.
+        """
+        diferidas = []
+        try:
+            # de a una: si un Ctrl+C corta a mitad, lo que falta sigue en la
+            # cola y rescatar_en_vuelo lo registra con su status
+            while self.cola_resp:
+                response = self.cola_resp.pop(0)
+                completo = (response.request in self.terminados
+                            or response in self.cuerpos)
+                vencido = time.time() - self.llegadas.get(response, 0) >= ESPERA_CUERPO_S
+                if not completo and not vencido:
+                    diferidas.append(response)
+                    continue
+                self.registrar_respuesta(response, leer_cuerpo=completo)
+        finally:
+            self.cola_resp[:0] = diferidas
+
+    def registrar_respuesta(self, response, leer_cuerpo=True):
+        self.llegadas.pop(response, None)
+        self.terminados.discard(response.request)
+        meta = self.pend_req.pop(response.request, None) or {
+            "ts": ahora_iso(), "t0": time.time(), "metodo": response.request.method,
+            "url": response.url, "tipo": response.request.resource_type,
+            "request_headers": None, "request_body": None,
+        }
+        cuerpo, nota = None, None
+        # un endpoint rastreado siempre conserva su cuerpo, sea del tipo que sea
+        es_rastreado = bool(self.alcance.casar_endpoints(meta["url"]))
+        if meta["tipo"] in TIPOS_SIN_CUERPO and not es_rastreado:
+            nota = "cuerpo omitido (%s)" % meta["tipo"]
+        elif not leer_cuerpo:
+            nota = ("el cuerpo seguia llegando %d s despues de las cabeceras: "
+                    "se registra sin cuerpo" % ESPERA_CUERPO_S)
+        else:
+            try:
+                raw = self.cuerpos.pop(response, None)
+                if raw is None:
+                    raw = response.body()
+                if len(raw) > MAX_BODY:
+                    cuerpo = raw[:MAX_BODY].decode("utf-8", "replace")
+                    nota = f"truncado en {MAX_BODY} bytes (real: {len(raw)})"
+                else:
+                    cuerpo = raw.decode("utf-8", "replace")
+            except Exception as e:
+                nota = f"body no disponible: {type(e).__name__}"
+        try:
+            resp_headers = response.all_headers()
+        except Exception:
+            resp_headers = {}
+
+        reg = self.registro(meta, response.status, resp_headers, cuerpo, nota,
+                            request=response.request)
+        tiempos = tiempos_navegador(response.request)
+        if tiempos:
+            reg["timing"] = tiempos
+        # los complementos leen meta y cuerpo crudos, antes de redactar
+        self.obs.avisar("respuesta_leida", meta, cuerpo)
+        paso = self.obs.guardar(reg, pagina_de(response.request),
+                                t0_ms=meta["t0"] * 1000)
+        self.obs.avisar("respuesta_guardada", paso)
 
     def drenar_huerfanos(self, forzar=False, al_cerrar=False):
         """Registra lo que Chrome vio y Playwright nunca reporto.

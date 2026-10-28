@@ -1,0 +1,49 @@
+meta {
+  name: SIIF Product Validations [DEV][V1][External]
+  type: http
+  seq: 35
+}
+
+post {
+  url: https://d2b80yrnend1dj.cloudfront.net/loans/eligibility/external/v1/product-validations
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "documento": {
+      "tipo": "CO1C",
+      "numero": "52335676"
+    },
+    "grupoProducto": "CONSUMO",
+    "idProducto": 1
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+settings {
+  encodeUrl: false
+  timeout: 0
+  forwardAuthorizationHeader: false
+}
+
+docs {
+  SIIF (product-validations, obligaciones) de dev, la misma ruta que llama el front en /validaciones. Sin token ni x-api-key.
+
+  Body: documento + grupoProducto (CUPO | CONSUMO) + idProducto (1 Libre Inversion, 2 Compra de Cartera, 72 Mujeres; obligatorio en CONSUMO).
+  Reglas en Consumo: con 1 o 2, cualquier credito con saldo > 0 del mismo subproducto da MANDATORY_REFINANCE (retanqueo, va al CFA);
+  con 72, 3 o mas creditos de Mujeres (SIIF 657, 699, 710) con saldo dan MAX_CURRENT_WOMEN_LOANS; la mora da INVALID_REQUIREMENTS
+  "Afiliado con productos en mora". La regla de saldo corre antes que la de mora.
+
+  Cedulas medidas el 28/10: 52335676 OK (sin obligaciones); 1122651592 MANDATORY_REFINANCE con 1;
+  1019055558 MANDATORY_REFINANCE con 2 y OK con 72 (sus 3 creditos son de Compra de Cartera); CE 673434 INVALID_REQUIREMENTS (mora).
+  Las obligaciones crudas vienen en resultadoValidacion.datosSinProcesar (CodProducto, Saldo, Estado).
+}

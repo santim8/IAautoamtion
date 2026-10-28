@@ -10,10 +10,11 @@ import threading
 
 import esquemas as esq
 import sonda_check
-from observador.analisis import (cobertura_endpoints, es_fallo, frames_socket,
-                                 imprimir_cobertura, linea_check, quizas_json,
-                                 total_fallos, total_requests)
+from observador.analisis import (caminos, cobertura_endpoints, es_fallo,
+                                 frames_socket, imprimir_cobertura, linea_check,
+                                 quizas_json, total_fallos, total_requests)
 from observador.har import escribir_har
+from observador.pantallazos import linea_mensaje, mensajes_en_pantalla
 from observador.reporte_html import escribir_reporte
 from observador.util import ahora_iso
 
@@ -23,6 +24,12 @@ _CERRADO = [False]
 
 def ya_cerrado():
     return _CERRADO[0]
+
+
+def reiniciar():
+    """Deja cerrar otra corrida en el mismo proceso (colsubsidio_flow captura
+    una por cedula)."""
+    _CERRADO[0] = False
 
 
 def cerrar(obs, flujo, ruta_esquemas=None, generar=False):
@@ -47,6 +54,7 @@ class Cierre:
         self.checks = linea_check(obs.pasos)
         self.cob = cobertura_endpoints(obs.pasos, obs.endpoints)
         self.frames = frames_socket(obs.pasos)
+        self.mensajes = mensajes_en_pantalla(obs.pasos)
 
     def ruta(self, nombre):
         return os.path.join(self.obs.dir, nombre)
@@ -76,14 +84,18 @@ def salida_resumen(c):
     resumen = {
         "flujo": c.flujo,
         "generado": ahora_iso(),
+        "caminos": caminos(c.obs.pasos),
         "pasos": [{"idx": p["idx"], "url": p["url"], "titulo": p["titulo"], "ts": p["ts"],
                    "pestana": p.get("pestana", 0), "requests": len(p["requests"]),
                    "websocket": len(p.get("sockets") or []),
-                   "fallos": sum(1 for r in p["requests"] if es_fallo(r))}
+                   "fallos": sum(1 for r in p["requests"] if es_fallo(r)),
+                   "camino": p.get("camino"), "cookie_camino": p.get("cookie_camino")}
                   for p in c.obs.pasos],
     }
     if c.checks:
         resumen["request_check"] = c.checks
+    if c.mensajes:
+        resumen["mensajes_en_pantalla"] = c.mensajes
     resumen["endpoints"] = c.cob
     c.escribir_json("resumen.json", resumen)
     c.escribir_json("endpoints.json", c.cob)
@@ -145,6 +157,17 @@ def salida_esquemas(c):
                      "resultados": obs.validacion})
 
 
+def salida_validador(c):
+    """validador.json: veredicto y checks del validador e2e (colsubsidio_flow),
+    con el resumen del contrato de esta corrida. Solo si lo manejo el validador."""
+    v = getattr(c.obs, "validador", None)
+    if not v:
+        return
+    if getattr(c.obs, "validacion", None):
+        v["esquemas"] = esq.resumir(c.obs.validacion)
+    c.escribir_json("validador.json", v)
+
+
 def salida_websockets(c):
     """websockets.json: todos los frames en orden, con el paso en que cayeron."""
     if c.frames:
@@ -166,6 +189,7 @@ SALIDAS = [
     salida_servicios,
     salida_esquemas,
     salida_websockets,
+    salida_validador,
     salida_har,
     salida_reporte,
 ]
@@ -175,10 +199,20 @@ def imprimir_cierre(c):
     obs = c.obs
     print("\n%d pasos, %d requests, %d con error (status >= 400, CORS o sin respuesta)"
           % (len(obs.pasos), total_requests(obs.pasos), total_fallos(obs.pasos)))
+    if caminos(obs.pasos):
+        print("Camino: %s" % " -> ".join(caminos(obs.pasos)))
     if c.checks:
         print("\n--- /request/check ---")
         for chk in c.checks:
             print("  paso %02d  %-20s %s" % (chk["paso"], chk["motivo"], sonda_check.linea(chk)))
+    if c.mensajes:
+        print("\n--- mensajes en pantalla ---")
+        for m in c.mensajes:
+            try:
+                print("  paso %02d  %s" % (m["paso"], linea_mensaje(m)))
+            except UnicodeEncodeError:
+                print("  paso %02d  (texto con caracteres que esta consola no "
+                      "muestra; ver reporte.html)" % m["paso"])
     if c.frames:
         malos = [fr for fr in c.frames
                  if '"stepStatus":"FAIL"' in fr["payload"].replace(" ", "")]

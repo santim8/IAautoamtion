@@ -1,7 +1,7 @@
 meta {
   name: Crear Usuarios Lote[Gigya]
   type: http
-  seq: 26
+  seq: 25
 }
 
 post {
@@ -42,7 +42,7 @@ script:pre-request {
   // Si el documento ya tiene cuenta, salta la fila (no falla el lote).
   // Correo: base+cc<numero>@dominio, para saber de que cedula es cada correo.
   const axios = require("axios");
-
+  
   const API_KEY = "4_7e7hXQFydtXC85iCAHxVhw";
   const GIGYA = "https://accounts.us1.gigya.com";
   const opts = {
@@ -65,7 +65,7 @@ script:pre-request {
   };
   // Fila del CSV (runtime var) primero, luego environment
   const v = (n) => String(bru.getVar(n) ?? bru.getEnvVar(n) ?? "").trim();
-
+  
   // --- Validaciones del front (screen-set) ---
   const tipo = v("regTipoDoc").toUpperCase();
   const numero = v("regNumeroDocumento");
@@ -92,14 +92,14 @@ script:pre-request {
   if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,15}$/.test(password)) {
     throw new Error("regPassword: 8 a 15 caracteres con mayuscula, minuscula, numero y especial (politica de Gigya)");
   }
-
+  
   // --- Correo: base+palabra@dominio, en minusculas como emailToLowerCase() del front ---
   const letras = "abcdefghijklmnopqrstuvwxyz";
   const palabra = v("regPalabra") || (v("regTipoDoc") + v("regNumeroDocumento")).toLowerCase();
   const [usuarioCorreo, dominio] = v("regCorreoBase").split("@");
   const email = `${usuarioCorreo}+${palabra}@${dominio}`.toLowerCase();
   const username = tipo + numero;
-
+  
   // --- 1) Disponibilidad (el front lo hace al cambiar documento) ---
   const libreUsuario = await gigya("accounts.isAvailableLoginID", { loginID: username });
   const libreCorreo = await gigya("accounts.isAvailableLoginID", { loginID: email });
@@ -108,10 +108,10 @@ script:pre-request {
     bru.runner.skipRequest();
     return;
   }
-
+  
   // --- 2) regToken ---
   const init = await gigya("accounts.initRegistration", { isLite: "false" });
-
+  
   // --- Campos tal como los arma el screen-set ---
   // onSubmit: fecha del input date + 300 min -> ISO (00:00 hora Colombia)
   const iso = (fecha) => `${fecha}T05:00:00.000Z`;
@@ -139,7 +139,7 @@ script:pre-request {
       CustomerPrivacy: { isConsentGranted: true }
     }
   };
-
+  
   // Van al environment (declaradas vacias en registro-dev) para que el Body las reconozca
   bru.setEnvVar("gigyaRegToken", init.regToken);
   bru.setEnvVar("gigyaRegEmail", email);
@@ -183,7 +183,7 @@ tests {
   test("Gigya crea la cuenta (errorCode 0 o 206002)", () => {
     expect(res.body.errorCode, `${res.body.errorCode} ${res.body.errorMessage} ${res.body.errorDetails || ""}`).to.be.oneOf([0, 206002]);
   });
-
+  
   test("devuelve UID", () => {
     expect(res.body.UID, "sin UID").to.be.a("string").and.not.empty;
   });

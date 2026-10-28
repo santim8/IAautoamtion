@@ -25,6 +25,22 @@ HOSTS_DEFAULT = [
 # defecto para reconocer la pestana del flujo.
 RUTAS_APP = ["creditos/solicitud", "loans-dev-solicitud"]
 
+# Cookie con la que el front recuerda el camino (producto) del flujo. La fija el
+# middleware de Next en las rutas /consumo/{slug} (los onboardings de Consumo) y
+# la borra en /cupo-de-credito/...; en las rutas comunes (login, politicas) se
+# conserva, y es lo que decide a que producto sigue el afiliado tras el login
+# (app-cre-solicitud, rama feat/consumer-loans, src/middleware.ts). Visto en dev
+# el 2026-10-23.
+COOKIE_CAMINO = "subproductSlug"
+# slug -> camino. Son los de PRODUCT_CATALOG del front.
+CAMINOS = {
+    "libre-inversion": "Consumo - Libre inversion",
+    "compra-de-cartera": "Consumo - Compra de cartera",
+    "mujeres": "Consumo - Mujeres",
+}
+# Sin la cookie el front va por Cupo.
+CAMINO_SIN_COOKIE = "Cupo de credito"
+
 # Endpoints de negocio que interesan (match por substring sobre la URL).
 # Login de Gigya (CIAM). Su respuesta trae el documento del afiliado, con el
 # que --request-check consulta la retoma apenas se loguea.
@@ -91,6 +107,10 @@ MAX_CDP_RED = 500
 # desde CDP (ver red.CapturaRed.drenar_huerfanos). Holgado: Playwright lee el
 # body en el loop.
 ESPERA_HUERFANO_S = 2.0
+# Una respuesta cuyas cabeceras llegaron pero el cuerpo no termina: leerla
+# congela el loop hasta el ultimo byte (el 500 de card-validations de dev
+# cerraba el cuerpo 3 min despues). Pasado este margen se registra sin cuerpo.
+ESPERA_CUERPO_S = 10.0
 # Lo que quedo sin respuesta al cerrar el observador.
 SIN_RESPUESTA = "sin respuesta"
 
@@ -108,9 +128,11 @@ SHOT_RESPUESTA_DEFAULT = ",".join([
     "request/offer",                 # personalizacion de oferta
     "parametros/estado_civil",       # datos personales; a veces se omite
     "modification-quota-amount",     # modificacion del cupo en personalizacion
-    "creditos/solicitud/login",      # pantalla de login (documento)
-    "accounts.login",                # login de Gigya (CIAM)
+    "accounts.login",                # login de Gigya (CIAM), solo si fallo
 ])
+# "creditos/solicitud/login" salio de la lista: disparaba con el documento,
+# antes de que Gigya pintara el formulario, y siempre quedaba en blanco. El
+# pantallazo de entrada del login ahora espera al formulario (PANTALLA_LISTA).
 
 # Disparadores tras los que la app recarga la pagina (patron -> metodo que
 # dispara): despues del login de Gigya el front recarga /login, y retratarla
@@ -119,6 +141,49 @@ SHOT_RESPUESTA_DEFAULT = ",".join([
 # pantallazos.Pantallazos.tomar_tarde). Solo cuenta la respuesta del POST: es
 # la del login.
 SHOT_TRAS_RECARGA = {"accounts.login": "POST"}
+# accounts.login responde 200 aunque la clave este mal: el resultado va en
+# errorCode. Si entro (0), la pantalla siguiente tiene su propio paso y el
+# pantallazo de la transicion solo mostraba "Cargando..."; si fallo, se espera
+# a que Gigya pinte el error en el formulario.
+SELECTOR_ERROR_GIGYA = ".gigya-error-msg-active"
+ESPERA_ERROR_GIGYA_MS = 10_000
 # Tope del intervalo entre reintentos de un pantallazo que no sale: cada
 # intento fallido bloquea el loop hasta el timeout del screenshot.
 MAX_REINTENTO_SHOT_MS = 10_000
+
+# Mensajes en pantalla. El front pinta sus rechazos y errores con el componente
+# ErrorMessage, que REEMPLAZA lo que habia sin cambiar de ruta (en /validaciones
+# cambia el Loader por el mensaje): no abre paso ni dispara pantallazo, y el
+# screenshot.png del paso se quedaba en "Cargando...". El wrapper del
+# componente lleva data-source="modal|page" (app-cre-solicitud,
+# src/components/ErrorMessage/ErrorMessage.tsx).
+SELECTOR_MENSAJE = '[data-source="modal"], [data-source="page"]'
+# El componente monta con el titulo vacio y el texto llega despues de Drupal:
+# se retrata cuando deja de cambiar durante este margen.
+MENSAJE_ESTABLE_MS = 800
+# Sin texto se espera mas: Drupal puede no haber respondido aun. Pasado este
+# margen sin cambios se retrata igual y se marca VACIO (el front pinta el
+# componente sin contenido cuando Drupal no tiene ese codigo, p. ej.
+# MANDATORY_REFINANCE en dev el 25/10).
+MENSAJE_VACIO_MS = 3000
+# Validaciones cuyo rechazo pinta un mensaje (patron -> sistema). Le ponen
+# nombre al pantallazo, y son el respaldo si el front cambia el componente: si
+# una falla y el mensaje no aparece en MAX_ESPERA_MENSAJE_MS, se retrata la
+# pantalla como este.
+VALIDACIONES_CON_MENSAJE = {
+    "/affiliation-validations": "SAP",
+    "/card-validations": "ASCARD",
+    "/product-validations": "SIIF",
+}
+MAX_ESPERA_MENSAJE_MS = 15_000
+
+# Pantallas que pintan su contenido despues de cargar el documento: el login
+# espera al SDK de Gigya (7 s en dev el 25/10; a 1,2 s salia en blanco) y
+# politicas espera a Drupal. Su pantallazo de entrada espera a que se vea
+# alguno de estos elementos, con tope; si la pestana cambia de ruta antes, no
+# se toma (seria otra pantalla). Patron (regex sobre la ruta) -> (selector, tope ms).
+PANTALLA_LISTA = {
+    r"/login/?$": ("input[name='data.numeroDocumento'], " + SELECTOR_ERROR_GIGYA
+                   + ", " + SELECTOR_MENSAJE, 25_000),
+    r"/politicas/?$": ("input[type='checkbox'], " + SELECTOR_MENSAJE, 15_000),
+}

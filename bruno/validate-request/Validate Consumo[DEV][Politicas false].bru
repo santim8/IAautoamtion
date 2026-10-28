@@ -1,0 +1,84 @@
+meta {
+  name: Validate Consumo[DEV][Politicas false]
+  type: http
+  seq: 30
+}
+
+post {
+  url: https://d2b80yrnend1dj.cloudfront.net/loans/req-mgr/external/v1/product/1/request/validate
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "documento": {
+      "tipo": "CO1C",
+      "numero": ""
+    },
+    "canalOrigen": "WEB",
+    "grupoProducto": "CONSUMO",
+    "idProducto": "1",
+    "politicasConsumo": {
+      "preguntaDeclaracionAsegurabilidad": false,
+      "aceptacionDeclaracionAsegurabilidad": false,
+      "aceptacionPoliticas": false
+    }
+  }
+}
+
+assert {
+  res.status: neq 202
+}
+
+script:pre-request {
+  const { data: apigee } = await axios.post(
+    'https://colsubsidio-test.apigee.net/oauth/client_credential/accesstoken?grant_type=client_credentials',
+    'grant_type=client_credentials&client_id=cmnGMnGPVKLJwWLfWxqFCSZOR5hIjhWb&client_secret=uKCYJXAVkLY5gsWt',
+    { headers: { 'content-type': 'application/x-www-form-urlencoded' } }
+  );
+
+  const { data: ciam } = await axios.post(
+    'https://colsubsidio-test.apigee.net/api/v3/afiliacion/validador/token/ciam',
+    {
+      "uid": "bb99d52a895d4fa9a60d8a7128120c50",
+      "cliente": {
+        "nombres": "Diego",
+        "apellidos": "Buitrago",
+        "telefono": "+573043760558",
+        "correo": "correo@ejemplo.com",
+        "documento": { "tipo": "2", "numero": "878787878" }
+      },
+      "empresa": { "documento": { "tipo": "", "numero": "" } },
+      "sesion": { "tiempoSegundos": 7200 },
+      "tipoMarketing": "B2C",
+      "credenciales": { "gigyaApiKey": "4_8iVHMwS2exdEd0YQvlfe-g" }
+    },
+    {
+      headers: {
+        'authorization': `Bearer ${apigee.access_token}`,
+        'content-type': 'application/json',
+        'x-api-key': '816a9aa1-bbe9-4878-bce9-839d4448a2b4'
+      }
+    }
+  );
+
+  req.setHeader("authorization", ciam.access_token);
+}
+
+docs {
+  HU 225427, hallazgo P6: validate de Consumo (ruta nueva, rama develop-consumer) con las politicas en false.
+  El back solo revisa que los 3 booleanos de politicasConsumo no sean nulos, no que vengan en true.
+
+  Antes de correr: poner en documento.numero una cedula SIN caso que nadie este usando.
+  Con 202 se crea un caso real en el Bizagi de dev (dev-procesosdigitales), que hoy no podemos cancelar,
+  y la cedula queda bloqueada para Cupo y Consumo (409 CASE_IN_PROGRESS, hallazgo P8).
+  Con el numero vacio el back responde 400 y no crea nada.
+
+  Esperado (HU): rechazo sin crear caso. Si responde 202, P6 queda reproducido y el assert falla.
+  Va directo a dev (d2b80yrnend1dj); no usa baseUrl porque los environments apuntan a CERT.
+}

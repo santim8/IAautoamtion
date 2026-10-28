@@ -2,7 +2,8 @@
 
 Las cedulas viven en cedulas.json (se versiona), agrupadas por data provider:
 fill_data_api, login_credito, consumo_225423... Cada grupo es una lista de
-{"tipo", "numero", "nota"}.
+{"tipo", "numero", "nota"} y, si el test lo usa, "esperado" (p. ej. lo que
+deben responder SAP, ASCARD y SIIF en validaciones_225425).
 
 Las claves NO van ahi (en Java estaban en el codigo). Se buscan, en orden:
   1. ~/.panel_qa/usuarios_prueba.json -- el archivo de la pestana Usuarios del
@@ -25,6 +26,7 @@ class Usuario:
     numero: str
     nota: str = ""
     clave: str = field(default=None, repr=False)
+    esperado: dict = field(default_factory=dict, repr=False)
 
     @property
     def documento(self):
@@ -50,10 +52,11 @@ def grupo(nombre):
     datos = cargar()
     if nombre not in datos:
         raise KeyError("No existe el data provider '%s'. Hay: %s" % (nombre, ", ".join(grupos())))
-    return [Usuario(f["tipo"], f["numero"], f.get("nota", "")) for f in datos[nombre]]
+    return [Usuario(f["tipo"], f["numero"], f.get("nota", ""), esperado=f.get("esperado") or {})
+            for f in datos[nombre]]
 
 
-def agregar(nombre, tipo, numero, nota=""):
+def agregar(nombre, tipo, numero, nota="", esperado=None):
     tipo = tipo.upper()
     if tipo not in TIPOS or not numero.isdigit():
         raise ValueError("Documento invalido: %s:%s (tipos: %s)" % (tipo, numero, ", ".join(TIPOS)))
@@ -63,9 +66,12 @@ def agregar(nombre, tipo, numero, nota=""):
         if f["tipo"] == tipo and f["numero"] == numero:
             if nota:
                 f["nota"] = nota
+            if esperado:
+                f["esperado"] = esperado
             break
     else:
-        filas.append({"tipo": tipo, "numero": numero, "nota": nota})
+        filas.append(dict({"tipo": tipo, "numero": numero, "nota": nota},
+                          **({"esperado": esperado} if esperado else {})))
     guardar(datos)
 
 

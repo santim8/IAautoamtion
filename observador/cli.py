@@ -10,7 +10,7 @@ from playwright.sync_api import sync_playwright
 
 from observador.alcance import Alcance
 from observador.cierre import cerrar
-from observador.complementos import armar_sonda
+from observador.complementos import ComplementoCamino, armar_sonda
 from observador.config import (ENDPOINTS_RASTREADOS, ESQUEMAS_DEFAULT,
                                HOSTS_DEFAULT, RUTAS_APP, SCRIPT,
                                SHOT_RESPUESTA_DEFAULT)
@@ -93,7 +93,7 @@ def armar_parser():
 
 def armar_complementos(args):
     """Los complementos de esta corrida. ValueError si un argumento no sirve."""
-    complementos = []
+    complementos = [ComplementoCamino()]
     sonda = armar_sonda(args.request_check, args.documento)
     if sonda:
         complementos.append(sonda)

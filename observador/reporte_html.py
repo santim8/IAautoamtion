@@ -7,15 +7,17 @@ y cada request una fila desplegable (_html_request).
 import html
 import json
 import os
+from collections import Counter
 
 import esquemas as esq
 import sonda_check
-from observador.analisis import (cobertura_endpoints, endpoint_con_error,
+from observador.analisis import (caminos, cobertura_endpoints, endpoint_con_error,
                                  etiqueta_fallo, es_fallo, linea_check,
                                  nota_version, total_fallos, total_requests)
 from observador.config import MAX_BODY_HTML, SHOT_RESPUESTA_DEFAULT
 from observador.pantallazos import (PREFIJO_RESPUESTA, etiqueta_shot,
-                                    slug_disparador)
+                                    leer_mensajes, linea_mensaje,
+                                    mensajes_en_pantalla, slug_disparador)
 from observador.util import ahora_iso
 
 CSS_REPORTE = """
@@ -96,6 +98,36 @@ CSS_ENDPOINTS = """
   .nota-sonda { color:var(--mut); font-size:12px; }
   .idx-ep tr.cambio td { font-weight:700; }
   .idx-ep tr.cambio .e { color:var(--acc); }
+"""
+
+
+CSS_VALIDADOR = """
+  :root { --warn:#b26a00; }
+  @media (prefers-color-scheme: dark) { :root { --warn:#ffb74d; } }
+  .val { border:1px solid var(--bd); border-left:6px solid var(--err); border-radius:6px;
+         padding:12px 16px; margin-bottom:24px; }
+  .val.pasa { border-left-color:var(--ok); }
+  .val.conocidos { border-left-color:var(--warn); }
+  .val .ver { margin:0 0 2px; font-size:18px; font-weight:700; color:var(--err); }
+  .val.pasa .ver { color:var(--ok); }
+  .val.conocidos .ver { color:var(--warn); }
+  .val .datos { margin:0 0 10px; color:var(--mut); font-size:12px; }
+  .val details { border-top:1px solid var(--bd); }
+  .val summary { font-size:13px; font-weight:600; padding:6px 0; }
+  .val summary .cnt { font-weight:400; color:var(--mut); }
+  .val table { border-collapse:collapse; width:100%; font-size:12px; margin:0 0 8px; }
+  .val td { padding:3px 8px; border-bottom:1px solid var(--bd); vertical-align:top; }
+  .val .marca { width:1%; white-space:nowrap; font-size:10px; font-weight:700; }
+  .val tr.PASS .marca { color:var(--ok); }
+  .val tr.FAIL .marca { color:var(--err); }
+  .val tr.FAIL td { background:color-mix(in srgb, var(--err) 8%, transparent); }
+  .val tr.CONOCIDO .marca, .val tr.WARN .marca { color:var(--warn); }
+  .val tr.INFO td { color:var(--mut); }
+  .val .ref { display:block; color:var(--warn); font-size:11px; }
+  .val .fotos { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+  .val .fotos figure { margin:0; width:220px; }
+  .val .fotos img { width:100%; border:1px solid var(--bd); border-radius:6px; }
+  .val .fotos figcaption { font-size:10px; color:var(--mut); }
 """
 
 
@@ -184,6 +216,90 @@ def _bloque_check(filas, esc):
             '<table>' + "".join(trs) + '</table></section>')
 
 
+def _bloque_mensajes(mensajes, esc):
+    """Los mensajes que el front pinto (rechazos de SAP/ASCARD/SIIF y errores),
+    con lo que respondio la validacion al lado."""
+    if not mensajes:
+        return ""
+    trs = []
+    for m in mensajes:
+        val = m.get("validacion") or {}
+        pantalla = m.get("pantalla") or {}
+        motivo = ": ".join(str(x) for x in (val.get("codigo"), val.get("regla")) if x)
+        trs.append(
+            '<tr class="malo">'
+            '<td class="p">paso ' + esc("%02d" % m["paso"]) + '</td>'
+            '<td class="st">' + esc(val.get("sistema") or "-") + '</td>'
+            '<td class="e">' + esc(motivo) + '</td>'
+            '<td>' + (esc(pantalla.get("titulo") or pantalla.get("texto", "")[:120])
+                      if pantalla else '<i>no aparecio mensaje</i>') + '</td>'
+            '</tr>')
+    return ('<section class="idx-ep"><h3>Mensajes en pantalla '
+            '<small>lo que vio el usuario cuando algo no paso</small></h3>'
+            '<table>' + "".join(trs) + '</table></section>')
+
+
+def leer_validador(obs):
+    """El resultado del validador e2e (colsubsidio_flow), en vivo o desde el
+    validador.json de la carpeta; None si la corrida no la manejo el validador."""
+    v = getattr(obs, "validador", None)
+    if v is None:
+        try:
+            with open(os.path.join(obs.dir, "validador.json"), encoding="utf-8") as f:
+                v = json.load(f)
+        except (OSError, ValueError):
+            return None
+    return v
+
+
+def _bloque_validador(v, esc):
+    """El veredicto arriba y los checks por seccion (una por pantalla). Las
+    secciones con FAIL o WARN quedan abiertas."""
+    if not v:
+        return ""
+    clase = {"PASA": "pasa", "PASA CON CONOCIDOS": "conocidos"}.get(v.get("veredicto"), "falla")
+    datos = [v.get("documento"), v.get("producto"), "sesion " + str(v.get("sesion")),
+             "hasta " + str(v.get("hasta")), "llego a " + str(v.get("llego_a")),
+             ("caso " + v["caso"]) if v.get("caso") else
+             ("caso en curso " + v["caso_previo"]) if v.get("caso_previo") else "sin caso",
+             "%s s" % v.get("duracion_s"), v.get("base")]
+    secciones = {}
+    for linea in v.get("lineas") or []:
+        secciones.setdefault(linea.get("seccion") or "inicio", []).append(linea)
+    partes = []
+    for nombre, lineas in secciones.items():
+        n = Counter(linea["marca"] for linea in lineas)
+        cuenta = " &middot; ".join(esc("%d %s" % (n[m], m)) for m in
+                                   ("PASS", "FAIL", "CONOCIDO", "WARN") if n[m])
+        filas = "".join(
+            '<tr class="' + esc(linea["marca"]) + '"><td class="marca">' + esc(linea["marca"])
+            + '</td><td>' + esc(linea["mensaje"])
+            + ('<span class="ref">' + esc(linea["conocido"]) + '</span>'
+               if linea.get("conocido") else '') + '</td></tr>'
+            for linea in lineas)
+        partes.append('<details' + (' open' if n["FAIL"] or n["WARN"] else '') + '><summary>'
+                      + esc(nombre)
+                      + ' <span class="cnt">' + cuenta + '</span></summary><table>' + filas
+                      + '</table></details>')
+    fotos = "".join('<figure><a href="' + esc(f) + '" target="_blank"><img src="' + esc(f)
+                    + '" alt="' + esc(f) + '"></a><figcaption>' + esc(f) + '</figcaption></figure>'
+                    for f in v.get("fotos") or [])
+    return ('<section class="val ' + clase + '"><p class="ver">Validador: '
+            + esc(v.get("veredicto")) + '</p><p class="datos">'
+            + " &middot; ".join(esc(x) for x in datos if x)
+            + '<br>camino: ' + esc(" → ".join(v.get("camino") or [])) + '</p>'
+            + "".join(partes)
+            + ('<div class="fotos">' + fotos + '</div>' if fotos else '') + '</section>')
+
+
+def bloque_validador(obs):
+    return _bloque_validador(leer_validador(obs), esc)
+
+
+def bloque_mensajes(obs):
+    return _bloque_mensajes(mensajes_en_pantalla(obs.pasos), esc)
+
+
 def bloque_esquemas(obs):
     return esq.bloque_html(getattr(obs, "validacion", []),
                            getattr(obs, "ruta_esquemas", None), esc)
@@ -199,7 +315,8 @@ def bloque_check(obs):
 
 # Lo que va entre el titulo y los pasos, en orden. Cada bloque recibe el
 # observador (en vivo o reconstruido desde disco) y devuelve HTML, o "".
-BLOQUES_CABECERA = [bloque_esquemas, bloque_endpoints, bloque_check]
+BLOQUES_CABECERA = [bloque_validador, bloque_mensajes, bloque_esquemas, bloque_endpoints,
+                    bloque_check]
 
 
 # --- pasos ------------------------------------------------------------------
@@ -277,9 +394,10 @@ def _html_request(r):
 
 
 def _imagenes_paso(paso):
-    """[(src, leyenda)] del paso. El pantallazo disparado por la respuesta del
-    servicio manda (es el estado real de la pantalla con datos), y el de la
-    navegacion queda abajo como referencia."""
+    """[(src, leyenda)] del paso. Un mensaje en pantalla manda (es lo que vio
+    el usuario cuando algo no paso); luego el pantallazo disparado por la
+    respuesta del servicio (el estado real de la pantalla con datos), y el de
+    la navegacion queda abajo como referencia."""
     base = "%02d_%s/" % (paso["idx"], paso["slug"])
     if os.path.isdir(paso["dir"]):
         onresp = sorted((f for f in os.listdir(paso["dir"])
@@ -287,8 +405,10 @@ def _imagenes_paso(paso):
                         key=_rango_disparador)
     else:
         onresp = []
-    imgs = [(base + f, "al responder " + etiqueta_shot(f).replace("-", "/"))
-            for f in onresp]
+    imgs = [(base + png, linea_mensaje(ficha))
+            for png, ficha in leer_mensajes(paso) if png]
+    imgs += [(base + f, "al responder " + etiqueta_shot(f).replace("-", "/"))
+             for f in onresp]
     if os.path.exists(os.path.join(paso["dir"], "screenshot.png")):
         imgs.append((base + "screenshot.png", "al entrar a la pantalla"))
     if os.path.exists(os.path.join(paso["dir"], "screenshot_2.png")):
@@ -320,6 +440,7 @@ def _html_paso(paso, multi):
         '<p class="url">' + esc(paso["url"]) + '</p>'
         '<p class="meta">' + esc(len(paso["requests"])) + ' request(s) &middot; '
         + ('pestana ' + esc(paso.get("pestana", 0)) + ' &middot; ' if multi else '')
+        + ('camino ' + esc(paso["camino"]) + ' &middot; ' if paso.get("camino") else '')
         + esc(paso["ts"]) + '</p>'
         + cuerpo +
         '</div></section>'
@@ -338,9 +459,13 @@ def escribir_reporte(obs, flujo, ruta):
         '<!doctype html><html lang="es"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1">'
         '<title>Evidencia - ' + esc(flujo) + '</title>'
-        '<style>' + CSS_REPORTE + CSS_ENDPOINTS + esq.CSS + '</style></head><body>'
+        '<style>' + CSS_REPORTE + CSS_ENDPOINTS + CSS_VALIDADOR + esq.CSS
+        + '</style></head><body>'
         '<header><h1>Evidencia de flujo &mdash; ' + esc(flujo) + '</h1>'
-        '<p class="resumen">' + esc(len(obs.pasos)) + ' pasos &middot; '
+        '<p class="resumen">'
+        + (('camino <b>' + esc(" → ".join(caminos(obs.pasos))) + '</b> &middot; ')
+           if caminos(obs.pasos) else '')
+        + esc(len(obs.pasos)) + ' pasos &middot; '
         + esc(total) + ' requests capturados &middot; '
         + esc(fallos) + ' con error (status &ge; 400, CORS o sin respuesta) &middot; '
         + ((esc(n_sonda) + ' consultas a /request/check &middot; ') if n_sonda else '')
