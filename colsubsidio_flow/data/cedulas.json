@@ -213,5 +213,287 @@
       "numero": "74188681",
       "nota": "CASE_IN_PROGRESS_PROMOTER (caso 287133, 1/10)"
     }
+  ],
+  "hasta_politicas": [
+    {
+      "tipo": "CC",
+      "numero": "52335676",
+      "nota": "tenia camino feliz; desde el 28/10 tiene el caso 627377 en dev (retoma a informacion-personal)"
+    },
+    {
+      "tipo": "CC",
+      "numero": "80057089",
+      "nota": "SAP INVALID_USER: estado empresa dependiente"
+    },
+    {
+      "tipo": "CC",
+      "numero": "1122651592",
+      "nota": "retanqueo en mora (SIIF)"
+    }
+  ],
+  "validaciones_225425": [
+    {
+      "tipo": "CC",
+      "numero": "52335676",
+      "nota": "camino feliz dependiente",
+      "esperado": {
+        "sap": "OK",
+        "ascard": "OK",
+        "siif": "OK",
+        "pantalla": "politicas"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "91156652",
+      "nota": "respaldo camino feliz",
+      "esperado": {
+        "sap": "OK",
+        "ascard": "OK",
+        "siif": "OK",
+        "pantalla": "politicas"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "1069734918",
+      "nota": "ingresos < SMMLV (PR 25744)",
+      "esperado": {
+        "sap": "INVALID_REQUIREMENTS_SALARY_DEP",
+        "ascard": "NO_LLAMADO",
+        "siif": "NO_LLAMADO",
+        "pantalla": "mensaje"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "937774",
+      "nota": "no existe en SAP (PR 25739)",
+      "esperado": {
+        "sap": "AFFILIATE_STATUS",
+        "ascard": "NO_LLAMADO",
+        "siif": "NO_LLAMADO",
+        "pantalla": "mensaje"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "19246507",
+      "nota": "edad fuera de rango (72)",
+      "esperado": {
+        "sap": "AGE_OUT_OF_RANGE",
+        "ascard": "NO_LLAMADO",
+        "pantalla": "mensaje"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "1023876310",
+      "nota": "afiliado no vigente",
+      "esperado": {
+        "sap": "INVALID_USER",
+        "ascard": "NO_LLAMADO",
+        "pantalla": "mensaje"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "52812754",
+      "nota": "independiente (TC004)",
+      "esperado": {
+        "sap": "OK",
+        "ascard": "OK",
+        "siif": "OK",
+        "pantalla": "politicas"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "39712148",
+      "nota": "facultativo",
+      "esperado": {
+        "sap": "OK",
+        "ascard": "OK",
+        "siif": "OK",
+        "pantalla": "politicas"
+      }
+    },
+    {
+      "tipo": "CE",
+      "numero": "360750",
+      "nota": "pensionada con empresa (TC003A)",
+      "esperado": {
+        "sap": "OK",
+        "ascard": "OK",
+        "siif": "OK",
+        "pantalla": "politicas"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "13617086",
+      "nota": "ASCARD A mora en productos (TC017)",
+      "esperado": {
+        "sap": "OK",
+        "ascard": "INVALID_REQUIREMENTS",
+        "siif": "NO_LLAMADO",
+        "pantalla": "mensaje"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "79584194",
+      "nota": "ASCARD R refinanciada (TC017)",
+      "esperado": {
+        "sap": "OK",
+        "ascard": "INVALID_REQUIREMENTS",
+        "siif": "NO_LLAMADO",
+        "pantalla": "mensaje"
+      }
+    },
+    {
+      "tipo": "CE",
+      "numero": "673434",
+      "nota": "SIIF mora con Compra de Cartera (TC018)",
+      "esperado": {
+        "sap": "OK",
+        "ascard": "OK",
+        "siif": "INVALID_REQUIREMENTS",
+        "pantalla": "mensaje"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "1122651592",
+      "nota": "retanqueo LI en mora -> CFA (TC022)",
+      "esperado": {
+        "sap": "OK",
+        "ascard": "OK",
+        "siif": "MANDATORY_REFINANCE",
+        "pantalla": "otro sitio"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "29125192",
+      "nota": "beneficiario (TC009A)",
+      "esperado": {
+        "sap": "INVALID_USER",
+        "ascard": "NO_LLAMADO",
+        "siif": "NO_LLAMADO",
+        "pantalla": "mensaje"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "35532371",
+      "nota": "pensionada ingresos < SMMLV (TC015)",
+      "esperado": {
+        "sap": "INVALID_REQUIREMENTS_SALARY_IND",
+        "ascard": "NO_LLAMADO",
+        "siif": "NO_LLAMADO",
+        "pantalla": "mensaje"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "79212416",
+      "nota": "independiente aporte 0,6 %",
+      "esperado": {
+        "sap": "INVALID_REQUIREMENTS",
+        "ascard": "NO_LLAMADO",
+        "siif": "NO_LLAMADO",
+        "pantalla": "mensaje"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "53072541",
+      "nota": "independiente sin empresa; ASCARD sin tarjeta (TC004/TC029)",
+      "esperado": {
+        "sap": "OK",
+        "ascard": "CARD_STATUS",
+        "siif": "NO_LLAMADO",
+        "pantalla": "mensaje"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "1053340816",
+      "nota": "independiente ZAIN 5 meses (TC013; antes facultativa)",
+      "esperado": {
+        "sap": "REQUIRED_WORK_TIME_IND",
+        "ascard": "NO_LLAMADO",
+        "siif": "NO_LLAMADO",
+        "pantalla": "mensaje"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "1144154258",
+      "nota": "pensionado ZAPE 2 meses (TC012)",
+      "esperado": {
+        "sap": "REQUIRED_WORK_TIME_RETIRED",
+        "ascard": "NO_LLAMADO",
+        "siif": "NO_LLAMADO",
+        "pantalla": "mensaje"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "80057089",
+      "nota": "dependiente con su unica empresa en RADIC (TC016)",
+      "esperado": {
+        "sap": "INVALID_USER",
+        "ascard": "NO_LLAMADO",
+        "siif": "NO_LLAMADO",
+        "pantalla": "mensaje"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "79152092",
+      "nota": "dependiente con porcentajeAporte vacio: antes 500, desde el 26/10 INVALID_REQUIREMENTS (aporte 4%)",
+      "esperado": {
+        "sap": "INVALID_REQUIREMENTS",
+        "ascard": "NO_LLAMADO",
+        "siif": "NO_LLAMADO",
+        "pantalla": "mensaje"
+      }
+    }
+  ],
+  "e2e": [
+    {
+      "tipo": "CC",
+      "numero": "52335676",
+      "nota": "retoma: tiene el caso 627377 en dev (REQUEST_DATA, 28/10); informacion-personal da 500"
+    },
+    {
+      "tipo": "CC",
+      "numero": "39712148",
+      "nota": "camino feliz (facultativo), libre en dev el 28/10",
+      "esperado": {
+        "sap": "OK",
+        "ascard": "OK",
+        "siif": "OK",
+        "pantalla": "politicas"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "360750",
+      "nota": "camino feliz (pensionada con empresa), libre en dev el 28/10",
+      "esperado": {
+        "sap": "OK",
+        "ascard": "OK",
+        "siif": "OK",
+        "pantalla": "politicas"
+      }
+    },
+    {
+      "tipo": "CC",
+      "numero": "91156652",
+      "nota": "retoma: caso 627400 en dev (Continuar a mano el 28/10, REQUEST_DATA); informacion-personal da 500"
+    }
   ]
 }

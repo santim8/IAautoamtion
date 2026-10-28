@@ -1,0 +1,41 @@
+meta {
+  name: Card Validations [DEV][V2][Consumo amparada]
+  type: http
+  seq: 31
+}
+
+post {
+  url: https://d2b80yrnend1dj.cloudfront.net/loans/eligibility/external/v2/card-validations
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "documento": {
+      "tipo": "CO1C",
+      "numero": "20156603"
+    },
+    "grupoProducto": "CONSUMO",
+    "idProducto": 1
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.resultadoValidacion.estado: eq "OK"
+}
+
+docs {
+  HU 225425, hallazgo V7: ASCARD en Consumo rechaza la tarjeta amparada; la HU dice "No aplica para consumo".
+  20156603 tiene solo una TARJETA AMPARADA CHIP (tipo 6).
+
+  Medido el 26/10 en dev: VALIDATION_ERROR INVALID_REQUIREMENTS "Afiliado con cupo activo".
+  El assert pide estado OK (lo que dice la HU): mientras ASCARD rechace, falla.
+  Estado del hallazgo: por confirmar con PO.
+  Va directo a dev (d2b80yrnend1dj), sin token: la ruta external no lo pide.
+}

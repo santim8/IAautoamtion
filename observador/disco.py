@@ -72,7 +72,7 @@ def rehacer_reporte(dir_evidencia, endpoints, ruta_esquemas=None, generar=False)
     for paso in obs.pasos:
         previo = previos.get(paso["idx"]) or {}
         if previo.get("url"):
-            for k in ("url", "titulo", "ts", "pestana"):
+            for k in ("url", "titulo", "ts", "pestana", "camino", "cookie_camino"):
                 if previo.get(k) not in (None, ""):
                     paso[k] = previo[k]
             continue

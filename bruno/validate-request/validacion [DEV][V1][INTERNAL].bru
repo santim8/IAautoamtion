@@ -1,0 +1,34 @@
+meta {
+  name: validacion [DEV][V1][INTERNAL]
+  type: http
+  seq: 29
+}
+
+post {
+  url: https://d2b80yrnend1dj.cloudfront.net/loans/eligibility/internal/v1/affiliation-validations
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  x-api-key: 2s5JJxhvYv6wWfVpnLccerlbtWT2GxU6oZwzkWl5
+}
+
+body:json {
+  {
+    "idCaso": "31213",
+    "documento": {
+      "tipo": "CO1C",
+      "numero": "93129379"
+    },
+    "grupoProducto": "CONSUMO",
+    "idProducto": 1
+  }
+}
+
+settings {
+  encodeUrl: false
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

@@ -51,6 +51,18 @@ def linea_check(pasos):
     return sorted(filas, key=lambda f: f["ts"])
 
 
+def caminos(pasos):
+    """Los caminos del flujo en el orden en que aparecieron, sin repetir el
+    mismo dos veces seguidas: ["Consumo - Mujeres"], o ["Cupo de credito",
+    "Consumo - Mujeres"] si cambio a mitad."""
+    vistos = []
+    for p in pasos:
+        c = p.get("camino")
+        if c and (not vistos or vistos[-1] != c):
+            vistos.append(c)
+    return vistos
+
+
 def frames_socket(pasos):
     """Todos los frames del websocket en orden, con el paso en que cayeron."""
     return [dict(fr, paso=p["idx"], pantalla=p["url"])

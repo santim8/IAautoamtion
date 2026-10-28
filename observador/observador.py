@@ -12,7 +12,7 @@ import os
 import time
 
 from observador.config import TOLERANCIA_CAMBIO_MS
-from observador.pantallazos import Pantallazos
+from observador.pantallazos import JS_HOOK_MENSAJE, Pantallazos
 from observador.red import CapturaRed
 from observador.sockets import CapturaSocket
 from observador.util import ahora_iso, anexar_jsonl, es_url_real, slug_de_url
@@ -207,6 +207,8 @@ class Observador:
             except Exception:
                 return None
         self.anotar(paso, reg)
+        if not al_cerrar:
+            self.pantallazos.anotar_rechazo(reg, pagina or self.pagina_actual)
         return paso
 
     def anotar(self, paso, reg):
@@ -238,6 +240,19 @@ class Observador:
             page.evaluate(JS_HOOK_RUTA)          # documento actual
         except Exception:
             pass
+        # el mensaje de rechazo/error se pinta sin cambiar de ruta: lo avisa
+        # el propio front cuando termina de pintarlo (ver pantallazos)
+        try:
+            page.expose_binding(
+                "__obsMensaje",
+                lambda source, datos: self.pantallazos.mensaje_pintado(source["page"], datos))
+        except Exception:
+            pass
+        try:
+            page.add_init_script(JS_HOOK_MENSAJE)
+            page.evaluate(JS_HOOK_MENSAJE)
+        except Exception:
+            pass
         self.pagina_actual = page
 
     # -- ciclo de vida
@@ -261,6 +276,8 @@ class Observador:
         """
         try:
             self.pantallazos.tomar_tarde(forzar=True)
+            # un rechazo cuyo mensaje aun no pinto se retrata como este
+            self.pantallazos.tomar_mensajes(forzar=True)
             self.pantallazos.volcar()           # no perder los del ultimo instante
             self.vaciar_pendientes()            # no perder la ultima pantalla
             self.pantallazos.tomar_diferidos(forzar=True)
@@ -273,6 +290,7 @@ class Observador:
             # lo que respondio mientras se esperaba (el login, p. ej.)
             # tambien deja su pantallazo
             self.pantallazos.tomar_tarde(forzar=True)
+            self.pantallazos.tomar_mensajes(forzar=True)
             self.pantallazos.volcar()
         except BaseException:
             pend = len(self.red.cola_resp)

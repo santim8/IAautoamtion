@@ -362,6 +362,44 @@ python bizagi_consultar_caso.py 1075662894
 
 ---
 
+### PROMPT 7D — Bizagi por API (sin navegador, sin formulario de login)
+
+Trigger: cualquier consulta a Bizagi que no pida ver la pantalla: `"solicitudes bizagi {tipo} {identification}"`,
+`"json del caso {N}"`, `"en qué va el caso {N}"`, `"¿se puede cancelar el caso {N}?"`. Claude lo corre solo.
+
+`bizagi_api.py` le pega a los mismos servicios REST que llama el portal (lo que hacen los PROMPT 7/7B/7C
+y `bizagi_consultar_json.py`, pero en 1–4 s y sin selectores):
+
+```bash
+python bizagi_api.py solicitudes [CE] {identification}   # GCR_Solicitudes - Promotor, la más reciente primero
+python bizagi_api.py json {N}                            # GCR_Solicitudes - Analista operativo (fila completa)
+python bizagi_api.py caso {N}                            # buscador superior: proceso, subprocesos, abortado o no
+python bizagi_api.py admin {N}                           # Administración de procesos: ¿está en curso?
+python bizagi_api.py cancelar {N}                        # en seco: dice qué cancelaría
+python bizagi_api.py cancelar {N} --confirmar            # cancela (Rest/Cases/Abort) — pedir OK antes
+python bizagi_api.py navegador                           # Chromium ya logueado con la sesión
+```
+
+**Sesión:** `POST /Api/Authentication/User` con `BIZAGI_USER`/`BIZAGI_PASSWORD` del entorno → cookie
+`.BZAUTH` + token `X-BZXSRF-TOKEN` (sale de `/Rest/Users/CurrentUserGuid`), guardados en
+`~/.panel_qa/bizagi_sesion.json`. Se vence a los 20 min sin uso y el script la renueva solo. Sin
+credenciales en el entorno: `python bizagi_api.py login --cookie ".BZAUTH=..."` con la cookie
+copiada de DevTools. Para Playwright: `from bizagi_api import abrir` da un contexto ya logueado.
+
+**Cancelar (probado el 26/10 con 322388, 322390 y 322392):** responde `"deleted": true`, el caso queda
+`isAborted` y sale de Administración de procesos, y `/request/check` del documento da 404 (la cédula
+queda libre). El estado de negocio (`kpEstado` en Analista operativo) **se queda como estaba**
+("Solicitud activa"): cancelar desde admin aborta el proceso sin pasar por la actividad "Cancelar
+Solicitud". El botón del portal hace lo mismo (ver 298982: abortado y "Solicitud activa - En
+validación biométrica").
+
+**Ojo con "última solicitud":** el portal no ordena la tabla por fecha (la más nueva primero y el
+resto ascendente), así que "última fila de la página 2" de `bizagi_cancel_case.py` puede no ser la
+más reciente (CC 80057089 el 26/10: tomó 319407 y la más nueva era 320814). `solicitudes` ordena
+por fecha de creación.
+
+---
+
 ## Feature Flags CERT
 
 > **Desde el 2026-10-02 las 4 URLs de abajo responden 404**: CloudFront las manda a S3, aunque la vista sigue existiendo en Drupal. Mientras se arregla, leer los flags por JSON:API (no requiere sesión):
@@ -434,6 +472,61 @@ curl -s -u ":$TOKEN" \
 
 **Repo IDs conocidos:**
 - `app-cre-product-eligibility-api` → `51a68bfb-dbe2-49ba-9bcf-1fb3ba285dbf`
+
+---
+
+### PROMPT 9 — Validador E2E (Claude recorre el flujo y entrega el reporte)
+
+Trigger: `"valida e2e {tipo} {identification}"`, `"corre el e2e"`, `"valida el despliegue"`,
+`"valida esta cédula de punta a punta"`. Claude lo corre solo (sin clave: sesión por token).
+
+**Antes de correr, preguntar si se quiere ver en vivo o no** (si no lo dijo ya):
+- **En vivo:** sin `--headless` y con `--lento 500` (pausa antes de cada clic y de lo que se escribe), lanzado
+  en el panel de Terminal del QA para que vea la ventana y la consola.
+- **Headless:** con `--headless`.
+- En los dos casos se genera el reporte y se entrega su ruta absoluta.
+
+```bash
+# Consumo Libre Inversión en dev, hasta políticas (default: no pulsa Continuar, no crea caso)
+python -m colsubsidio_flow e2e --documento CC:39712148 --headless
+
+# En vivo
+python -m colsubsidio_flow e2e --documento CC:39712148 --lento 500
+
+# Otro subproducto o Cupo; qa = front de la rama qa con back de CERT
+python -m colsubsidio_flow e2e --documento CC:n --slug mujeres --headless
+python -m colsubsidio_flow e2e --documento CC:n --entrada cupo --base https://dev.colsubsidio.com/creditos/solicitud --headless
+
+# Más allá de políticas: pulsa Continuar (CREA EL CASO en Bizagi) y sigue; pedir OK antes
+python -m colsubsidio_flow e2e --documento CC:n --hasta fin --headless
+```
+
+- Opciones: `--hasta politicas|informacion-personal|personalizacion-oferta|datos-adicionales|biometria|fin`,
+  `--rapido` (en políticas solo marca y sigue), `--lento 500` (en vivo), `--respuesta si`, `--sin-biometria`,
+  `--dispositivo "Pixel 7"`. Sin `--documento` corre el data provider `e2e` de `cedulas.json`.
+- **"Logueate y déjame la pantalla abierta en X":** `--hasta X --dejar-abierto` sin `--headless`. Claude
+  entra, valida hasta X y deja la ventana ahí con el observador grabando; lo que el QA haga a mano entra al
+  reporte (sección "a mano"), que se escribe al **cerrar la ventana** o con Enter en la consola. Con
+  `--cdp 9333` además queda expuesta para que otro proceso se enganche (`politicas-225427 --conectar 9333`).
+  ```bash
+  python -m colsubsidio_flow e2e --documento CC:39712148 --hasta politicas --rapido --lento 500 --dejar-abierto
+  ```
+- Antes de entrar consulta `/request/check` (dev: d2b80 `product/{1|2}`; qa: CERT): con caso en curso el
+  front hace **retoma** y no pasa por validaciones; el validador lo dice y sigue desde donde caiga.
+- Valida: validaciones como `validaciones-225425`, políticas como `politicas-225427`, cada pantalla
+  siguiente (servicio con su status y paso OK del socket de Bizagi) y, al cerrar, ningún 5xx/CORS/sin
+  respuesta ni `stepStatus FAIL`. Los defectos ya reportados están en `CONOCIDOS` de
+  `colsubsidio_flow/tests/e2e_test.py` y no tumban el veredicto (`PASA`, `PASA CON CONOCIDOS`, `FALLA`).
+- **Reporte:** `evidences/e2e_<producto>_<numero>_<fecha>/reporte.html` = el del observador con el bloque
+  del validador arriba (veredicto, checks por pantalla, pantallazos), más `validador.json` y `final.png`.
+- **Qué entregar:** el veredicto, los FAIL nuevos con su pantalla y **siempre la ruta absoluta completa
+  del reporte** (`C:\...\evidences\e2e_...\reporte.html`), en texto, además del archivo. Los CONOCIDO
+  solo en una línea.
+- Las pantallas después de políticas se armaron con la corrida de Cupo del 15/10 en qa y no se han
+  podido correr. El 28/10 dev ya pasa de políticas (el socket manda `VALIDATION OK`), pero
+  `informacion-personal` de Consumo muestra "Cód. error 500".
+- Con `--hasta` más allá de políticas, o si el QA pulsa Continuar a mano, la cédula queda con caso y
+  la siguiente corrida cae en retoma. Usar las libres del data provider `e2e` y revisar `/request/check`.
 
 ---
 

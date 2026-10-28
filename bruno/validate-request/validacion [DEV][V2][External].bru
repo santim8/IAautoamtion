@@ -1,0 +1,32 @@
+meta {
+  name: validacion [DEV][V2][External]
+  type: http
+  seq: 28
+}
+
+post {
+  url: https://d2b80yrnend1dj.cloudfront.net/loans/eligibility/external/v2/affiliation-validations
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "documento": {
+      "tipo": "CO1C",
+      "numero": "93129379"
+    },
+    "grupoProducto": "CONSUMO",
+    "idProducto": 1
+  }
+}
+
+settings {
+  encodeUrl: false
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

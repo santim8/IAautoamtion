@@ -1,0 +1,41 @@
+meta {
+  name: Card Validations [DEV][V2][Consumo no activa]
+  type: http
+  seq: 32
+}
+
+post {
+  url: https://d2b80yrnend1dj.cloudfront.net/loans/eligibility/external/v2/card-validations
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "documento": {
+      "tipo": "CO1C",
+      "numero": "53072541"
+    },
+    "grupoProducto": "CONSUMO",
+    "idProducto": 1
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.resultadoValidacion.estado: eq "OK"
+}
+
+docs {
+  HU 225425, hallazgo V7: ASCARD en Consumo rechaza la tarjeta no activa; la HU dice "No aplica para consumo".
+  53072541 no tiene tarjeta en el ASCARD de dev (dataTarjeta vacia).
+
+  Medido el 26/10 en dev: VALIDATION_ERROR CARD_STATUS "Tarjeta multiservicios no activa".
+  El assert pide estado OK (lo que dice la HU): mientras ASCARD rechace, falla.
+  Estado del hallazgo: por confirmar con PO.
+  Va directo a dev (d2b80yrnend1dj), sin token: la ruta external no lo pide.
+}

@@ -15,11 +15,14 @@ empaqueta PyInstaller). Aqui vive el codigo, una responsabilidad por modulo:
   alcance       que se captura: de que pestana y que requests
   red           trafico HTTP: Playwright + sesion CDP propia (CORS, cortados,
                 huerfanos, en vuelo al parar)
-  pantallazos   todos los screenshots: al entrar, diferidos, extra y por
-                respuesta de un servicio
+  pantallazos   todos los screenshots: al entrar, diferidos, extra, por
+                respuesta de un servicio y por mensaje en pantalla (rechazo
+                de SAP/ASCARD/SIIF o error que el front pinta sin cambiar
+                de ruta)
   sockets       frames del WebSocket
   complementos  lo que se suma a la captura sin tocar el nucleo (la sonda de
-                /request/check es uno)
+                /request/check, y el camino del flujo por la cookie
+                subproductSlug)
 
   analisis      lecturas sobre los pasos: fallos, cobertura, /request/check
   cierre        lo que se escribe al cerrar (SALIDAS, en orden)
@@ -32,6 +35,8 @@ empaqueta PyInstaller). Aqui vive el codigo, una responsabilidad por modulo:
 Para extender:
   - un endpoint nuevo a rastrear o con trato especial: config.py
     (ENDPOINTS_RASTREADOS, REGLAS_ENDPOINT)
+  - otra validacion cuyo rechazo pinta un mensaje: config.py
+    (VALIDACIONES_CON_MENSAJE)
   - algo que reaccione al flujo (otra sonda, otra consulta del lado del
     servidor): una subclase de complementos.Complemento, armada en
     cli.armar_complementos

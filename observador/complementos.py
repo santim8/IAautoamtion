@@ -2,8 +2,10 @@
 
 Un complemento reacciona a lo que pasa en el flujo (se abrio una pantalla,
 respondio un servicio) y puede dejar sus propios registros en la evidencia. La
-sonda de /request/check es el primero: el front llama ese endpoint desde su
-servidor, asi que el navegador nunca lo ve y hay que preguntarlo aparte.
+sonda de /request/check es uno: el front llama ese endpoint desde su servidor,
+asi que el navegador nunca lo ve y hay que preguntarlo aparte. El camino del
+flujo (Cupo o un subproducto de Consumo, por la cookie del front) es otro, y
+va siempre.
 
 Para agregar otro: una subclase de Complemento con los ganchos que necesite, y
 armarla en cli.armar_complementos. Los ganchos corren en el loop principal
@@ -11,8 +13,10 @@ armarla en cli.armar_complementos. Los ganchos corren en el loop principal
 Playwright).
 """
 import sonda_check
-from observador.config import LOGIN_GIGYA
+from observador.config import (CAMINO_SIN_COOKIE, CAMINOS, COOKIE_CAMINO,
+                               LOGIN_GIGYA, RUTAS_APP)
 from observador.endpoints import casan
+from observador.util import ruta_de
 
 
 class Complemento:
@@ -92,6 +96,42 @@ class ComplementoSonda(Complemento):
         # se espera lo que siga en vuelo y se guarda lo que respondio.
         if not obs.sin_reporte:
             self.sonda.cerrar(obs.paso_actual())
+
+
+def nombre_camino(slug):
+    if not slug:
+        return CAMINO_SIN_COOKIE
+    return CAMINOS.get(slug, "Consumo - %s (slug desconocido)" % slug)
+
+
+class ComplementoCamino(Complemento):
+    """Anota en cada pantalla de la app por que camino va el flujo (Cupo o un
+    subproducto de Consumo), leyendo la cookie del front, y avisa cuando
+    cambia. Entrando por un onboarding de Consumo, la cookie queda fijada ahi
+    y sigue en el login."""
+
+    def __init__(self):
+        self.ultimo = None
+
+    def describir(self):
+        return "Camino del flujo: cookie %s en cada pantalla" % COOKIE_CAMINO
+
+    def paso_abierto(self, obs, paso):
+        if not any(r in ruta_de(paso["url"]) for r in RUTAS_APP):
+            return
+        pagina = next((p for p, ps in obs.paso_por_pagina.items() if ps is paso), None)
+        try:
+            cookies = pagina.context.cookies(paso["url"])
+        except Exception:
+            return       # pestana cerrada, o Playwright ya cerrando
+        slug = next((c["value"] for c in cookies if c["name"] == COOKIE_CAMINO), None)
+        paso["camino"] = nombre_camino(slug)
+        paso["cookie_camino"] = slug
+        if paso["camino"] != self.ultimo:
+            print(">> Camino: %s (%s)"
+                  % (paso["camino"], "cookie %s=%s" % (COOKIE_CAMINO, slug) if slug
+                     else "sin cookie %s" % COOKIE_CAMINO))
+        self.ultimo = paso["camino"]
 
 
 def armar_sonda(request_check, documento):

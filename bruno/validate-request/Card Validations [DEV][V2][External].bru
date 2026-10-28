@@ -1,0 +1,46 @@
+meta {
+  name: Card Validations [DEV][V2][External]
+  type: http
+  seq: 33
+}
+
+post {
+  url: https://d2b80yrnend1dj.cloudfront.net/loans/eligibility/external/v2/card-validations
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "documento": {
+      "tipo": "CO1C",
+      "numero": "52335676"
+    },
+    "grupoProducto": "CONSUMO",
+    "idProducto": 1
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+settings {
+  encodeUrl: false
+  timeout: 0
+  forwardAuthorizationHeader: false
+}
+
+docs {
+  ASCARD (card-validations) de dev, la misma ruta que llama el front en /validaciones. Sin token ni x-api-key.
+
+  Body: documento + grupoProducto (CUPO | CONSUMO) + idProducto (1 Libre Inversion, 2 Compra de Cartera, 72 Mujeres; en CUPO puede ir null).
+
+  Respuesta: resultadoValidacion.estado OK o VALIDATION_ERROR; el motivo va en datosError (codigoErrorValidacion, reglaErrorValidacion).
+  Cedulas medidas el 28/10 en Consumo: 52335676 OK; 53072541 CARD_STATUS (sin tarjeta en el ASCARD de dev);
+  20156603 INVALID_REQUIREMENTS "Afiliado con cupo activo" (tarjeta amparada); 13617086 (bolsillo 31 en A) y 79584194 (R) INVALID_REQUIREMENTS.
+}
